@@ -7,3 +7,4 @@ def run():
     choice = input("select: ")
     
     if choice == "1": print("TODO: Add")
+    a = float(input("a: "))
