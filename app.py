@@ -19,7 +19,7 @@ def main():
 
     if option == "2": print(sub(a, b))
     if option == "3": print(mul(a, b))
-    if option == "4" and b == 0: print("Error: division by zero")
+    if option == "4" and b == 0: print(ERR_DIV_ZERO)
     if option == "4" and b != 0: print(div(a, b))
 
 if __name__ == "__main__":
