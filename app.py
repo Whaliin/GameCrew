@@ -15,14 +15,14 @@ def main():
     # Note: simple input parsing; consider try/except for robust handling.
     a = float(input("a: "))    
     b = float(input("b: "))
-    if option == "1": print(add(f"{add(a, b):.2f}"))
-    if option == "2": print(sub(a, b))
-    if option == "3": print(mul(a, b))
+    if option == "1": print(f"{add(a, b):.2f}")
+    if option == "2": print(f"{sub(a, b):.2f}")
+    if option == "3": print(f"{mul(a, b):.2f}")
     if option == "4":
         if b == 0:
             print(ERR_DIV_ZERO)
         else:
-            print(div(a, b))
+            print(f"{div(a, b):.2f}")
     else: 
         print("Unknown option")
 
