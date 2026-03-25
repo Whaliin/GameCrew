@@ -4,7 +4,7 @@ from calculator import add, sub, mul, div
 # simple console calculator
 
 def main():
-    """Console calculator entry point."""
+    """Starts interactive console flow."""
     print("1) Add")
     print("2) Subtract")
     print("3) Multiply")
