@@ -6,4 +6,6 @@ def run():
     print("0) Exit")
     choice = input("select: ")
     
-    if choice == "1": print("TODO: Add")
+    if choice == "1": 
+        
+        b =float(input("b: "))
