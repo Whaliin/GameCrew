@@ -16,9 +16,9 @@ def main():
     a = float(input("a: "))    
     b = float(input("b: "))
     if option == "1": print(f"{add(a, b):.2f}")
-    if option == "2": print(f"{sub(a, b):.2f}")
-    if option == "3": print(f"{mul(a, b):.2f}")
-    if option == "4":
+    elif option == "2": print(f"{sub(a, b):.2f}")
+    elif option == "3": print(f"{mul(a, b):.2f}")
+    elif option == "4":
         if b == 0:
             print(ERR_DIV_ZERO)
         else:
@@ -27,4 +27,4 @@ def main():
         print("Unknown option")
 
 if __name__ == "__main__":
-    main()
+    main() 
