@@ -5,7 +5,11 @@ from calculator import add, sub, mul, div
 
 def main():
     """Console calculator entry point."""
-    print("1) Add\n2) Subtract\n3) Multiply\n4) Divide\n0) Exit program")
+    print("1) Add")
+    print("2) Subtract")
+    print("3) Multiply")
+    print("4) Divide")
+    print("0) Quit")
     option = input("select: ")
     
     if option == "1": 
