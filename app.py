@@ -3,4 +3,4 @@ def run():
     print("2) Subtract")
     print("3) Multiply")
     print("0) Exit")
-    choice = input("Your choice: ")
+    choice = input("select: ")
