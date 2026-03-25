@@ -4,3 +4,5 @@ def run():
     print("3) Multiply")
     print("0) Exit")
     choice = input("select: ")
+    
+    if choice == "1": print("TODO: Add")
