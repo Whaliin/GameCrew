@@ -1,5 +1,8 @@
+ERR_DIV_ZERO = "Error: division by zero"
+
 from calculator import add, sub, mul, div
 # simple console calculator
+
 def main():
     """Console calculator entry point."""
     print("1) Add\n2) Subtract\n3) Multiply\n4) Divide\n0) Exit program")
