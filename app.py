@@ -5,3 +5,5 @@ def run():
     print("4) divide")
     print("0) Exit")
     choice = input("select: ")
+    
+    if choice == "1": print("TODO: Add")
