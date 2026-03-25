@@ -5,6 +5,7 @@ from calculator import add, sub, mul, div
 
 def main():
     """Starts interactive console flow."""
+    # Menu options; extend as feature grow
     print("1) Add")
     print("2) Subtract")
     print("3) Multiply")
