@@ -21,6 +21,8 @@ def main():
     if option == "3": print(mul(a, b))
     if option == "4" and b == 0: print(ERR_DIV_ZERO)
     if option == "4" and b != 0: print(div(a, b))
+    else: 
+        print("Unknown option")
 
 if __name__ == "__main__":
     main()
