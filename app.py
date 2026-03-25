@@ -9,9 +9,9 @@ def main():
     print("0) Quit")
     option = input("Select: ").strip()
     
+    a = float(input("a: "))    
+    b = float(input("b: "))
     if option == "1": 
-        a = float(input("a: "))    
-        b =float(input("b: "))
         print(add(a,b))
 
     if option == "2": print(sub(a, b))
