@@ -9,5 +9,6 @@ def run():
     if choice == "1": 
         a = float(input("a: "))    
         b =float(input("b: "))
+        print(add(a,b))
 
     
