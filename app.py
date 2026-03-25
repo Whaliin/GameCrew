@@ -19,6 +19,10 @@ def main():
     print("4) Divide")
     print("0) Quit")
     option = input("Select: ").strip()
+
+    if option == "0":
+        print("Goodbye!")
+        return
     
     # Note: simple input parsing; consider try/except for robust handling.
     a = get_float("a: ")
