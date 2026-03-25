@@ -10,7 +10,8 @@ def main():
     print("3) Multiply")
     print("4) Divide")
     print("0) Quit")
-    option = input("select: ")
+    option = input("Select: ").strip()
+    
     a = float(input("a: "))    
     b = float(input("b: "))
     if option == "1": 
