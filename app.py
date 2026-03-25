@@ -15,7 +15,7 @@ def main():
     # Note: simple input parsing; consider try/except for robust handling.
     a = float(input("a: "))    
     b = float(input("b: "))
-    if option == "1": print(add(a,b))
+    if option == "1": print(add(f"{add(a, b):.2f}"))
     if option == "2": print(sub(a, b))
     if option == "3": print(mul(a, b))
     if option == "4":
