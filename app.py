@@ -1,6 +1,7 @@
 from calculator import add, sub, mul, div
 
 def run():
+    """Console calculator entry point."""
     print("1) Add") 
     print("2) Subtract")
     print("3) Multiply")
