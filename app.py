@@ -12,6 +12,7 @@ def main():
     print("0) Quit")
     option = input("Select: ").strip()
     
+    # Note: simple input parsing; consider try/except for robust handling.
     a = float(input("a: "))    
     b = float(input("b: "))
     if option == "1": 
