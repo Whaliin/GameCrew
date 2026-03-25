@@ -7,7 +7,7 @@ def main():
     print("3) Multiply")
     print("4) divide")
     print("0) Exit")
-    choice = input("select: ")
+    option = input("select: ")
     
     if choice == "1": 
         a = float(input("a: "))    
