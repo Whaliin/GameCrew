@@ -16,8 +16,8 @@ def main():
     a = float(input("a: "))    
     b = float(input("b: "))
     if option == "1": 
-        print(add(a,b))
-
+        print(add(f"{add(a, b):.2f}"))
+    
     if option == "2": print(sub(a, b))
     if option == "3": print(mul(a, b))
     if option == "4" and b == 0: print(ERR_DIV_ZERO)
