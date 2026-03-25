@@ -7,5 +7,7 @@ def run():
     choice = input("select: ")
     
     if choice == "1": 
-        
+        a = float(input("a: "))    
         b =float(input("b: "))
+
+    
