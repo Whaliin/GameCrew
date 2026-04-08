@@ -1,3 +1,7 @@
+# ---- GameCrew ----
+# Ignore the database file
+gamecrew.db
+
 # ---- Windows ----
 # Windows thumbnail cache files
 Thumbs.db

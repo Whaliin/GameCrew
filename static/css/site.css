@@ -1,0 +1,23 @@
+body {
+    margin: 0;
+    font-family: Segoe UI, sans-serif;
+    background: #f3f6f8;
+    color: #1f2933;
+}
+
+header {
+    background: #1f2933;
+    color: #fff;
+    padding: 1rem 1.5rem;
+}
+
+main {
+    padding: 1.5rem;
+}
+
+section {
+    background: #fff;
+    border: 1px solid #d9e2ec;
+    border-radius: 8px;
+    padding: 1rem;
+}
