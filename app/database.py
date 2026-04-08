@@ -11,14 +11,14 @@ Base = declarative_base()
 
 
 def get_db() -> Generator[Session, None, None]:
-    """Yield a database session for dependency injection."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+	"""Yield a database session for dependency injection."""
+	db = SessionLocal()
+	try:
+		yield db
+	finally:
+		db.close()
 
 
 def init_database_stub() -> None:
-    """Placeholder for migrations and startup database initialization."""
-    Base.metadata.create_all(bind=engine)
+	"""Placeholder for migrations and startup database initialization."""
+	Base.metadata.create_all(bind=engine)
