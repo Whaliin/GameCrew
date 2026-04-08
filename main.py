@@ -5,8 +5,8 @@ app = create_app()
 
 
 def startup_stub() -> None:
-    """Run startup-time scaffold hooks for local development."""
-    init_database_stub()
+	"""Run startup-time scaffold hooks for local development."""
+	init_database_stub()
 
 
 startup_stub()
