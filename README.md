@@ -2,14 +2,6 @@
 
 GameCrew GitHub page
 
-## Current Scope
-
-- Jinja2-rendered page routes
-- Router split by domain (`pages`, `auth`, `players`, `games`, `search`)
-- SQLite scaffold in project root (`gamecrew.db`)
-- SQLAlchemy model and schema placeholders
-- API routes that intentionally return HTTP 501 TODO responses
-
 ## Project Structure
 
 ```text
@@ -53,7 +45,7 @@ GameCrew/
 - `app/routers/search.py`: Per-game player search endpoints only.
 - `templates/`: Server-rendered HTML templates. Add new page templates here.
 - `static/`: Frontend assets such as CSS/JS/images used by templates.
-- `tests/`: Automated tests for routes, responses, and future business logic.
+- `tests/`: Automated tests for routes, responses, and logic.
 
 ### Feature Placement Guide
 
@@ -64,14 +56,13 @@ When adding a new feature, follow this sequence:
 3. Add endpoint handlers in the correct router under `app/routers/`.
 4. If the feature is page-based, add/update templates in `templates/` and static assets in `static/`.
 5. Register new router modules in `app/__init__.py` if you create a new router file.
-6. Add tests in `tests/` covering happy path and expected error responses.
+6. Add tests in `tests/`.
 
 ### Domain Routing Conventions
 
 - API endpoints should stay under `/api/...`.
 - Page routes should remain non-API routes (for example `/` and `/game/{game_slug}`).
-- Search stays per-game in first implementation scope (for example `/api/search/games/{game_slug}/players`).
-- Global search should not be added until requirements explicitly include it.
+- Search stays per-game (for example `/api/search/games/{game_slug}/players`).
 
 ## Local Setup (Windows + macOS)
 
@@ -118,25 +109,3 @@ uvicorn main:app --reload
 ```powershell
 pytest -q
 ```
-
-The `tests/` folder contains starter examples for page rendering and stub API behavior.
-
-## Stub Endpoint Examples
-
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/players/{username}`
-- `GET /api/players/{username}/stats/{game_slug}`
-- `GET /api/games/`
-- `GET /api/games/{game_slug}`
-- `GET /api/search/games/{game_slug}/players?q=query`
-
-All API endpoints above currently return HTTP 501 with a TODO detail message.
-
-## Notes For Next Implementation Pass
-
-- Keep per-game search as the first real search implementation.
-- Keep global search out of scope until requirements include it.
-- Add session-backed auth implementation under `app/routers/auth.py`.
-- Add repository/service layers as persistence logic grows.
