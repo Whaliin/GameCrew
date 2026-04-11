@@ -13,12 +13,21 @@ def test_home_page_renders_stub_template() -> None:
 	assert "Skeleton Ready" in response.text
 
 
-def test_auth_register_stub_returns_501() -> None:
-	"""Example test: API stubs should be explicit not-implemented handlers."""
-	response = client.post("/api/auth/register")
+def test_auth_register_get_returns_200() -> None:
+	"""Auth register route is fully implemented and returns the registration form."""
+	response = client.get("/register")
 
-	assert response.status_code == 501
-	assert response.json()["detail"].startswith("TODO:")
+	assert response.status_code == 200
+	assert "register" in response.text.lower() or "username" in response.text.lower()
+
+
+
+# def test_auth_register_stub_returns_501() -> None:
+#	"""Example test: API stubs should be explicit not-implemented handlers."""
+#	response = client.post("/api/auth/register")
+#
+#	assert response.status_code == 501
+#	assert response.json()["detail"].startswith("TODO:")
 
 
 def test_search_scope_stub_per_game_only() -> None:
