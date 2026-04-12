@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GC – Gaming Community</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ══ PAGE: HEM ══ -->
+<div id="page-hem" class="page active">
+<div class="wrapper">
+
+  <nav>
+    <a class="logo" onclick="goHome()">GC</a>
+    <div class="nav-games">
+      <button class="nav-btn" onclick="goGame('cs2')"      title="CS2"><img src="https://images-ext-1.discordapp.net/external/V4jwDjRPxeE2YSSj_CWyFrDim-6i5gHewnIVTyH5__c/%3Fv%3D6/https/media.steampowered.com/apps/csgo/blog/images/fb_image.png?format=webp&quality=lossless&width=2400&height=1206" alt="CS2"/></button>
+      <button class="nav-btn" onclick="goGame('lol')"      title="League of Legends"><img src="https://cmsassets.rgpub.io/sanity/images/dsfx7636/news/565197caf987af4e4da307df6e2b235a28714736-837x469.jpg?accountingTag=LoL" alt="LoL"/></button>
+      <button class="nav-btn" onclick="goGame('valorant')" title="Valorant"><img src="https://images-ext-1.discordapp.net/external/FVi7CTfYl-A9iMTrCFE76KSjSY_IEDA-qucz2txhD70/https/i.pcmag.com/imagery/reviews/05mFypQIoSDkooz9qdATJ54-1..v1586539963.png?format=webp&quality=lossless&width=2208&height=1242" alt="Valorant"/></button>
+      <button class="nav-btn" onclick="goGame('arc')"      title="ARC Raiders"><img src="https://www.exitlag.com/blog/wp-content/uploads/2025/01/MLBB_-everything-you-need-to-know-about-heroes-and-gameplay.webp" alt="ARC"/></button>
+      <button class="nav-btn" onclick="goGame('mobile')"   title="Mobile Legends"><img src="https://static.wikia.nocookie.net/arc-raiders/images/a/a0/Logo.webp/revision/latest?cb=20251105003659" alt="Mobile"/></button>
+    </div>
+    <div class="user-area">
+      <div>
+        <div class="user-name">Eren Alhussein</div>
+        <div class="user-tag">#Eren9s</div>
+      </div>
+      <div class="user-avatar"><img src="https://tr.rbxcdn.com/180DAY-c61af60472ca1c4a27e7d9f819cce3de/420/420/FaceAccessory/Webp/noFilter" alt="avatar"/></div>
+    </div>
+  </nav>
+
+  <main>
+
+    <section>
+      <h2>Dina mest spelade</h2>
+      <div class="game-row">
+        <div class="game-card">
+          <button class="game-btn" onclick="goGame('cs2')"><img src="https://images-ext-1.discordapp.net/external/V4jwDjRPxeE2YSSj_CWyFrDim-6i5gHewnIVTyH5__c/%3Fv%3D6/https/media.steampowered.com/apps/csgo/blog/images/fb_image.png?format=webp&quality=lossless&width=1832&height=920" alt="CS2"/></button>
+          <span class="game-label">CS2</span>
+          <span class="game-stat">1 240 h</span>
+        </div>
+        <div class="game-card">
+          <button class="game-btn" onclick="goGame('lol')"><img src="https://images-ext-1.discordapp.net/external/Us9ch1DD_2tLtS9_QA1yCvMs81xG0SVLcmpA_z5vd-Q/%3FaccountingTag%3DLoL/https/cmsassets.rgpub.io/sanity/images/dsfx7636/news/565197caf987af4e4da307df6e2b235a28714736-837x469.jpg?format=webp&width=1674&height=938" alt="LoL"/></button>
+          <span class="game-label">League of Legends</span>
+          <span class="game-stat">870 h</span>
+        </div>
+        <div class="game-card">
+          <button class="game-btn" onclick="goGame('valorant')"><img src="https://i.pcmag.com/imagery/reviews/05mFypQIoSDkooz9qdATJ54-1..v1586539963.png" alt="Valorant"/></button>
+          <span class="game-label">Valorant</span>
+          <span class="game-stat">530 h</span>
+        </div>
+        <div class="game-card">
+          <button class="game-btn" onclick="goGame('arc')"><img src="https://static.wikia.nocookie.net/arc-raiders/images/a/a0/Logo.webp/revision/latest?cb=20251105003659" alt="ARC"/></button>
+          <span class="game-label">ARC Raiders</span>
+          <span class="game-stat">210 h</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Folk i din ålder spelar</h2>
+      <div class="game-row">
+        <div class="game-card">
+          <button class="game-btn" onclick="goGame('cs2')"><img src="https://media.steampowered.com/apps/csgo/blog/images/fb_image.png?v=6" alt="CS2"/></button>
+          <span class="game-label">CS2</span>
+          <span class="game-stat">999+</span>
+        </div>
+        <div class="game-card">
+          <button class="game-btn" onclick="goGame('arc')"><img src="https://static.wikia.nocookie.net/arc-raiders/images/a/a0/Logo.webp/revision/latest?cb=20251105003659" alt="ARC"/></button>
+          <span class="game-label">ARC Raiders</span>
+          <span class="game-stat">700+</span>
+        </div>
+        <div class="game-card">
+          <button class="game-btn" onclick="goGame('lol')"><img src="https://images-ext-1.discordapp.net/external/Us9ch1DD_2tLtS9_QA1yCvMs81xG0SVLcmpA_z5vd-Q/%3FaccountingTag%3DLoL/https/cmsassets.rgpub.io/sanity/images/dsfx7636/news/565197caf987af4e4da307df6e2b235a28714736-837x469.jpg?format=webp&width=1674&height=938" alt="LoL"/></button>
+          <span class="game-label">League of Legends</span>
+          <span class="game-stat">420+</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Trendar just nu</h2>
+      <div class="game-row">
+        <div class="game-card">
+          <div class="badge-wrap">
+            <button class="game-btn" onclick="goGame('valorant')"><img src="https://i.pcmag.com/imagery/reviews/05mFypQIoSDkooz9qdATJ54-1..v1586539963.png" alt="Valorant"/></button>
+            <span class="badge">#1</span>
+          </div>
+          <span class="game-label">Valorant</span>
+        </div>
+        <div class="game-card">
+          <div class="badge-wrap">
+            <button class="game-btn" onclick="goGame('lol')"><img src="https://images-ext-1.discordapp.net/external/Us9ch1DD_2tLtS9_QA1yCvMs81xG0SVLcmpA_z5vd-Q/%3FaccountingTag%3DLoL/https/cmsassets.rgpub.io/sanity/images/dsfx7636/news/565197caf987af4e4da307df6e2b235a28714736-837x469.jpg?format=webp&width=1674&height=938" alt="LoL"/></button>
+            <span class="badge">#2</span>
+          </div>
+          <span class="game-label">League of Legends</span>
+        </div>
+        <div class="game-card">
+          <div class="badge-wrap">
+            <button class="game-btn" onclick="goGame('mobile')"><img src="https://www.exitlag.com/blog/wp-content/uploads/2025/01/MLBB_-everything-you-need-to-know-about-heroes-and-gameplay.webp" alt="Mobile"/></button>
+            <span class="badge">#3</span>
+          </div>
+          <span class="game-label">Mobile Legends</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+</div>
+
+<!-- ══ PAGE: SPEL ══ -->
+<div id="page-spel" class="page">
+<div class="wrapper">
+
+  <nav>
+    <a class="logo" onclick="goHome()">GC</a>
+    <div class="nav-games" id="spel-nav">
+      <button class="nav-btn" onclick="goGame('cs2')"      title="CS2"><img src="https://images-ext-1.discordapp.net/external/V4jwDjRPxeE2YSSj_CWyFrDim-6i5gHewnIVTyH5__c/%3Fv%3D6/https/media.steampowered.com/apps/csgo/blog/images/fb_image.png?format=webp&quality=lossless&width=2400&height=1206" alt="CS2"/></button>
+      <button class="nav-btn" onclick="goGame('lol')"      title="League of Legends"><img src="https://cmsassets.rgpub.io/sanity/images/dsfx7636/news/565197caf987af4e4da307df6e2b235a28714736-837x469.jpg?accountingTag=LoL" alt="LoL"/></button>
+      <button class="nav-btn" onclick="goGame('valorant')" title="Valorant"><img src="https://images-ext-1.discordapp.net/external/FVi7CTfYl-A9iMTrCFE76KSjSY_IEDA-qucz2txhD70/https/i.pcmag.com/imagery/reviews/05mFypQIoSDkooz9qdATJ54-1..v1586539963.png?format=webp&quality=lossless&width=2208&height=1242" alt="Valorant"/></button>
+      <button class="nav-btn" onclick="goGame('arc')"      title="ARC Raiders"><img src="https://www.exitlag.com/blog/wp-content/uploads/2025/01/MLBB_-everything-you-need-to-know-about-heroes-and-gameplay.webp" alt="ARC"/></button>
+      <button class="nav-btn" onclick="goGame('mobile')"   title="Mobile Legends"><img src="https://static.wikia.nocookie.net/arc-raiders/images/a/a0/Logo.webp/revision/latest?cb=20251105003659" alt="Mobile"/></button>
+    </div>
+    <div class="user-area">
+      <div>
+        <div class="user-name">Eren Alhussein</div>
+        <div class="user-tag">#Eren9s</div>
+      </div>
+      <div class="user-avatar"><img src="https://tr.rbxcdn.com/180DAY-c61af60472ca1c4a27e7d9f819cce3de/420/420/FaceAccessory/Webp/noFilter" alt="avatar"/></div>
+    </div>
+  </nav>
+
+  <div class="spel-layout">
+
+    <div>
+      <button class="back-btn" onclick="goHome()">← Tillbaka</button>
+      <div class="spel-title">
+        <img id="spel-img" src="" alt=""/>
+        <span id="spel-namn"></span>
+      </div>
+      <div class="players-grid">
+        <div class="player-card">
+          <div class="p-top">
+            <img class="p-avatar" src="https://tr.rbxcdn.com/180DAY-2da16bf954be24dc43b0c69353412d96/420/420/Hat/Webp/noFilter" alt=""/>
+            <div><div class="p-name">Spelare 1</div><div class="p-tag">#tag001</div><div class="p-rank">Global Elite</div></div>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="p-top">
+            <img class="p-avatar" src="https://wallpapers-clan.com/wp-content/uploads/2022/07/anime-default-pfp-5.jpg" alt=""/>
+            <div><div class="p-name">Spelare 2</div><div class="p-tag">#tag002</div><div class="p-rank">Supreme</div></div>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="p-top">
+            <img class="p-avatar" src="https://substackcdn.com/image/fetch/$s_!VeKj!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fbucketeer-e05bbc84-baa3-437e-9518-adb32be77984.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1304fe5-981b-4744-928e-29ca0f311e8d_400x400.jpeg" alt=""/>
+            <div><div class="p-name">Spelare 3</div><div class="p-tag">#tag003</div><div class="p-rank">LEM</div></div>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="p-top">
+            <img class="p-avatar" src="https://meet.ribblr.com/uploads/default/original/4X/7/d/c/7dc637011215dc81dcaa6ee12ee81de6fc0991b6.jpeg" alt=""/>
+            <div><div class="p-name">Spelare 4</div><div class="p-tag">#tag004</div><div class="p-rank">Eagle</div></div>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="p-top">
+            <img class="p-avatar" src="https://tr.rbxcdn.com/180DAY-c61af60472ca1c4a27e7d9f819cce3de/420/420/FaceAccessory/Webp/noFilter" alt=""/>
+            <div><div class="p-name">Spelare 5</div><div class="p-tag">#tag005</div><div class="p-rank">MG2</div></div>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="p-top">
+            <img class="p-avatar" src="https://tr.rbxcdn.com/180DAY-c61af60472ca1c4a27e7d9f819cce3de/420/420/FaceAccessory/Webp/noFilter" alt=""/>
+            <div><div class="p-name">Spelare 6</div><div class="p-tag">#tag006</div><div class="p-rank">Gold Nova III</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-panel">
+      <h3>// Filter</h3>
+      <div class="filter-group">
+        <label>Ålder</label>
+        <div class="filter-options">
+          <button class="filter-btn">Under 18</button>
+          <button class="filter-btn">18–25</button>
+          <button class="filter-btn">26–35</button>
+          <button class="filter-btn">35+</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Rank</label>
+        <div class="filter-options">
+          <button class="filter-btn">Nybörjare</button>
+          <button class="filter-btn">Silver</button>
+          <button class="filter-btn">Gold</button>
+          <button class="filter-btn">Platinum</button>
+          <button class="filter-btn">Pro</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Speltid</label>
+        <div class="filter-options">
+          <button class="filter-btn">Morgon</button>
+          <button class="filter-btn">Dag</button>
+          <button class="filter-btn">Kväll</button>
+          <button class="filter-btn">Natt</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Plattform</label>
+        <div class="filter-options">
+          <button class="filter-btn">PC</button>
+          <button class="filter-btn">Konsol</button>
+          <button class="filter-btn">Mobil</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Språk</label>
+        <div class="filter-options">
+          <button class="filter-btn">Svenska</button>
+          <button class="filter-btn">Engelska</button>
+          <button class="filter-btn">Arabiska</button>
+          <button class="filter-btn">Tyska</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>1
