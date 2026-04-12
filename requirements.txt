@@ -5,3 +5,7 @@ sqlalchemy
 pydantic
 pytest
 httpx
+passlib[bcrypt]
+python-multipart
+bcrypt==4.2.1
+hypothesis

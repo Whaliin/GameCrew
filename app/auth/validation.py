@@ -2,7 +2,7 @@ import re
 
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_]+$')
 
-# Check that username is in the system
+
 def validate_username(username: str) -> str | None:
     """Return an error string if username is invalid, or None if valid.
 
@@ -14,7 +14,7 @@ def validate_username(username: str) -> str | None:
         return "Username must be 3–50 characters and contain only letters, numbers, or underscores."
     return None
 
-# checks that password is valid for the username
+
 def validate_password(password: str) -> str | None:
     """Return an error string if password is invalid, or None if valid.
 
