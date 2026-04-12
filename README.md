@@ -107,5 +107,5 @@ uvicorn main:app --reload
 ## Run Tests
 
 ```powershell
-pytest -q
+python -m pytest -q
 ```
