@@ -1,18 +1,15 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="sv">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ title or "GameCrew" }}</title>
-    <link rel="stylesheet" href="/static/css/site.css">
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>GC – Gaming Community</title>
+	<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap"
+		rel="stylesheet" />
+	<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <header>
-        <h1>GameCrew</h1>
-        <p>Social hub for finding players by game.</p>
-    </header>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+	{% block content %}{% endblock %}
+	<script src="app.js"></script>
 </body>
 </html>

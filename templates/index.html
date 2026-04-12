@@ -1,9 +1,136 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section>
-    <h2>Skeleton Ready</h2>
-    <p>This is a starter page rendered with Jinja2.</p>
-    <p>Use game routes like <code>/game/counterstrike</code> for per-game pages.</p>
-</section>
+<div id="page-hem" class="page active">
+	<div class="wrapper">
+
+		<nav>
+			<a class="logo" onclick="goHome()">GC</a>
+			<div class="nav-games">
+				<button class="nav-btn" onclick="goGame('cs2')" title="CS2"><img
+						src="https://images-ext-1.discordapp.net/external/V4jwDjRPxeE2YSSj_CWyFrDim-6i5gHewnIVTyH5__c/%3Fv%3D6/https/media.steampowered.com/apps/csgo/blog/images/fb_image.png?format=webp&quality=lossless&width=2400&height=1206"
+						alt="CS2" /></button>
+				<button class="nav-btn" onclick="goGame('lol')" title="League of Legends"><img
+						src="https://cmsassets.rgpub.io/sanity/images/dsfx7636/news/565197caf987af4e4da307df6e2b235a28714736-837x469.jpg?accountingTag=LoL"
+						alt="LoL" /></button>
+				<button class="nav-btn" onclick="goGame('valorant')" title="Valorant"><img
+						src="https://images-ext-1.discordapp.net/external/FVi7CTfYl-A9iMTrCFE76KSjSY_IEDA-qucz2txhD70/https/i.pcmag.com/imagery/reviews/05mFypQIoSDkooz9qdATJ54-1..v1586539963.png?format=webp&quality=lossless&width=2208&height=1242"
+						alt="Valorant" /></button>
+				<button class="nav-btn" onclick="goGame('arc')" title="ARC Raiders"><img
+						src="https://www.exitlag.com/blog/wp-content/uploads/2025/01/MLBB_-everything-you-need-to-know-about-heroes-and-gameplay.webp"
+						alt="ARC" /></button>
+				<button class="nav-btn" onclick="goGame('mobile')" title="Mobile Legends"><img
+						src="https://static.wikia.nocookie.net/arc-raiders/images/a/a0/Logo.webp/revision/latest?cb=20251105003659"
+						alt="Mobile" /></button>
+			</div>
+			<div class="user-area">
+				<div>
+					<div class="user-name">Eren Alhussein</div>
+					<div class="user-tag">#Eren9s</div>
+				</div>
+				<div class="user-avatar"><img
+						src="https://tr.rbxcdn.com/180DAY-c61af60472ca1c4a27e7d9f819cce3de/420/420/FaceAccessory/Webp/noFilter"
+						alt="avatar" /></div>
+			</div>
+		</nav>
+
+		<main>
+
+			<section>
+				<h2>Dina mest spelade</h2>
+				<div class="game-row">
+					<div class="game-card">
+						<button class="game-btn" onclick="goGame('cs2')"><img
+								src="https://images-ext-1.discordapp.net/external/V4jwDjRPxeE2YSSj_CWyFrDim-6i5gHewnIVTyH5__c/%3Fv%3D6/https/media.steampowered.com/apps/csgo/blog/images/fb_image.png?format=webp&quality=lossless&width=1832&height=920"
+								alt="CS2" /></button>
+						<span class="game-label">CS2</span>
+						<span class="game-stat">1 240 h</span>
+					</div>
+					<div class="game-card">
+						<button class="game-btn" onclick="goGame('lol')"><img
+								src="https://images-ext-1.discordapp.net/external/Us9ch1DD_2tLtS9_QA1yCvMs81xG0SVLcmpA_z5vd-Q/%3FaccountingTag%3DLoL/https/cmsassets.rgpub.io/sanity/images/dsfx7636/news/565197caf987af4e4da307df6e2b235a28714736-837x469.jpg?format=webp&width=1674&height=938"
+								alt="LoL" /></button>
+						<span class="game-label">League of Legends</span>
+						<span class="game-stat">870 h</span>
+					</div>
+					<div class="game-card">
+						<button class="game-btn" onclick="goGame('valorant')"><img
+								src="https://i.pcmag.com/imagery/reviews/05mFypQIoSDkooz9qdATJ54-1..v1586539963.png"
+								alt="Valorant" /></button>
+						<span class="game-label">Valorant</span>
+						<span class="game-stat">530 h</span>
+					</div>
+					<div class="game-card">
+						<button class="game-btn" onclick="goGame('arc')"><img
+								src="https://static.wikia.nocookie.net/arc-raiders/images/a/a0/Logo.webp/revision/latest?cb=20251105003659"
+								alt="ARC" /></button>
+						<span class="game-label">ARC Raiders</span>
+						<span class="game-stat">210 h</span>
+					</div>
+				</div>
+			</section>
+
+			<section>
+				<h2>Folk i din ålder spelar</h2>
+				<div class="game-row">
+					<div class="game-card">
+						<button class="game-btn" onclick="goGame('cs2')"><img
+								src="https://media.steampowered.com/apps/csgo/blog/images/fb_image.png?v=6"
+								alt="CS2" /></button>
+						<span class="game-label">CS2</span>
+						<span class="game-stat">999+</span>
+					</div>
+					<div class="game-card">
+						<button class="game-btn" onclick="goGame('arc')"><img
+								src="https://static.wikia.nocookie.net/arc-raiders/images/a/a0/Logo.webp/revision/latest?cb=20251105003659"
+								alt="ARC" /></button>
+						<span class="game-label">ARC Raiders</span>
+						<span class="game-stat">700+</span>
+					</div>
+					<div class="game-card">
+						<button class="game-btn" onclick="goGame('lol')"><img
+								src="https://images-ext-1.discordapp.net/external/Us9ch1DD_2tLtS9_QA1yCvMs81xG0SVLcmpA_z5vd-Q/%3FaccountingTag%3DLoL/https/cmsassets.rgpub.io/sanity/images/dsfx7636/news/565197caf987af4e4da307df6e2b235a28714736-837x469.jpg?format=webp&width=1674&height=938"
+								alt="LoL" /></button>
+						<span class="game-label">League of Legends</span>
+						<span class="game-stat">420+</span>
+					</div>
+				</div>
+			</section>
+
+			<section>
+				<h2>Trendar just nu</h2>
+				<div class="game-row">
+					<div class="game-card">
+						<div class="badge-wrap">
+							<button class="game-btn" onclick="goGame('valorant')"><img
+									src="https://i.pcmag.com/imagery/reviews/05mFypQIoSDkooz9qdATJ54-1..v1586539963.png"
+									alt="Valorant" /></button>
+							<span class="badge">#1</span>
+						</div>
+						<span class="game-label">Valorant</span>
+					</div>
+					<div class="game-card">
+						<div class="badge-wrap">
+							<button class="game-btn" onclick="goGame('lol')"><img
+									src="https://images-ext-1.discordapp.net/external/Us9ch1DD_2tLtS9_QA1yCvMs81xG0SVLcmpA_z5vd-Q/%3FaccountingTag%3DLoL/https/cmsassets.rgpub.io/sanity/images/dsfx7636/news/565197caf987af4e4da307df6e2b235a28714736-837x469.jpg?format=webp&width=1674&height=938"
+									alt="LoL" /></button>
+							<span class="badge">#2</span>
+						</div>
+						<span class="game-label">League of Legends</span>
+					</div>
+					<div class="game-card">
+						<div class="badge-wrap">
+							<button class="game-btn" onclick="goGame('mobile')"><img
+									src="https://www.exitlag.com/blog/wp-content/uploads/2025/01/MLBB_-everything-you-need-to-know-about-heroes-and-gameplay.webp"
+									alt="Mobile" /></button>
+							<span class="badge">#3</span>
+						</div>
+						<span class="game-label">Mobile Legends</span>
+					</div>
+				</div>
+			</section>
+
+		</main>
+	</div>
+</div>
 {% endblock %}
