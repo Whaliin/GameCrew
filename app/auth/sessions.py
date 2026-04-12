@@ -22,6 +22,7 @@ def delete_session(session_id: str) -> None:
     """Remove a session from the store."""
     _sessions.pop(session_id, None)
 
+
 def get_current_user(request: Request) -> dict:
     """FastAPI dependency — reads session_id cookie, looks up session.
     Raises RedirectResponse to /login if unauthenticated."""
