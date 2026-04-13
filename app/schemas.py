@@ -13,8 +13,3 @@ class PlayerProfileStub(BaseModel):
 class GameStub(BaseModel):
 	slug: str
 	display_name: str
-
-
-def get_schema_version_stub() -> str:
-	"""Return a placeholder schema version string."""
-	return "v0-stub"
