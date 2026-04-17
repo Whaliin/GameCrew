@@ -1,3 +1,4 @@
+from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -6,7 +7,7 @@ router = APIRouter(tags=["pages"])
 templates = Jinja2Templates(directory="templates")
 
 
-def build_page_context_stub(page_name: str) -> dict[str, str]:
+def build_page_context_stub(page_name: str) -> dict[str, Any]:
 	"""Build common page context values for future template expansion."""
 	return {"app_name": "GameCrew", "page_name": page_name}
 
@@ -14,6 +15,30 @@ def build_page_context_stub(page_name: str) -> dict[str, str]:
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request):
 	context = build_page_context_stub("home")
+
+	profile = {
+		"username": "Eren9s",
+		"user_tag": "#Eren9s",
+		"avatar_url": "/static/img/profiles/default.jpg"
+	}
+
+	# Add example game data for template testing.
+	context["played_games"] = [
+		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/csgo.jpg", "hours_played": 123},
+		{"name": "League of Legends", "slug": "lol", "image_url": "/static/img/games/lol.jpg", "hours_played": 999},
+		{"name": "Valorant", "slug": "valorant", "image_url": "/static/img/games/valorant.jpg", "hours_played": 456},
+	]
+	context["agegroup_games"] = [
+		{"name": "ARC Raiders", "slug": "arcraiders", "image_url": "/static/img/games/arcraiders.jpg", "players": 5000},
+		{"name": "Mobile Legends", "slug": "mobilelegends", "image_url": "/static/img/games/mobilelegends.jpg", "players": 10000},
+	]
+	context["trending_games"] = [
+		{"name": "Apex Legends", "slug": "apex", "image_url": "/static/img/games/apexlegends.jpg"},
+		{"name": "Minecraft", "slug": "minecraft", "image_url": "/static/img/games/minecraft.jpg"},
+	]
+
+	context["profile"] = profile
+
 	return templates.TemplateResponse(request=request, name="index.html", context=context)
 
 
@@ -24,3 +49,11 @@ def game_page(request: Request, game_slug: str):
 	context["game_slug"] = game_slug
 
 	return templates.TemplateResponse(request=request, name="game.html", context=context)
+
+@router.get("/profile/{user_id}", response_class=HTMLResponse)
+def profile_page(request: Request, user_id: str):
+	context = build_page_context_stub("profile")
+	
+	context["user_id"] = user_id
+
+	return templates.TemplateResponse(request=request, name="profile.html", context=context)
