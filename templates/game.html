@@ -13,7 +13,22 @@
 					<img id="spel-img" src="" alt="" />
 					<span id="spel-namn"></span>
 				</div>
+				
 				<div class="players-grid">
+					{ % for player in found_players % }
+						<div class="player-card">
+							<div class="p-top">
+								<img class="p-avatar" src="{{ player.avatar_url }}" alt="{{ player.username }} avatar" />
+								<div>
+									<div class="p-name">{{ player.username }}</div>
+									<div class="p-tag">{{ player.user_tag }}</div>
+									{ % if player.rank % }
+									<div class="p-rank">{{ player.rank }}</div>
+									{ % endif %}
+								</div>
+							</div>
+						</div>
+					{ % endfor %}
 					<div class="player-card">
 						<div class="p-top">
 							<img class="p-avatar"
