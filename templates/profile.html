@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="profile">
+    <img src="{{ player.avatar_url or '/static/img/profiles/default.jpg' }}" alt="{{ player.username }}'s avatar">
+    <h2>{{ player.username }}</h2>
+
+    {% if player.bio %}
+    <p>{{ player.bio }}</p>
+    {% endif %}
+
+    <ul>
+        {% if player.region %}<li>Region: {{ player.region }}</li>{% endif %}
+        {% if languages %}<li>Languages: {{ languages | join(", ") }}</li>{% endif %}
+        {% if player.hardware_platform %}<li>Platform: {{ player.hardware_platform }}</li>{% endif %}
+    </ul>
+
+    {% if is_own_profile %}
+    <a href="/players/{{ player.username }}/edit">Edit Profile</a>
+    <form method="post" action="/logout" style="display:inline;">
+        <button type="submit">Log out</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

@@ -11,7 +11,12 @@
 
     <label for="password">Password</label>
     <input type="password" id="password" name="password" required>
+    <small>Min 10 characters, must include uppercase, lowercase, digit, and special character.</small>
+
+    <label for="birth_year">Birth Year</label>
+    <input type="number" id="birth_year" name="birth_year" min="1900" max="2099" required>
 
     <button type="submit">Register</button>
 </form>
+<p>Already have an account? <a href="/login">Log in</a></p>
 {% endblock %}

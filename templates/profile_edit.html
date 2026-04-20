@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Edit Profile</h2>
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+<form method="post" action="/players/{{ player.username }}/edit">
+    <label for="bio">Bio</label>
+    <textarea id="bio" name="bio">{{ player.bio or "" }}</textarea>
+
+    <label for="region">Region</label>
+    <select id="region" name="region">
+        <option value="">-- Select region --</option>
+        {% for r in valid_regions %}
+        <option value="{{ r }}" {% if player.region == r %}selected{% endif %}>{{ r }}</option>
+        {% endfor %}
+    </select>
+
+    <label>Languages (up to 3)</label>
+    {% for lang in valid_languages %}
+    <label>
+        <input type="checkbox" name="languages" value="{{ lang }}"
+            {% if lang in languages %}checked{% endif %}>
+        {{ lang }}
+    </label>
+    {% endfor %}
+
+    <label for="hardware_platform">Platform</label>
+    <select id="hardware_platform" name="hardware_platform">
+        <option value="">-- Select platform --</option>
+        {% for hw in valid_hardware %}
+        <option value="{{ hw }}" {% if player.hardware_platform == hw %}selected{% endif %}>{{ hw }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Save</button>
+    <a href="/players/{{ player.username }}">Cancel</a>
+</form>
+{% endblock %}
