@@ -1,21 +1,16 @@
-from fastapi import APIRouter, Depends, Form, Request, HTTPException
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.auth.hashing import hash_password, verify_password
 from app.auth.sessions import create_session, delete_session
-from app.auth.validation import validate_password, validate_username
+from app.auth.validation import validate_birth_year, validate_password, validate_username
 from app.database import get_db
 from app.models import Player
 
 router = APIRouter(prefix="", tags=["auth"])
-
 templates = Jinja2Templates(directory="templates")
-
-# def get_auth_mode_stub() -> str:
-# 	"""Return the planned authentication mode for future implementation."""
-#	return "session"
 
 
 @router.get("/register", response_class=HTMLResponse)
@@ -28,9 +23,9 @@ def post_register(
 	request: Request,
 	username: str = Form(...),
 	password: str = Form(...),
+	birth_year: int = Form(...),
 	db: Session = Depends(get_db),
 ):
-	# Validate inputs
 	username_error = validate_username(username)
 	if username_error:
 		return templates.TemplateResponse(
@@ -43,7 +38,12 @@ def post_register(
 			request=request, name="auth/register.html", context={"error": password_error}
 		)
 
-	# Check for duplicate username
+	age_error = validate_birth_year(birth_year)
+	if age_error:
+		return templates.TemplateResponse(
+			request=request, name="auth/register.html", context={"error": age_error}
+		)
+
 	existing = db.query(Player).filter(Player.username == username).first()
 	if existing:
 		return templates.TemplateResponse(
@@ -52,9 +52,12 @@ def post_register(
 			context={"error": "That username is already taken."},
 		)
 
-	# Create player
 	try:
-		new_player = Player(username=username, password_hash=hash_password(password))
+		new_player = Player(
+			username=username,
+			password_hash=hash_password(password),
+			birth_year=birth_year,
+		)
 		db.add(new_player)
 		db.commit()
 		db.refresh(new_player)
@@ -66,7 +69,6 @@ def post_register(
 			context={"error": "Something went wrong. Please try again."},
 		)
 
-	# Create session and set cookie
 	session_id = create_session(new_player.id, new_player.username)
 	response = RedirectResponse(url=f"/players/{username}", status_code=302)
 	response.set_cookie(
@@ -78,9 +80,6 @@ def post_register(
 		max_age=86400,
 	)
 	return response
-
-# def register_stub():
-#	raise HTTPException(status_code=501, detail="TODO: implement registration flow")
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -111,9 +110,10 @@ def post_login(
 		httponly=True,
 		samesite="lax",
 		secure=False,
- 		max_age=86400,
+		max_age=86400,
 	)
 	return response
+
 
 @router.post("/logout")
 def post_logout(request: Request):
