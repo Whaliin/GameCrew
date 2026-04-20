@@ -18,7 +18,7 @@ POPULAR_NAV_GAMES: list[dict[str, str]] = [
 ]
 
 GAME_IMAGE_URLS: dict[str, str] = {
-	"cs2": "/static/img/games/csgo.jpg",
+	"cs2": "/static/img/games/cs2.jpg",
 	"lol": "/static/img/games/lol.jpg",
 	"valorant": "/static/img/games/valorant.jpg",
 	"arcraiders": "/static/img/games/arcraiders.jpg",
@@ -63,7 +63,7 @@ def build_nav_games(request: Request) -> list[dict[str, str]]:
 		{
 			"name": game["name"],
 			"slug": game["slug"],
-			"image_url": GAME_IMAGE_URLS.get(game["slug"], "/static/img/games/csgo.jpg"),
+			"image_url": GAME_IMAGE_URLS.get(game["slug"], "/static/img/games/cs2.jpg"),
 		}
 		for game in source_games
 	]
@@ -79,7 +79,7 @@ def home(request: Request):
 
 	# Add example game data for template testing.
 	context["played_games"] = [
-		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/csgo.jpg", "hours_played": 123},
+		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/cs2.jpg", "hours_played": 123},
 		{"name": "League of Legends", "slug": "lol", "image_url": "/static/img/games/lol.jpg", "hours_played": 999},
 		{"name": "Valorant", "slug": "valorant", "image_url": "/static/img/games/valorant.jpg", "hours_played": 456},
 	]
@@ -116,7 +116,7 @@ def game_page(request: Request, game_slug: str):
 	context["game"] = {
 		"game_slug": game_slug,
 		"name": game_slug.title(),
-		"image_url": GAME_IMAGE_URLS.get(game_slug, "/static/img/games/csgo.jpg"),
+		"image_url": GAME_IMAGE_URLS.get(game_slug, "/static/img/games/cs2.jpg"),
 	}
 
 	return templates.TemplateResponse(request=request, name="game.html", context=context)
@@ -140,7 +140,7 @@ def profile_page(request: Request, user_id: str):
 	}
 
 	context["nav_games"] = [
-		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/csgo.jpg"},
+		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/cs2.jpg"},
 		{"name": "League of Legends", "slug": "lol", "image_url": "/static/img/games/lol.jpg"},
 		{"name": "Valorant", "slug": "valorant", "image_url": "/static/img/games/valorant.jpg"},
 		{"name": "ARC Raiders", "slug": "arcraiders", "image_url": "/static/img/games/arcraiders.jpg"},
@@ -148,7 +148,7 @@ def profile_page(request: Request, user_id: str):
 	]
 
 	context["profile_games"] = [
-		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/csgo.jpg"},
+		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/cs2.jpg"},
 		{"name": "League of Legends", "slug": "lol", "image_url": "/static/img/games/lol.jpg"},
 		{"name": "Valorant", "slug": "valorant", "image_url": "/static/img/games/valorant.jpg"},
 		{"name": "Mobile Legends", "slug": "mobilelegends", "image_url": "/static/img/games/mobilelegends.jpg"},

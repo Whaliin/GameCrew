@@ -24,7 +24,7 @@ def get_player_profile(username: str):
 
 	# Randomly add 1-4 games to the profile for testing
 	profile["games"] = [
-		{"slug": "cs2", "image_url": "/static/img/games/csgo.jpg", "name": "Counter-Strike 2" }
+		{"slug": "cs2", "image_url": "/static/img/games/cs2.jpg", "name": "Counter-Strike 2" }
 	]
 
 	if random() < 0.75:
