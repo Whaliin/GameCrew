@@ -100,16 +100,19 @@ def game_page(request: Request, game_slug: str):
 	"""Get a game-specific page with details and player search."""
 	context = {}
 
+	# Add reusable content to context
 	context["nav_games"] = build_nav_games(request)
 	context["current_user"] = build_user_content(request)
 	context["found_players"] = []
 
-	# TODO: Insert "found_players" list based on real search results
+	# TODO: "found_players" should be populated by a search query, either we do it here or via
+	# an api call from the frontend. For now we just add some example data for testing the template.
 	context["found_players"] = [
 		{"username": "gamer123", "user_tag": "#gamer123", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Gold Nova III"},
 		{"username": "proplayer", "user_tag": "#proplayer", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Global Elite"},
 	]
 	
+	# Add game details to context for template rendering (this can be done on the backend)
 	context["game"] = {
 		"game_slug": game_slug,
 		"name": game_slug.title(),
