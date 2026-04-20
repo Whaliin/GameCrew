@@ -18,7 +18,6 @@ def get_db() -> Generator[Session, None, None]:
 	finally:
 		db.close()
 
-# TODO: replace this with proper setup (maybe use Alembic)
-def init_database_stub() -> None:
-	"""Placeholder for migrations and startup database initialization."""
+def init_database() -> None:
+	"""Initialize database tables."""
 	Base.metadata.create_all(bind=engine)

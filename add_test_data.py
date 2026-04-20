@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from app.database import SessionLocal, init_database_stub
+from app.database import SessionLocal, init_database
 from app.models import Game, Player, PlayerGameProfile
 
 
@@ -48,7 +48,7 @@ def get_or_create_player_game_profile(db, player_id: int, game_id: int, rank_lab
 
 
 def seed_test_data() -> None:
-	init_database_stub()
+	init_database()
 
 	games_to_seed = [
 		{"slug": "cs2", "display_name": "Counter-Strike 2"},

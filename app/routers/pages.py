@@ -27,12 +27,6 @@ GAME_IMAGE_URLS: dict[str, str] = {
 	"minecraft": "/static/img/games/minecraft.jpg",
 }
 
-
-def build_page_context_stub(page_name: str) -> dict[str, Any]:
-	"""Build common page context values for future template expansion."""
-	return {"app_name": "GameCrew", "page_name": page_name}
-
-
 def build_user_content(request: Request) -> dict[str, Any] | None:
 	"""Return reusable user payload that can later back API/session storage."""
 	current_user = get_optional_user(request)
@@ -49,7 +43,7 @@ def build_user_content(request: Request) -> dict[str, Any] | None:
 
 
 def build_nav_games(request: Request) -> list[dict[str, str]]:
-	"""Return stubbed favorite/popular game cards for navbar rendering."""
+	"""Return favorite/popular game cards for navbar rendering."""
 	# Map slugs to display names for easy lookup
 	games_by_slug = {game["slug"]: game["name"] for game in POPULAR_NAV_GAMES}
 	
@@ -77,7 +71,9 @@ def build_nav_games(request: Request) -> list[dict[str, str]]:
 
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request):
-	context = build_page_context_stub("home")
+	"""Get the homepage."""
+	context = {}
+
 	context["nav_games"] = build_nav_games(request)
 	context["current_user"] = build_user_content(request)
 
@@ -101,7 +97,9 @@ def home(request: Request):
 
 @router.get("/game/{game_slug}", response_class=HTMLResponse)
 def game_page(request: Request, game_slug: str):
-	context = build_page_context_stub("game")
+	"""Get a game-specific page with details and player search."""
+	context = {}
+
 	context["nav_games"] = build_nav_games(request)
 	context["current_user"] = build_user_content(request)
 	
@@ -111,9 +109,10 @@ def game_page(request: Request, game_slug: str):
 
 @router.get("/profile/{user_id}", response_class=HTMLResponse)
 def profile_page(request: Request, user_id: str):
-	context = build_page_context_stub("profile")
+	"""Get a user profile page."""
+	context = {}
 
-	# Exempeldata för testning
+	# Example data for testing
 	context["profile"] = {
 		"username": user_id,
 		"user_tag": f"#{user_id}",

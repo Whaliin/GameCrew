@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Form, Request, HTTPException
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -12,11 +12,6 @@ from app.models import Player
 router = APIRouter(prefix="", tags=["auth"])
 
 templates = Jinja2Templates(directory="templates")
-
-# def get_auth_mode_stub() -> str:
-# 	"""Return the planned authentication mode for future implementation."""
-#	return "session"
-
 
 @router.get("/register", response_class=HTMLResponse)
 def get_register(request: Request):
@@ -78,11 +73,6 @@ def post_register(
 		max_age=86400,
 	)
 	return response
-
-# def register_stub():
-#	raise HTTPException(status_code=501, detail="TODO: implement registration flow")
-
-
 @router.get("/login", response_class=HTMLResponse)
 def get_login(request: Request):
 	return templates.TemplateResponse(request=request, name="auth/login.html")
