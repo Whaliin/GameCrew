@@ -40,7 +40,6 @@ class PlayerGameProfile(Base):
 	player = relationship("Player", back_populates="game_profiles")
 	game = relationship("Game", back_populates="player_profiles")
 
-
-def get_model_registry_stub() -> list[str]:
-	"""Return model names to simplify future migration tooling."""
-	return ["Player", "Game", "PlayerGameProfile"]
+#def get_model_registry_stub() -> list[str]:
+#	"""Return model names to simplify future migration tooling."""
+#	return ["Player", "Game", "PlayerGameProfile"]
