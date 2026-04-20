@@ -3,36 +3,7 @@
 {% block content %}
 <div id="page-spel">
 	<div class="wrapper">
-
-		<nav>
-			<a class="logo" onclick="goHome()">GC</a>
-			<div class="nav-games" id="spel-nav">
-				<button class="nav-btn" onclick="goGame('cs2')" title="CS2"><img
-						src="https://images-ext-1.discordapp.net/external/V4jwDjRPxeE2YSSj_CWyFrDim-6i5gHewnIVTyH5__c/%3Fv%3D6/https/media.steampowered.com/apps/csgo/blog/images/fb_image.png?format=webp&quality=lossless&width=2400&height=1206"
-						alt="CS2" /></button>
-				<button class="nav-btn" onclick="goGame('lol')" title="League of Legends"><img
-						src="https://cmsassets.rgpub.io/sanity/images/dsfx7636/news/565197caf987af4e4da307df6e2b235a28714736-837x469.jpg?accountingTag=LoL"
-						alt="LoL" /></button>
-				<button class="nav-btn" onclick="goGame('valorant')" title="Valorant"><img
-						src="https://images-ext-1.discordapp.net/external/FVi7CTfYl-A9iMTrCFE76KSjSY_IEDA-qucz2txhD70/https/i.pcmag.com/imagery/reviews/05mFypQIoSDkooz9qdATJ54-1..v1586539963.png?format=webp&quality=lossless&width=2208&height=1242"
-						alt="Valorant" /></button>
-				<button class="nav-btn" onclick="goGame('arc')" title="ARC Raiders"><img
-						src="https://www.exitlag.com/blog/wp-content/uploads/2025/01/MLBB_-everything-you-need-to-know-about-heroes-and-gameplay.webp"
-						alt="ARC" /></button>
-				<button class="nav-btn" onclick="goGame('mobile')" title="Mobile Legends"><img
-						src="https://static.wikia.nocookie.net/arc-raiders/images/a/a0/Logo.webp/revision/latest?cb=20251105003659"
-						alt="Mobile" /></button>
-			</div>
-			<div class="user-area">
-				<div>
-					<div class="user-name">Eren Alhussein</div>
-					<div class="user-tag">#Eren9s</div>
-				</div>
-				<div class="user-avatar"><img
-						src="https://tr.rbxcdn.com/180DAY-c61af60472ca1c4a27e7d9f819cce3de/420/420/FaceAccessory/Webp/noFilter"
-						alt="avatar" /></div>
-			</div>
-		</nav>
+		{% include "partials/navbar.html" %}
 
 		<div class="spel-layout">
 

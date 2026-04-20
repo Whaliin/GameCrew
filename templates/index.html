@@ -3,40 +3,7 @@
 {% block content %}
 <div id="page-hem">
 	<div class="wrapper">
-		<nav>
-			<a class="logo" onclick="goHome()">GC</a>
-			<div class="nav-games">
-				<button class="nav-btn" onclick="goGame('cs2')" title="CS2"><img
-						src="/static/img/games/csgo.jpg"
-						alt="CS2" /></button>
-				<button class="nav-btn" onclick="goGame('lol')" title="League of Legends"><img
-						src="/static/img/games/lol.jpg"
-						alt="LoL" /></button>
-				<button class="nav-btn" onclick="goGame('valorant')" title="Valorant"><img
-						src="/static/img/games/valorant.jpg"
-						alt="Valorant" /></button>
-				<button class="nav-btn" onclick="goGame('arcraiders')" title="ARC Raiders"><img
-						src="/static/img/games/arcraiders.jpg"
-						alt="ARC" /></button>
-				<button class="nav-btn" onclick="goGame('mobilelegends')" title="Mobile Legends"><img
-						src="/static/img/games/mobilelegends.jpg"
-						alt="Mobile" /></button>
-			</div>
-			<div class="user-area">
-				{% if profile is defined %}
-				<div>
-					<div class="user-name">{{ profile.username }}</div>
-					<div class="user-tag">{{ profile.user_tag }}</div>
-				</div>
-				<div class="user-avatar"><img
-						src="{{ profile.avatar_url }}"
-						alt="avatar" />
-				</div>
-				{% else %}
-				<button class="login-btn" onclick="goLogin()">Logga in</button>
-				{% endif %}
-			</div>
-		</nav>
+		{% include "partials/navbar.html" %}
 
 		<main>
 			<section>

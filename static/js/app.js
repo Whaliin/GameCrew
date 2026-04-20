@@ -18,6 +18,16 @@ function goLogin() {
   window.location.href = '/login';
 }
 
+function scrollNavGames(direction) {
+  const track = document.getElementById('nav-games-track');
+  if (!track) {
+    return;
+  }
+
+  const distance = Math.max(track.clientWidth * 0.8, 220);
+  track.scrollBy({ left: distance * direction, behavior: 'smooth' });
+}
+
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => btn.classList.toggle('on'));
 });
