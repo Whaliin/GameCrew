@@ -7,23 +7,15 @@ const GAMES = {
 };
 
 function goHome() {
-  document.getElementById('page-spel').classList.remove('active');
-  document.getElementById('page-hem').classList.add('active');
+  window.location.href = '/';
 }
 
 function goGame(id) {
-  const g = GAMES[id];
-  document.getElementById('spel-img').src          = g.img;
-  document.getElementById('spel-img').alt          = g.name;
-  document.getElementById('spel-namn').textContent = g.name;
+  window.location.href = `/game/${id}`;
+}
 
-  document.querySelectorAll('#spel-nav .nav-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.game === id);
-  });
-
-  document.getElementById('page-hem').classList.remove('active');
-  document.getElementById('page-spel').classList.add('active');
-  window.scrollTo({ top: 0 });
+function goLogin() {
+  window.location.href = '/login';
 }
 
 document.querySelectorAll('.filter-btn').forEach(btn => {
