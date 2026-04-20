@@ -21,6 +21,10 @@ body {
 	min-height: 100vh;
 }
 
+body.modal-open {
+	overflow: hidden;
+}
+
 .wrapper {
 	max-width: 1100px;
 	margin: 0 auto;
@@ -568,6 +572,84 @@ h2 {
 	margin-top: 10px;
 }
 
+/* ── PROFILE MODAL ── */
+.hidden {
+	display: none !important;
+}
+
+.profile-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(2, 5, 14, .78);
+	backdrop-filter: blur(3px);
+	display: grid;
+	place-items: center;
+	z-index: 1000;
+	padding: 20px;
+}
+
+.profile-card-modal {
+	position: relative;
+	width: min(980px, calc(100vw - 40px));
+	max-height: calc(100vh - 40px);
+	overflow: auto;
+	margin-top: 0;
+	box-shadow: 0 16px 46px rgba(0, 0, 0, .42);
+}
+
+.profile-loading {
+	position: absolute;
+	top: 14px;
+	left: 16px;
+	padding: 4px 8px;
+	font-size: 10px;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	color: var(--cyan);
+	background: rgba(4, 5, 13, .8);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	z-index: 2;
+}
+
+.close-btn {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	width: 34px;
+	height: 34px;
+	border: 1px solid var(--border);
+	border-radius: 50%;
+	background: rgba(4, 5, 13, .95);
+	color: var(--cyan);
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+	z-index: 3;
+	transition: transform .15s, border-color .15s;
+}
+
+.close-btn:hover {
+	border-color: var(--cyan);
+	transform: scale(1.04);
+}
+
+.close-btn:focus-visible {
+	outline: 2px solid var(--cyan);
+	outline-offset: 2px;
+}
+
+.profile-card-modal .games-panel {
+	max-height: calc(100vh - 72px);
+	overflow-y: auto;
+	align-content: start;
+	grid-auto-rows: max-content;
+}
+
+.profile-card-modal .game-tile {
+	align-self: start;
+}
+
 /* ── RESPONSIVE ── */
 /* Mobile */
 @media (max-width: 700px) {
@@ -581,6 +663,11 @@ h2 {
 
 	.profile-card {
 		grid-template-columns: 1fr;
+	}
+
+	.profile-card-modal {
+		width: calc(100vw - 24px);
+		max-height: calc(100vh - 24px);
 	}
 
 	.games-panel {

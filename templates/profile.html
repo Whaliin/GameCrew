@@ -31,7 +31,6 @@
 		</div>
 
 		<div class="profile-card">
-
 			<div class="games-panel">
 				{% for game in profile_games %}
 				<a class="game-tile" href="/game/{{ game.slug }}"><img
@@ -41,10 +40,10 @@
 			</div>
 
 			<div class="profile-panel">
-
 				<div class="profile-avatar"><img
 						src="{{ profile.avatar_url }}"
-						alt="{{ profile.username }}" /></div>
+						alt="{{ profile.username }}" />
+				</div>
 
 				<div class="info-box">
 					<div class="info-box-title">// Info om spelaren</div>
@@ -80,7 +79,6 @@
 
 					<p class="bio-text">{{ profile.bio }}</p>
 				</div>
-
 			</div>
 		</div>
 	</div>

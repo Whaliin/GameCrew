@@ -10,97 +10,29 @@
 			<div>
 				<button class="back-btn" onclick="goHome()">← Tillbaka</button>
 				<div class="spel-title">
-					<img id="spel-img" src="" alt="" />
-					<span id="spel-namn"></span>
+					<img id="spel-img" src="{{ game.image_url }}" alt="" />
+					<span id="spel-namn">{{ game.name }}</span>
 				</div>
 				
 				<div class="players-grid">
-					{ % for player in found_players % }
-						<div class="player-card">
+					{% if found_players %}
+					{% for player in found_players %}
+						<div class="player-card" onclick="openProfile('{{ player.username }}')">
 							<div class="p-top">
 								<img class="p-avatar" src="{{ player.avatar_url }}" alt="{{ player.username }} avatar" />
 								<div>
 									<div class="p-name">{{ player.username }}</div>
 									<div class="p-tag">{{ player.user_tag }}</div>
-									{ % if player.rank % }
+									{% if player.rank %}
 									<div class="p-rank">{{ player.rank }}</div>
-									{ % endif %}
+									{% endif %}
 								</div>
 							</div>
 						</div>
-					{ % endfor %}
-					<div class="player-card">
-						<div class="p-top">
-							<img class="p-avatar"
-								src="https://tr.rbxcdn.com/180DAY-2da16bf954be24dc43b0c69353412d96/420/420/Hat/Webp/noFilter"
-								alt="" />
-							<div>
-								<div class="p-name">Spelare 1</div>
-								<div class="p-tag">#tag001</div>
-								<div class="p-rank">Global Elite</div>
-							</div>
-						</div>
-					</div>
-					<div class="player-card">
-						<div class="p-top">
-							<img class="p-avatar"
-								src="https://wallpapers-clan.com/wp-content/uploads/2022/07/anime-default-pfp-5.jpg"
-								alt="" />
-							<div>
-								<div class="p-name">Spelare 2</div>
-								<div class="p-tag">#tag002</div>
-								<div class="p-rank">Supreme</div>
-							</div>
-						</div>
-					</div>
-					<div class="player-card">
-						<div class="p-top">
-							<img class="p-avatar"
-								src="https://substackcdn.com/image/fetch/$s_!VeKj!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fbucketeer-e05bbc84-baa3-437e-9518-adb32be77984.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1304fe5-981b-4744-928e-29ca0f311e8d_400x400.jpeg"
-								alt="" />
-							<div>
-								<div class="p-name">Spelare 3</div>
-								<div class="p-tag">#tag003</div>
-								<div class="p-rank">LEM</div>
-							</div>
-						</div>
-					</div>
-					<div class="player-card">
-						<div class="p-top">
-							<img class="p-avatar"
-								src="https://meet.ribblr.com/uploads/default/original/4X/7/d/c/7dc637011215dc81dcaa6ee12ee81de6fc0991b6.jpeg"
-								alt="" />
-							<div>
-								<div class="p-name">Spelare 4</div>
-								<div class="p-tag">#tag004</div>
-								<div class="p-rank">Eagle</div>
-							</div>
-						</div>
-					</div>
-					<div class="player-card">
-						<div class="p-top">
-							<img class="p-avatar"
-								src="https://tr.rbxcdn.com/180DAY-c61af60472ca1c4a27e7d9f819cce3de/420/420/FaceAccessory/Webp/noFilter"
-								alt="" />
-							<div>
-								<div class="p-name">Spelare 5</div>
-								<div class="p-tag">#tag005</div>
-								<div class="p-rank">MG2</div>
-							</div>
-						</div>
-					</div>
-					<div class="player-card">
-						<div class="p-top">
-							<img class="p-avatar"
-								src="https://tr.rbxcdn.com/180DAY-c61af60472ca1c4a27e7d9f819cce3de/420/420/FaceAccessory/Webp/noFilter"
-								alt="" />
-							<div>
-								<div class="p-name">Spelare 6</div>
-								<div class="p-tag">#tag006</div>
-								<div class="p-rank">Gold Nova III</div>
-							</div>
-						</div>
-					</div>
+					{% endfor %}
+					{% else %}
+						<p>Inga spelare hittades för det här spelet.</p>
+					{% endif %}
 				</div>
 			</div>
 
@@ -152,7 +84,29 @@
 					</div>
 				</div>
 			</div>
+		</div>
+	</div>
+</div>
+<div id="profile-card" class="profile-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Player profile card">
+	<div class="profile-card profile-card-modal" role="document">
+		<button class="close-btn" type="button" onclick="closeProfile()" aria-label="Stang profilkort">&times;</button>
+		<p id="profile-loading" class="profile-loading">Laddar profil...</p>
 
+		<div class="games-panel">
+			<!-- Game icons will be added here -->
+		</div>
+
+		<div class="profile-panel">
+			<div class="profile-avatar">
+				<img src="/static/img/profiles/default.jpg" alt="Profilbild" />
+			</div>
+
+			<div class="info-box">
+				<div class="info-box-title">// Info om spelaren</div>
+
+				<!-- Info rows will be added here -->
+				<p class="bio-text"></p>
+			</div>
 		</div>
 	</div>
 </div>

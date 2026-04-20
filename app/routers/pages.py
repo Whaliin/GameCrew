@@ -102,8 +102,19 @@ def game_page(request: Request, game_slug: str):
 
 	context["nav_games"] = build_nav_games(request)
 	context["current_user"] = build_user_content(request)
+	context["found_players"] = []
+
+	# TODO: Insert "found_players" list based on real search results
+	context["found_players"] = [
+		{"username": "gamer123", "user_tag": "#gamer123", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Gold Nova III"},
+		{"username": "proplayer", "user_tag": "#proplayer", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Global Elite"},
+	]
 	
-	context["game_slug"] = game_slug
+	context["game"] = {
+		"game_slug": game_slug,
+		"name": game_slug.title(),
+		"image_url": GAME_IMAGE_URLS.get(game_slug, "/static/img/games/csgo.jpg"),
+	}
 
 	return templates.TemplateResponse(request=request, name="game.html", context=context)
 
