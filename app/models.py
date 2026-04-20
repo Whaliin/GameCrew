@@ -12,6 +12,10 @@ class Player(Base):
 	avatar_url = Column(String(255), nullable=True)
 	bio = Column(Text, nullable=True)
 	password_hash = Column(String(255), nullable=False)
+	birth_year = Column(Integer, nullable=True)
+	region = Column(String(50), nullable=True)
+	language = Column(String(120), nullable=True)  # comma-separated, up to 3
+	hardware_platform = Column(String(50), nullable=True)
 	game_profiles = relationship("PlayerGameProfile", back_populates="player")
 
 
