@@ -124,3 +124,7 @@ def post_logout(request: Request):
 	response = RedirectResponse(url="/login", status_code=302)
 	response.delete_cookie(key="session_id")
 	return response
+
+# def register_stub():
+# raise HTTPException(status_code=501, detail="TODO: implement registration flow")
+
