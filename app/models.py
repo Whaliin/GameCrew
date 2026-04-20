@@ -12,6 +12,10 @@ class Player(Base):
 	avatar_url = Column(String(255), nullable=True)
 	bio = Column(Text, nullable=True)
 	password_hash = Column(String(255), nullable=False)
+	birth_year = Column(Integer, nullable=True)
+	region = Column(String(50), nullable=True)
+	language = Column(String(120), nullable=True)  # comma-separated, up to 3
+	hardware_platform = Column(String(50), nullable=True)
 	game_profiles = relationship("PlayerGameProfile", back_populates="player")
 
 
@@ -35,3 +39,7 @@ class PlayerGameProfile(Base):
 
 	player = relationship("Player", back_populates="game_profiles")
 	game = relationship("Game", back_populates="player_profiles")
+
+#def get_model_registry_stub() -> list[str]:
+#	"""Return model names to simplify future migration tooling."""
+#	return ["Player", "Game", "PlayerGameProfile"]
