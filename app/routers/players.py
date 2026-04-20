@@ -34,7 +34,7 @@ def get_player_profile(username: str):
 		profile["games"].append({"slug": "valorant", "image_url": "/static/img/games/valorant.jpg", "name": "Valorant" })
 
 	if random() < 0.25:
-		profile["games"].append({"slug": "arc", "image_url": "/static/img/games/arcraiders.jpg", "name": "ARC Raiders" })
+		profile["games"].append({"slug": "arcraiders", "image_url": "/static/img/games/arcraiders.jpg", "name": "ARC Raiders" })
 
 	return profile
 
