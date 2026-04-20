@@ -27,15 +27,6 @@ body {
 	padding: 0 28px;
 }
 
-/* ── PAGES ── */
-.page {
-	display: none;
-}
-
-.page.active {
-	display: block;
-}
-
 /* ── NAV ── */
 nav {
 	display: flex;
