@@ -3,8 +3,29 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from app.auth.sessions import get_optional_user
+
 router = APIRouter(tags=["pages"])
 templates = Jinja2Templates(directory="templates")
+
+
+POPULAR_NAV_GAMES: list[dict[str, str]] = [
+	{"name": "Counter-Strike 2", "slug": "cs2"},
+	{"name": "League of Legends", "slug": "lol"},
+	{"name": "Valorant", "slug": "valorant"},
+	{"name": "ARC Raiders", "slug": "arcraiders"},
+	{"name": "Mobile Legends", "slug": "mobilelegends"},
+]
+
+GAME_IMAGE_URLS: dict[str, str] = {
+	"cs2": "/static/img/games/csgo.jpg",
+	"lol": "/static/img/games/lol.jpg",
+	"valorant": "/static/img/games/valorant.jpg",
+	"arcraiders": "/static/img/games/arcraiders.jpg",
+	"mobilelegends": "/static/img/games/mobilelegends.jpg",
+	"apex": "/static/img/games/apexlegends.jpg",
+	"minecraft": "/static/img/games/minecraft.jpg",
+}
 
 
 def build_page_context_stub(page_name: str) -> dict[str, Any]:
@@ -12,15 +33,53 @@ def build_page_context_stub(page_name: str) -> dict[str, Any]:
 	return {"app_name": "GameCrew", "page_name": page_name}
 
 
+def build_user_content(request: Request) -> dict[str, Any] | None:
+	"""Return reusable user payload that can later back API/session storage."""
+	current_user = get_optional_user(request)
+	if not current_user:
+		return None
+
+	username = current_user["username"]
+	return {
+		"username": username,
+		"user_tag": f"#{username}",
+		"avatar_url": "/static/img/profiles/default.jpg",
+		"favorite_game_slugs": ["cs2", "valorant", "lol", "arcraiders", "mobilelegends"],
+	}
+
+
+def build_nav_games(request: Request) -> list[dict[str, str]]:
+	"""Return stubbed favorite/popular game cards for navbar rendering."""
+	# Map slugs to display names for easy lookup
+	games_by_slug = {game["slug"]: game["name"] for game in POPULAR_NAV_GAMES}
+	
+	# Get user content (we use this to check if they have games)
+	user_content = build_user_content(request)
+
+	# If no user or no favorites, show popular games.
+	if user_content is None:
+		source_games = POPULAR_NAV_GAMES
+	else:
+		source_games = [
+			{"slug": slug, "name": games_by_slug.get(slug, slug.title())}
+			for slug in user_content["favorite_game_slugs"]
+		]
+
+	return [
+		{
+			"name": game["name"],
+			"slug": game["slug"],
+			"image_url": GAME_IMAGE_URLS.get(game["slug"], "/static/img/games/csgo.jpg"),
+		}
+		for game in source_games
+	]
+
+
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request):
 	context = build_page_context_stub("home")
-
-	profile = {
-		"username": "Eren9s",
-		"user_tag": "#Eren9s",
-		"avatar_url": "/static/img/profiles/default.jpg"
-	}
+	context["nav_games"] = build_nav_games(request)
+	context["current_user"] = build_user_content(request)
 
 	# Add example game data for template testing.
 	context["played_games"] = [
@@ -37,14 +96,14 @@ def home(request: Request):
 		{"name": "Minecraft", "slug": "minecraft", "image_url": "/static/img/games/minecraft.jpg"},
 	]
 
-	context["profile"] = profile
-
 	return templates.TemplateResponse(request=request, name="index.html", context=context)
 
 
 @router.get("/game/{game_slug}", response_class=HTMLResponse)
 def game_page(request: Request, game_slug: str):
 	context = build_page_context_stub("game")
+	context["nav_games"] = build_nav_games(request)
+	context["current_user"] = build_user_content(request)
 	
 	context["game_slug"] = game_slug
 
