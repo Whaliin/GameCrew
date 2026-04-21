@@ -133,7 +133,6 @@ def get_player_profile(username: str, db: Session = Depends(get_db)):
 
 	return profile
 
-
 # TODO: Add response_model for game-specific stats payload once implemented.
 @router.get("/{username}/stats/{game_slug}")
 def get_player_game_stats(username: str, game_slug: str):

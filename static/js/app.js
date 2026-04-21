@@ -345,10 +345,235 @@ document.addEventListener('click', event => {
 	}
 });
 
+function debounce(callback, waitMs) {
+	let timeoutId;
+	return (...args) => {
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(() => callback(...args), waitMs);
+	};
+}
+
 /*
-	Event listeners for filter buttons (toggles the "on" class for visual state)
+	Initialize a dual age range slider with fixed custom increments.
+	Slider positions map to labels so we can support values like "45+".
 */
-document.querySelectorAll('.filter-btn').forEach(btn => {
-	// TODO: Trigger actual filtering logic (call the API with filter parameters)
-	btn.addEventListener('click', () => btn.classList.toggle('on'));
-});
+function setupAgeRangeFilter(onChange) {
+	const container = document.querySelector('[data-age-range-filter]');
+	if (!container) {
+		return null;
+	}
+
+	const labels = Array.from(container.querySelectorAll('.age-range-marks span')).map(mark => mark.textContent?.trim() || '').filter(Boolean);
+	if (labels.length === 0) {
+		return null;
+	}
+	const lowInput = container.querySelector('[data-age-input="low"]');
+	const highInput = container.querySelector('[data-age-input="high"]');
+	const lowLabel = container.querySelector('[data-age-low]');
+	const highLabel = container.querySelector('[data-age-high]');
+	const progress = container.querySelector('[data-age-progress]');
+
+	if (!lowInput || !highInput || !lowLabel || !highLabel || !progress) {
+		return null;
+	}
+
+	const maxIndex = labels.length - 1;
+
+	function clampInputs(changed) {
+		let low = Number(lowInput.value);
+		let high = Number(highInput.value);
+
+		if (low > high) {
+			if (changed === 'low') {
+				high = low;
+				highInput.value = String(high);
+			} else {
+				low = high;
+				lowInput.value = String(low);
+			}
+		}
+
+		const lowPercent = (low / maxIndex) * 100;
+		const highPercent = (high / maxIndex) * 100;
+
+		lowLabel.textContent = labels[low];
+		highLabel.textContent = labels[high];
+		progress.style.left = `${lowPercent}%`;
+		progress.style.right = `${100 - highPercent}%`;
+
+		if (typeof onChange === 'function' && changed !== 'init') {
+			onChange();
+		}
+	}
+
+	function getAgeBounds() {
+		const lowIndex = Number(lowInput.value);
+		const highIndex = Number(highInput.value);
+		const lowLabelText = labels[lowIndex] || labels[0];
+		const highLabelText = labels[highIndex] || labels[maxIndex];
+
+		const ageLo = Number.parseInt(lowLabelText, 10);
+		const isUnboundedHigh = highIndex === maxIndex && highLabelText.includes('+');
+		const parsedHigh = Number.parseInt(highLabelText, 10);
+
+		return {
+			ageLo: Number.isNaN(ageLo) ? null : ageLo,
+			ageHi: isUnboundedHigh || Number.isNaN(parsedHigh) ? null : parsedHigh,
+		};
+	}
+
+	lowInput.addEventListener('input', () => clampInputs('low'));
+	highInput.addEventListener('input', () => clampInputs('high'));
+	clampInputs('init');
+
+	return { getAgeBounds };
+}
+
+function createPlayerCard(player) {
+	const card = document.createElement('div');
+	card.className = 'player-card';
+	card.addEventListener('click', () => openProfile(player.username));
+
+	const top = document.createElement('div');
+	top.className = 'p-top';
+
+	const avatar = document.createElement('img');
+	avatar.className = 'p-avatar';
+	avatar.src = withFallback(player.avatar_url, '/static/img/profiles/default.jpg');
+	avatar.alt = `${withFallback(player.username, 'Player')} avatar`;
+
+	const textWrap = document.createElement('div');
+
+	const name = document.createElement('div');
+	name.className = 'p-name';
+	name.textContent = withFallback(player.username, 'Unknown');
+
+	const tag = document.createElement('div');
+	tag.className = 'p-tag';
+	tag.textContent = withFallback(player.user_tag, '#unknown');
+
+	textWrap.appendChild(name);
+	textWrap.appendChild(tag);
+
+	if (player.rank) {
+		const rank = document.createElement('div');
+		rank.className = 'p-rank';
+		rank.textContent = player.rank;
+		textWrap.appendChild(rank);
+	}
+
+	top.appendChild(avatar);
+	top.appendChild(textWrap);
+	card.appendChild(top);
+
+	return card;
+}
+
+function renderPlayersGrid(gridElement, players) {
+	gridElement.innerHTML = '';
+
+	if (!Array.isArray(players) || players.length === 0) {
+		const empty = document.createElement('p');
+		empty.textContent = 'Inga spelare hittades för det här spelet.';
+		gridElement.appendChild(empty);
+		return;
+	}
+
+	players.forEach(player => {
+		gridElement.appendChild(createPlayerCard(player));
+	});
+}
+
+async function fetchFilteredPlayers(gameSlug, filters) {
+	const params = new URLSearchParams();
+
+	if (filters.ageLo !== null) {
+		params.set('age_lo', String(filters.ageLo));
+	}
+	if (filters.ageHi !== null) {
+		params.set('age_hi', String(filters.ageHi));
+	}
+	if (filters.playtime) {
+		params.set('playtime', filters.playtime);
+	}
+	if (filters.platform) {
+		params.set('platform', filters.platform);
+	}
+	if (filters.language) {
+		params.set('language', filters.language);
+	}
+
+	const response = await fetch(`/api/search/games/${encodeURIComponent(gameSlug)}/players?${params.toString()}`);
+	if (!response.ok) {
+		throw new Error(`Search request failed with status ${response.status}`);
+	}
+
+	return response.json();
+}
+
+function setupGameFiltersSearch() {
+	const gamePage = document.getElementById('page-spel');
+	const playersGrid = document.querySelector('#page-spel .players-grid');
+	const gameSlug = gamePage?.dataset.gameSlug;
+
+	if (!gamePage || !playersGrid || !gameSlug) {
+		setupAgeRangeFilter();
+		return;
+	}
+
+	let latestRequestId = 0;
+
+	function getSelectedFilterValue(group) {
+		const selected = document.querySelector(`.filter-btn.on[data-filter-group="${group}"]`);
+		return selected?.dataset.filterValue || '';
+	}
+
+	const triggerSearch = debounce(async () => {
+		const requestId = ++latestRequestId;
+		playersGrid.innerHTML = '<p>Söker spelare...</p>';
+
+		const ageBounds = ageFilterController?.getAgeBounds() ?? { ageLo: null, ageHi: null };
+		const filters = {
+			ageLo: ageBounds.ageLo,
+			ageHi: ageBounds.ageHi,
+			playtime: getSelectedFilterValue('playtime'),
+			platform: getSelectedFilterValue('platform'),
+			language: getSelectedFilterValue('language'),
+		};
+
+		try {
+			const payload = await fetchFilteredPlayers(gameSlug, filters);
+			if (requestId !== latestRequestId) {
+				return;
+			}
+			renderPlayersGrid(playersGrid, payload.results);
+		} catch (error) {
+			if (requestId !== latestRequestId) {
+				return;
+			}
+			playersGrid.innerHTML = '<p>Kunde inte hämta spelare just nu.</p>';
+			console.error('Player search failed:', error);
+		}
+	}, 180);
+
+	const ageFilterController = setupAgeRangeFilter(triggerSearch);
+
+	document.querySelectorAll('.filter-btn[data-filter-group]').forEach(button => {
+		button.addEventListener('click', () => {
+			const group = button.dataset.filterGroup;
+			const isOn = button.classList.contains('on');
+
+			document.querySelectorAll(`.filter-btn[data-filter-group="${group}"]`).forEach(groupBtn => {
+				groupBtn.classList.remove('on');
+			});
+
+			if (!isOn) {
+				button.classList.add('on');
+			}
+
+			triggerSearch();
+		});
+	});
+}
+
+setupGameFiltersSearch();

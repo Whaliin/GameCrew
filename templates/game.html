@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div id="page-spel">
+<div id="page-spel" data-game-slug="{{ game.game_slug }}">
 	<div class="wrapper">
 		{% include "partials/navbar.html" %}
 
@@ -40,13 +40,27 @@
 				<h3>// Filter</h3>
 				<div class="filter-group">
 					<label>Ålder</label>
-					<div class="filter-options">
-						<button class="filter-btn">Under 18</button>
-						<button class="filter-btn">18–25</button>
-						<button class="filter-btn">26–35</button>
-						<button class="filter-btn">35+</button>
+					<div class="age-range-filter" data-age-range-filter>
+						<div class="age-range-values">
+							<span data-age-low>{{ age_marks[0] }}</span>
+							<span>till</span>
+							<span data-age-high>{{ age_marks[age_marks | length - 1] }}</span>
+						</div>
+						<div class="age-range-slider-wrap">
+							<div class="age-range-track"></div>
+							<div class="age-range-progress" data-age-progress></div>
+							<input class="age-range-slider age-range-slider-low" type="range" min="0" max="{{ age_marks | length - 1 }}" step="1" value="0" data-age-input="low" aria-label="Lägsta ålder" />
+							<input class="age-range-slider age-range-slider-high" type="range" min="0" max="{{ age_marks | length - 1 }}" step="1" value="{{ age_marks | length - 1 }}" data-age-input="high" aria-label="Högsta ålder" />
+						</div>
+						<div class="age-range-marks" aria-hidden="true">
+							{% for age_mark in age_marks %}
+							<span>{{ age_mark }}</span>
+							{% endfor %}
+						</div>
 					</div>
 				</div>
+				<!-- TODO: game specific filters -->
+				<!--
 				<div class="filter-group">
 					<label>Rank</label>
 					<div class="filter-options">
@@ -57,30 +71,29 @@
 						<button class="filter-btn">Pro</button>
 					</div>
 				</div>
+				-->
 				<div class="filter-group">
 					<label>Speltid</label>
 					<div class="filter-options">
-						<button class="filter-btn">Morgon</button>
-						<button class="filter-btn">Dag</button>
-						<button class="filter-btn">Kväll</button>
-						<button class="filter-btn">Natt</button>
+						{% for playtime in filter_options.playtime %}
+						<button type="button" class="filter-btn" data-filter-group="playtime" data-filter-value="{{ playtime }}">{{ playtime }}</button>
+						{% endfor %}
 					</div>
 				</div>
 				<div class="filter-group">
 					<label>Plattform</label>
 					<div class="filter-options">
-						<button class="filter-btn">PC</button>
-						<button class="filter-btn">Konsol</button>
-						<button class="filter-btn">Mobil</button>
+						{% for platform in filter_options.platform %}
+						<button type="button" class="filter-btn" data-filter-group="platform" data-filter-value="{{ platform }}">{{ platform }}</button>
+						{% endfor %}
 					</div>
 				</div>
 				<div class="filter-group">
 					<label>Språk</label>
 					<div class="filter-options">
-						<button class="filter-btn">Svenska</button>
-						<button class="filter-btn">Engelska</button>
-						<button class="filter-btn">Arabiska</button>
-						<button class="filter-btn">Tyska</button>
+						{% for language in filter_options.language %}
+						<button type="button" class="filter-btn" data-filter-group="language" data-filter-value="{{ language }}">{{ language }}</button>
+						{% endfor %}
 					</div>
 				</div>
 			</div>

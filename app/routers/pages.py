@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.sessions import get_current_user, get_optional_user
 from app.database import get_db
-from app.models import LanguagePreferences, Player, PlayerLanguagePreferences, PlayerPlatformSelections, PlatformSelections, PlayerPlaytimePreferences, PlaytimePreferences
+from app.models import Game, LanguagePreferences, PlatformSelections, PlaytimePreferences
 from app.routers.players import create_profile_object
 
 router = APIRouter(tags=["pages"])
@@ -31,6 +31,8 @@ GAME_IMAGE_URLS: dict[str, str] = {
 	"apex": "/static/img/games/apexlegends.jpg",
 	"minecraft": "/static/img/games/minecraft.jpg",
 }
+
+AGE_MARK_LABELS: list[str] = ["18", "25", "35", "45", "45+"]
 
 def build_user_content(request: Request) -> dict[str, Any] | None:
 	"""Return reusable user payload that can later back API/session storage."""
@@ -80,6 +82,12 @@ def prepare_template_context(request: Request) -> dict[str, Any]:
 		"current_user": build_user_content(request),
 	}
 
+
+def _get_lookup_names(db: Session, model: type) -> list[str]:
+	"""Read lookup names from DB for server-rendered filter options."""
+	rows = db.query(model.name).order_by(model.name.asc()).all()
+	return [row.name for row in rows]
+
 def create_profile_context(request: Request, username: str, db: Session) -> dict[str, Any]:
 	"""Return context for profile page rendering."""
 	context = prepare_template_context(request)
@@ -112,24 +120,34 @@ def home(request: Request):
 
 
 @router.get("/game/{game_slug}", response_class=HTMLResponse)
-def game_page(request: Request, game_slug: str):
+def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 	"""Get a game-specific page with details and player search."""
 	context = prepare_template_context(request)
 
-	context["found_players"] = []
+	game = db.query(Game).filter(Game.slug == game_slug).first()
+	if game is None:
+		raise HTTPException(status_code=404, detail="Game not found")
 
-	# TODO: "found_players" should be populated by a search query, either we do it here or via
-	# an api call from the frontend. For now we just add some example data for testing the template.
+	playtime_options = _get_lookup_names(db, PlaytimePreferences)
+	platform_options = _get_lookup_names(db, PlatformSelections)
+	language_options = _get_lookup_names(db, LanguagePreferences)
+
 	context["found_players"] = [
 		{"username": "gamer123", "user_tag": "#gamer123", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Gold Nova III"},
 		{"username": "proplayer", "user_tag": "#proplayer", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Global Elite"},
 	]
-	
-	# Add game details to context for template rendering (this can be done on the backend)
+
 	context["game"] = {
-		"game_slug": game_slug,
-		"name": game_slug.title(),
-		"image_url": GAME_IMAGE_URLS.get(game_slug, "/static/img/games/cs2.jpg"),
+		"game_slug": game.slug,
+		"name": game.name,
+		"image_url": GAME_IMAGE_URLS.get(game.slug, "/static/img/games/cs2.jpg"),
+	}
+
+	context["age_marks"] = AGE_MARK_LABELS
+	context["filter_options"] = {
+		"playtime": playtime_options,
+		"platform": platform_options,
+		"language": language_options,
 	}
 
 	return templates.TemplateResponse(request=request, name="game.html", context=context)
