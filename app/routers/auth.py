@@ -71,7 +71,7 @@ def post_register(
 		)
 
 	session_id = create_session(new_player.id, new_player.username)
-	response = RedirectResponse(url=f"/players/{username}", status_code=302)
+	response = RedirectResponse(url=f"/profile/{username}", status_code=302)
 	response.set_cookie(
 		key="session_id",
 		value=session_id,
@@ -102,7 +102,7 @@ def post_login(
 		)
 
 	session_id = create_session(player.id, player.username)
-	response = RedirectResponse(url=f"/players/{player.username}", status_code=302)
+	response = RedirectResponse(url=f"/profile/{player.username}", status_code=302)
 	response.set_cookie(
 		key="session_id",
 		value=session_id,
