@@ -6,6 +6,5 @@ pydantic
 pytest
 httpx
 python-multipart
-passlib[bcrypt]
-bcrypt==4.2.1
+bcrypt
 hypothesis
