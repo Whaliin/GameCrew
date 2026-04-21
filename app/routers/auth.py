@@ -12,10 +12,10 @@ from app.models import Player
 router = APIRouter(prefix="", tags=["auth"])
 templates = Jinja2Templates(directory="templates")
 
+# Registration page router
 @router.get("/register", response_class=HTMLResponse)
 def get_register(request: Request):
 	return templates.TemplateResponse(request=request, name="auth/register.html")
-
 
 @router.post("/register", response_class=HTMLResponse)
 def post_register(
@@ -81,6 +81,8 @@ def post_register(
 		max_age=86400,
 	)
 	return response
+
+# Login page router
 @router.get("/login", response_class=HTMLResponse)
 def get_login(request: Request):
 	return templates.TemplateResponse(request=request, name="auth/login.html")
@@ -113,7 +115,7 @@ def post_login(
 	)
 	return response
 
-
+# Logout router
 @router.post("/logout")
 def post_logout(request: Request):
 	session_id = request.cookies.get("session_id")
