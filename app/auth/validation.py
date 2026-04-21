@@ -1,6 +1,8 @@
 import re
 from datetime import date
 
+# regular expression for allowed usernames:
+# - only letters, numbers, underscores
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_]+$')
 
 VALID_REGIONS = {"EU", "NA", "SA", "AS", "OC", "AF", "ME"}
