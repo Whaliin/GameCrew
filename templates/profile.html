@@ -1,25 +1,86 @@
 {% extends "base.html" %}
 
+{% block title %}GC – Profil{% endblock %}
+
 {% block content %}
-<div class="profile">
-    <img src="{{ player.avatar_url or '/static/img/profiles/default.jpg' }}" alt="{{ player.username }}'s avatar">
-    <h2>{{ player.username }}</h2>
+<div class="wrapper">
+	<nav>
+		<a class="logo" href="/">GC</a>
+		<div class="nav-games">
+			{% for game in nav_games %}
+			<a class="nav-btn" href="/game/{{ game.slug }}" title="{{ game.name }}"><img
+					src="{{ game.image_url }}"
+					alt="{{ game.name }}" /></a>
+			{% endfor %}
+		</div>
+		<div class="user-area">
+			<div>
+				<div class="user-name">{{ profile.username }}</div>
+				<div class="user-tag">{{ profile.user_tag }}</div>
+			</div>
+			<div class="user-avatar"><img
+					src="{{ profile.avatar_url }}"
+					alt="{{ profile.username }} avatar" /></div>
+		</div>
+	</nav>
 
-    {% if player.bio %}
-    <p>{{ player.bio }}</p>
-    {% endif %}
+	<div class="profile-wrapper">
 
-    <ul>
-        {% if player.region %}<li>Region: {{ player.region }}</li>{% endif %}
-        {% if languages %}<li>Languages: {{ languages | join(", ") }}</li>{% endif %}
-        {% if player.hardware_platform %}<li>Platform: {{ player.hardware_platform }}</li>{% endif %}
-    </ul>
+		<div class="back-row">
+			<button class="back-btn" onclick="history.back()">← Tillbaka</button>
+		</div>
 
-    {% if is_own_profile %}
-    <a href="/players/{{ player.username }}/edit">Edit Profile</a>
-    <form method="post" action="/logout" style="display:inline;">
-        <button type="submit">Log out</button>
-    </form>
-    {% endif %}
+		<div class="profile-card">
+			<div class="games-panel">
+				{% for game in profile_games %}
+				<a class="game-tile" href="/game/{{ game.slug }}"><img
+						src="{{ game.image_url }}"
+						alt="{{ game.name }}" /></a>
+				{% endfor %}
+			</div>
+
+			<div class="profile-panel">
+				<div class="profile-avatar"><img
+						src="{{ profile.avatar_url }}"
+						alt="{{ profile.username }}" />
+				</div>
+
+				<div class="info-box">
+					<div class="info-box-title">// Info om spelaren</div>
+
+					<div class="info-row">
+						<span class="lbl">Namn</span>
+						<span class="val">{{ profile.username }}</span>
+					</div>
+					<div class="info-row">
+						<span class="lbl">Tag</span>
+						<span class="val">{{ profile.user_tag }}</span>
+					</div>
+					<div class="info-row">
+						<span class="lbl">Rank</span>
+						<span class="val">{{ profile.rank }}</span>
+					</div>
+					<div class="info-row">
+						<span class="lbl">Alder</span>
+						<span class="val">{{ profile.age_range }}</span>
+					</div>
+					<div class="info-row">
+						<span class="lbl">Plattform</span>
+						<span class="val">{{ profile.platform }}</span>
+					</div>
+					<div class="info-row">
+						<span class="lbl">Speltid</span>
+						<span class="val">{{ profile.playtime }}</span>
+					</div>
+					<div class="info-row">
+						<span class="lbl">Sprak</span>
+						<span class="val">{{ profile.languages }}</span>
+					</div>
+
+					<p class="bio-text">{{ profile.bio }}</p>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 {% endblock %}

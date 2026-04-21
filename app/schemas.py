@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class PlayerProfileStub(BaseModel):
+class PlayerProfile(BaseModel):
 	username: str
 	avatar_url: str | None = None
 	bio: str | None = None
@@ -10,6 +10,6 @@ class PlayerProfileStub(BaseModel):
 	steam_profile_url: str | None = None
 
 
-class GameStub(BaseModel):
+class Game(BaseModel):
 	slug: str
 	display_name: str

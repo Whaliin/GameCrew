@@ -21,6 +21,6 @@ def create_app() -> FastAPI:
 	return application
 
 
-def get_app_stub_status() -> dict[str, str]:
-	"""Return a placeholder status payload for future app diagnostics."""
-	return {"status": "stub", "message": "App skeleton is active."}
+def get_app_status() -> dict[str, str]:
+	"""Return app diagnostics status payload."""
+	return {"status": "ok", "message": "App is active."}

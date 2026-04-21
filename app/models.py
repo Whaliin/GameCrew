@@ -1,5 +1,5 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -7,39 +7,31 @@ from app.database import Base
 class Player(Base):
 	__tablename__ = "players"
 
-	id = Column(Integer, primary_key=True, index=True)
-	username = Column(String(50), unique=True, index=True, nullable=False)
-	avatar_url = Column(String(255), nullable=True)
-	bio = Column(Text, nullable=True)
-	password_hash = Column(String(255), nullable=False)
-	birth_year = Column(Integer, nullable=True)
-	region = Column(String(50), nullable=True)
-	language = Column(String(120), nullable=True)  # comma-separated, up to 3
-	hardware_platform = Column(String(50), nullable=True)
-	game_profiles = relationship("PlayerGameProfile", back_populates="player")
+	id: Mapped[int] = mapped_column(primary_key=True, index=True)
+	username: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
+	avatar_url: Mapped[str] = mapped_column(String(255), nullable=True)
+	bio: Mapped[str] = mapped_column(Text, nullable=True)
+	password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+	game_profiles: Mapped[list["PlayerGameProfile"]] = relationship(back_populates="player")
 
 
 class Game(Base):
 	__tablename__ = "games"
 
-	id = Column(Integer, primary_key=True, index=True)
-	slug = Column(String(80), unique=True, index=True, nullable=False)
-	display_name = Column(String(120), nullable=False)
+	id: Mapped[int] = mapped_column(primary_key=True, index=True)
+	slug: Mapped[str] = mapped_column(String(80), unique=True, index=True, nullable=False)
+	display_name: Mapped[str] = mapped_column(String(120), nullable=False)
 
-	player_profiles = relationship("PlayerGameProfile", back_populates="game")
+	player_profiles: Mapped[list["PlayerGameProfile"]] = relationship(back_populates="game")
 
 
 class PlayerGameProfile(Base):
 	__tablename__ = "player_game_profiles"
 
-	id = Column(Integer, primary_key=True, index=True)
-	player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
-	game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
-	rank_label = Column(String(100), nullable=True)
+	id: Mapped[int] = mapped_column(primary_key=True, index=True)
+	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False)
+	game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"), nullable=False)
+	rank_label: Mapped[str] = mapped_column(String(100), nullable=True)
 
-	player = relationship("Player", back_populates="game_profiles")
-	game = relationship("Game", back_populates="player_profiles")
-
-#def get_model_registry_stub() -> list[str]:
-#	"""Return model names to simplify future migration tooling."""
-#	return ["Player", "Game", "PlayerGameProfile"]
+	player: Mapped["Player"] = relationship("Player", back_populates="game_profiles")
+	game: Mapped["Game"] = relationship("Game", back_populates="player_profiles")

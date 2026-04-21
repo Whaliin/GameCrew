@@ -1,135 +1,47 @@
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
+from random import random
 
-from app.auth.sessions import get_current_user, get_optional_user
-from app.auth.validation import (
-	validate_hardware,
-	validate_languages,
-	validate_region,
-	VALID_REGIONS,
-	VALID_LANGUAGES,
-	VALID_HARDWARE,
-)
-from app.database import get_db
-from app.models import Player
+from fastapi import APIRouter, HTTPException
 
-router = APIRouter(prefix="/players", tags=["players"])
-templates = Jinja2Templates(directory="templates")
+router = APIRouter(prefix="/api/players", tags=["players"])
+
+@router.get("/{username}")
+def get_player_profile(username: str):
+	# return sample data for now
+	# TODO: replace with real database query
+
+	profile = {
+		"avatar_url": "/static/img/profiles/default.jpg",
+		"username": username,
+		"user_tag": f"#{username}1234",
+		"rank": "Gold Nova III", # TODO: replace with real game rank?
+		"age_range": "18-25",
+		"platform": "PC",
+		"playtime": "Kvällar & Helger",
+		"languages": "SV / EN",
+		"bio": "This is a sample bio for the player.",
+		"games": []
+	}
+
+	# Randomly add 1-4 games to the profile for testing
+	profile["games"] = [
+		{"slug": "cs2", "image_url": "/static/img/games/cs2.jpg", "name": "Counter-Strike 2" }
+	]
+
+	if random() < 0.75:
+		profile["games"].append({"slug": "lol", "image_url": "/static/img/games/lol.jpg", "name": "League of Legends" })
+
+	if random() < 0.5:
+		profile["games"].append({"slug": "valorant", "image_url": "/static/img/games/valorant.jpg", "name": "Valorant" })
+
+	if random() < 0.25:
+		profile["games"].append({"slug": "arcraiders", "image_url": "/static/img/games/arcraiders.jpg", "name": "ARC Raiders" })
+
+	return profile
 
 
-@router.get("/{username}", response_class=HTMLResponse)
-def get_player_profile(
-	username: str,
-	request: Request,
-	db: Session = Depends(get_db),
-	current_user: dict | None = Depends(get_optional_user),
-):
-	player = db.query(Player).filter(Player.username == username).first()
-	if not player:
-		raise HTTPException(status_code=404, detail=f"Player '{username}' not found.")
-
-	is_own_profile = current_user is not None and current_user["username"] == username
-	languages = player.language.split(",") if player.language else []
-
-	return templates.TemplateResponse(
-		request=request,
-		name="profile.html",
-		context={
-			"player": player,
-			"languages": languages,
-			"is_own_profile": is_own_profile,
-			"current_user": current_user,
-		},
+@router.get("/{username}/stats/{game_slug}")
+def get_player_game_stats(username: str, game_slug: str):
+	raise HTTPException(
+		status_code=501,
+		detail=f"TODO: fetch game stats for '{username}' in '{game_slug}'",
 	)
-
-
-@router.get("/{username}/edit", response_class=HTMLResponse)
-def get_edit_profile(
-	username: str,
-	request: Request,
-	db: Session = Depends(get_db),
-	current_user: dict = Depends(get_current_user),
-):
-	if current_user["username"] != username:
-		raise HTTPException(status_code=403, detail="You can only edit your own profile.")
-
-	player = db.query(Player).filter(Player.username == username).first()
-	if not player:
-		raise HTTPException(status_code=404, detail="Player not found.")
-
-	languages = player.language.split(",") if player.language else []
-
-	return templates.TemplateResponse(
-		request=request,
-		name="profile_edit.html",
-		context={
-			"player": player,
-			"languages": languages,
-			"valid_regions": sorted(VALID_REGIONS),
-			"valid_languages": sorted(VALID_LANGUAGES),
-			"valid_hardware": sorted(VALID_HARDWARE),
-			"current_user": current_user,
-		},
-	)
-
-
-@router.post("/{username}/edit", response_class=HTMLResponse)
-def post_edit_profile(
-	username: str,
-	request: Request,
-	bio: str = Form(default=""),
-	region: str = Form(default=""),
-	languages: list[str] = Form(default=[]),
-	hardware_platform: str = Form(default=""),
-	db: Session = Depends(get_db),
-	current_user: dict = Depends(get_current_user),
-):
-	if current_user["username"] != username:
-		raise HTTPException(status_code=403, detail="You can only edit your own profile.")
-
-	player = db.query(Player).filter(Player.username == username).first()
-	if not player:
-		raise HTTPException(status_code=404, detail="Player not found.")
-
-	errors = []
-
-	if region:
-		err = validate_region(region)
-		if err:
-			errors.append(err)
-
-	if languages:
-		err = validate_languages(languages)
-		if err:
-			errors.append(err)
-
-	if hardware_platform:
-		err = validate_hardware(hardware_platform)
-		if err:
-			errors.append(err)
-
-	if errors:
-		return templates.TemplateResponse(
-			request=request,
-			name="profile_edit.html",
-			context={
-				"player": player,
-				"languages": languages,
-				"valid_regions": sorted(VALID_REGIONS),
-				"valid_languages": sorted(VALID_LANGUAGES),
-				"valid_hardware": sorted(VALID_HARDWARE),
-				"current_user": current_user,
-				"error": " ".join(errors),
-			},
-		)
-
-	player.bio = bio or None
-	player.region = region or None
-	player.language = ",".join(languages) if languages else None
-	player.hardware_platform = hardware_platform or None
-
-	db.commit()
-
-	return RedirectResponse(url=f"/players/{username}", status_code=302)

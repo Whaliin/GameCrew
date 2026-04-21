@@ -3,28 +3,83 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from app.auth.sessions import get_optional_user
+
 router = APIRouter(tags=["pages"])
 templates = Jinja2Templates(directory="templates")
 
 
-def build_page_context_stub(page_name: str) -> dict[str, Any]:
-	"""Build common page context values for future template expansion."""
-	return {"app_name": "GameCrew", "page_name": page_name}
+POPULAR_NAV_GAMES: list[dict[str, str]] = [
+	{"name": "Counter-Strike 2", "slug": "cs2"},
+	{"name": "League of Legends", "slug": "lol"},
+	{"name": "Valorant", "slug": "valorant"},
+	{"name": "ARC Raiders", "slug": "arcraiders"},
+	{"name": "Mobile Legends", "slug": "mobilelegends"},
+]
+
+GAME_IMAGE_URLS: dict[str, str] = {
+	"cs2": "/static/img/games/cs2.jpg",
+	"lol": "/static/img/games/lol.jpg",
+	"valorant": "/static/img/games/valorant.jpg",
+	"arcraiders": "/static/img/games/arcraiders.jpg",
+	"mobilelegends": "/static/img/games/mobilelegends.jpg",
+	"apex": "/static/img/games/apexlegends.jpg",
+	"minecraft": "/static/img/games/minecraft.jpg",
+}
+
+def build_user_content(request: Request) -> dict[str, Any] | None:
+	"""Return reusable user payload that can later back API/session storage."""
+	current_user = get_optional_user(request)
+	if not current_user:
+		return None
+
+	username = current_user["username"]
+	return {
+		"username": username,
+		"user_tag": f"#{username}",
+		"avatar_url": "/static/img/profiles/default.jpg",
+		"favorite_game_slugs": ["cs2", "valorant", "lol", "arcraiders", "mobilelegends"],
+	}
+
+
+def build_nav_games(request: Request) -> list[dict[str, str]]:
+	"""Return favorite/popular game cards for navbar rendering."""
+	# Map slugs to display names for easy lookup
+	games_by_slug = {game["slug"]: game["name"] for game in POPULAR_NAV_GAMES}
+	
+	# Get user content (we use this to check if they have games)
+	user_content = build_user_content(request)
+
+	# If no user or no favorites, show popular games.
+	if user_content is None:
+		source_games = POPULAR_NAV_GAMES
+	else:
+		source_games = [
+			{"slug": slug, "name": games_by_slug.get(slug, slug.title())}
+			for slug in user_content["favorite_game_slugs"]
+		]
+
+	return [
+		{
+			"name": game["name"],
+			"slug": game["slug"],
+			"image_url": GAME_IMAGE_URLS.get(game["slug"], "/static/img/games/cs2.jpg"),
+		}
+		for game in source_games
+	]
 
 
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request):
-	context = build_page_context_stub("home")
+	"""Get the homepage."""
+	context = {}
 
-	profile = {
-		"username": "Eren9s",
-		"user_tag": "#Eren9s",
-		"avatar_url": "/static/img/profiles/default.jpg"
-	}
+	context["nav_games"] = build_nav_games(request)
+	context["current_user"] = build_user_content(request)
 
 	# Add example game data for template testing.
 	context["played_games"] = [
-		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/csgo.jpg", "hours_played": 123},
+		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/cs2.jpg", "hours_played": 123},
 		{"name": "League of Legends", "slug": "lol", "image_url": "/static/img/games/lol.jpg", "hours_played": 999},
 		{"name": "Valorant", "slug": "valorant", "image_url": "/static/img/games/valorant.jpg", "hours_played": 456},
 	]
@@ -37,23 +92,68 @@ def home(request: Request):
 		{"name": "Minecraft", "slug": "minecraft", "image_url": "/static/img/games/minecraft.jpg"},
 	]
 
-	context["profile"] = profile
-
 	return templates.TemplateResponse(request=request, name="index.html", context=context)
 
 
 @router.get("/game/{game_slug}", response_class=HTMLResponse)
 def game_page(request: Request, game_slug: str):
-	context = build_page_context_stub("game")
+	"""Get a game-specific page with details and player search."""
+	context = {}
+
+	# Add reusable content to context
+	context["nav_games"] = build_nav_games(request)
+	context["current_user"] = build_user_content(request)
+	context["found_players"] = []
+
+	# TODO: "found_players" should be populated by a search query, either we do it here or via
+	# an api call from the frontend. For now we just add some example data for testing the template.
+	context["found_players"] = [
+		{"username": "gamer123", "user_tag": "#gamer123", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Gold Nova III"},
+		{"username": "proplayer", "user_tag": "#proplayer", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Global Elite"},
+	]
 	
-	context["game_slug"] = game_slug
+	# Add game details to context for template rendering (this can be done on the backend)
+	context["game"] = {
+		"game_slug": game_slug,
+		"name": game_slug.title(),
+		"image_url": GAME_IMAGE_URLS.get(game_slug, "/static/img/games/cs2.jpg"),
+	}
 
 	return templates.TemplateResponse(request=request, name="game.html", context=context)
 
 @router.get("/profile/{user_id}", response_class=HTMLResponse)
 def profile_page(request: Request, user_id: str):
-	context = build_page_context_stub("profile")
-	
-	context["user_id"] = user_id
+	"""Get a user profile page."""
+	context = {}
+
+	# Example data for testing
+	context["profile"] = {
+		"username": user_id,
+		"user_tag": f"#{user_id}",
+		"avatar_url": "/static/img/profiles/default.jpg",
+		"rank": "Global Elite",
+		"age_range": "18-25",
+		"platform": "PC",
+		"playtime": "Kvall",
+		"languages": "SV / EN",
+		"bio": "Passionerad FPS-spelare. Soker seriost lag for ranked!",
+	}
+
+	context["nav_games"] = [
+		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/cs2.jpg"},
+		{"name": "League of Legends", "slug": "lol", "image_url": "/static/img/games/lol.jpg"},
+		{"name": "Valorant", "slug": "valorant", "image_url": "/static/img/games/valorant.jpg"},
+		{"name": "ARC Raiders", "slug": "arcraiders", "image_url": "/static/img/games/arcraiders.jpg"},
+		{"name": "Mobile Legends", "slug": "mobilelegends", "image_url": "/static/img/games/mobilelegends.jpg"},
+	]
+
+	context["profile_games"] = [
+		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/cs2.jpg"},
+		{"name": "League of Legends", "slug": "lol", "image_url": "/static/img/games/lol.jpg"},
+		{"name": "Valorant", "slug": "valorant", "image_url": "/static/img/games/valorant.jpg"},
+		{"name": "Mobile Legends", "slug": "mobilelegends", "image_url": "/static/img/games/mobilelegends.jpg"},
+		{"name": "ARC Raiders", "slug": "arcraiders", "image_url": "/static/img/games/arcraiders.jpg"},
+		{"name": "Apex Legends", "slug": "apex", "image_url": "/static/img/games/apexlegends.jpg"},
+	]
 
 	return templates.TemplateResponse(request=request, name="profile.html", context=context)

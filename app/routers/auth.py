@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -11,7 +11,6 @@ from app.models import Player
 
 router = APIRouter(prefix="", tags=["auth"])
 templates = Jinja2Templates(directory="templates")
-
 
 @router.get("/register", response_class=HTMLResponse)
 def get_register(request: Request):
@@ -80,8 +79,6 @@ def post_register(
 		max_age=86400,
 	)
 	return response
-
-
 @router.get("/login", response_class=HTMLResponse)
 def get_login(request: Request):
 	return templates.TemplateResponse(request=request, name="auth/login.html")

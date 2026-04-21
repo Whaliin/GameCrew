@@ -21,19 +21,18 @@ body {
 	min-height: 100vh;
 }
 
+body.modal-open {
+	overflow: hidden;
+}
+
 .wrapper {
 	max-width: 1100px;
 	margin: 0 auto;
 	padding: 0 28px;
 }
 
-/* ── PAGES ── */
-.page {
-	display: none;
-}
-
-.page.active {
-	display: block;
+.site-nav {
+	position: relative;
 }
 
 /* ── NAV ── */
@@ -60,6 +59,88 @@ nav {
 	gap: 8px;
 	flex: 1;
 }
+
+/* Scrollable game list in nav */
+
+.nav-games-shell {
+	position: relative;
+	display: flex;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+	gap: 10px;
+}
+
+.nav-games-track {
+	display: flex;
+	gap: 10px;
+	flex: 1;
+	min-width: 0;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scroll-behavior: smooth;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: none;
+}
+
+.nav-games-track::-webkit-scrollbar {
+	display: none;
+}
+
+.nav-game-link {
+	width: 56px;
+	height: 56px;
+	flex: 0 0 auto;
+	border-radius: 50%;
+	overflow: hidden;
+	border: 2px solid var(--border);
+	transition: border-color .2s, transform .15s;
+}
+
+.nav-game-link:hover {
+	border-color: var(--cyan);
+	transform: scale(1.08);
+}
+
+.nav-game-link img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.nav-scroll-btn {
+	width: 34px;
+	height: 34px;
+	flex: 0 0 auto;
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	background: rgba(14, 22, 40, .9);
+	color: var(--cyan);
+	cursor: pointer;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	font-family: 'Orbitron', sans-serif;
+	font-size: 18px;
+	line-height: 1;
+	transition: border-color .2s, background .2s, transform .15s;
+}
+
+.nav-scroll-btn:hover {
+	border-color: var(--cyan);
+	background: rgba(14, 22, 40, 1);
+	transform: scale(1.05);
+}
+
+.nav-scroll-btn:focus-visible,
+.nav-game-link:focus-visible,
+.logo:focus-visible,
+.login-btn:focus-visible {
+	outline: 2px solid var(--cyan);
+	outline-offset: 2px;
+}
+/* End of scroll buttons */
 
 .nav-btn {
 	width: 56px;
@@ -360,4 +441,244 @@ h2 {
 	border-color: var(--cyan);
 	color: var(--cyan);
 	background: rgba(0, 255, 231, .08);
+}
+
+/* ── PROFILE PAGE ── */
+.profile-wrapper {
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 0 28px 60px;
+}
+
+.back-row {
+	padding: 16px 0 10px;
+}
+
+.profile-card {
+	display: grid;
+	grid-template-columns: 1fr 260px;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	overflow: hidden;
+	background: var(--card);
+	margin-top: 8px;
+}
+
+/* ── LEFT: GAMES ── */
+.games-panel {
+	padding: 16px;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+	border-right: 1px solid var(--border);
+}
+
+.game-tile {
+	border-radius: 8px;
+	overflow: hidden;
+	cursor: pointer;
+	border: 1px solid var(--border);
+	background: none;
+	padding: 0;
+	display: block;
+	transition: border-color .2s, transform .15s;
+}
+
+.game-tile:hover {
+	border-color: var(--cyan);
+	transform: scale(1.02);
+}
+
+.game-tile img {
+	width: 100%;
+	aspect-ratio: 16/9;
+	object-fit: cover;
+	display: block;
+}
+
+/* ── RIGHT: PROFILE ── */
+.profile-panel {
+	padding: 22px 16px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16px;
+}
+
+.profile-avatar {
+	width: 110px;
+	height: 110px;
+	border-radius: 50%;
+	overflow: hidden;
+	border: 2px solid var(--cyan);
+	flex-shrink: 0;
+}
+
+.profile-avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.info-box {
+	width: 100%;
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	padding: 14px 12px;
+	flex: 1;
+	background: var(--bg);
+}
+
+.info-box-title {
+	font-family: 'Orbitron', sans-serif;
+	font-size: 11px;
+	letter-spacing: .18em;
+	color: var(--cyan);
+	margin-bottom: 12px;
+	text-transform: uppercase;
+}
+
+.info-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 7px 0;
+	border-bottom: 1px solid var(--border);
+	font-size: 11px;
+}
+
+.info-row:last-child {
+	border-bottom: none;
+}
+
+.info-row .lbl {
+	color: var(--muted);
+	text-transform: uppercase;
+	letter-spacing: .08em;
+	font-size: 10px;
+}
+
+.info-row .val {
+	color: var(--cyan);
+	font-family: 'Orbitron', sans-serif;
+	font-size: 10px;
+}
+
+.bio-text {
+	font-size: 10px;
+	color: var(--muted);
+	line-height: 1.75;
+	margin-top: 10px;
+}
+
+/* ── PROFILE MODAL ── */
+.hidden {
+	display: none !important;
+}
+
+.profile-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(2, 5, 14, .78);
+	backdrop-filter: blur(3px);
+	display: grid;
+	place-items: center;
+	z-index: 1000;
+	padding: 20px;
+}
+
+.profile-card-modal {
+	position: relative;
+	width: min(980px, calc(100vw - 40px));
+	max-height: calc(100vh - 40px);
+	overflow: auto;
+	margin-top: 0;
+	box-shadow: 0 16px 46px rgba(0, 0, 0, .42);
+}
+
+.profile-loading {
+	position: absolute;
+	top: 14px;
+	left: 16px;
+	padding: 4px 8px;
+	font-size: 10px;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	color: var(--cyan);
+	background: rgba(4, 5, 13, .8);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	z-index: 2;
+}
+
+.close-btn {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	width: 34px;
+	height: 34px;
+	border: 1px solid var(--border);
+	border-radius: 50%;
+	background: rgba(4, 5, 13, .95);
+	color: var(--cyan);
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+	z-index: 3;
+	transition: transform .15s, border-color .15s;
+}
+
+.close-btn:hover {
+	border-color: var(--cyan);
+	transform: scale(1.04);
+}
+
+.close-btn:focus-visible {
+	outline: 2px solid var(--cyan);
+	outline-offset: 2px;
+}
+
+.profile-card-modal .games-panel {
+	max-height: calc(100vh - 72px);
+	overflow-y: auto;
+	align-content: start;
+	grid-auto-rows: max-content;
+}
+
+.profile-card-modal .game-tile {
+	align-self: start;
+}
+
+/* ── RESPONSIVE ── */
+/* Mobile */
+@media (max-width: 700px) {
+	.nav-games-shell {
+		gap: 8px;
+	}
+
+	.nav-scroll-btn {
+		display: none;
+	}
+
+	.profile-card {
+		grid-template-columns: 1fr;
+	}
+
+	.profile-card-modal {
+		width: calc(100vw - 24px);
+		max-height: calc(100vh - 24px);
+	}
+
+	.games-panel {
+		border-right: none;
+		border-bottom: 1px solid var(--border);
+	}
+}
+
+/* Desktop */
+@media (min-width: 701px) {
+	.nav-scroll-btn {
+		display: inline-flex;
+	}
 }
