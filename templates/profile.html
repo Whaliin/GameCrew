@@ -4,28 +4,9 @@
 
 {% block content %}
 <div class="wrapper">
-	<nav>
-		<a class="logo" href="/">GC</a>
-		<div class="nav-games">
-			{% for game in nav_games %}
-			<a class="nav-btn" href="/game/{{ game.slug }}" title="{{ game.name }}"><img
-					src="{{ game.image_url }}"
-					alt="{{ game.name }}" /></a>
-			{% endfor %}
-		</div>
-		<div class="user-area">
-			<div>
-				<div class="user-name">{{ profile.username }}</div>
-				<div class="user-tag">{{ profile.user_tag }}</div>
-			</div>
-			<div class="user-avatar"><img
-					src="{{ profile.avatar_url }}"
-					alt="{{ profile.username }} avatar" /></div>
-		</div>
-	</nav>
+	{% include "partials/navbar.html" %}
 
 	<div class="profile-wrapper">
-
 		<div class="back-row">
 			<button class="back-btn" onclick="history.back()">← Tillbaka</button>
 		</div>
