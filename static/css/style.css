@@ -40,7 +40,10 @@ button {
 }
 
 input[type="text"],
-input[type="password"] {
+input[type="password"],
+select,
+input[type="email"],
+textarea {
 	padding: 8px 12px;
 	font-size: 10px;
 	border-radius: 6px;
