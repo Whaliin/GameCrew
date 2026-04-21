@@ -192,6 +192,8 @@ function resetProfileCard(elements) {
 	// Show loading state
 	elements.loading.textContent = 'Laddar profil...';
 	elements.loading.style.display = 'block';
+	// Remove any existing buttons in the profile buttons container
+	elements.profileButtons.querySelectorAll('.action-button').forEach(btn => btn.remove());
 }
 
 function addActionButton(element, label, onClick) {
