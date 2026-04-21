@@ -3,6 +3,9 @@
 {% block content %}
 <h2>Register</h2>
 {% if error %}
+<script>
+	alert("{{ error }}");
+</script>
 <p class="error">{{ error }}</p>
 {% endif %}
 <form method="post" action="/register">
@@ -14,7 +17,7 @@
     <small>Min 10 characters, must include uppercase, lowercase, digit, and special character.</small>
 
     <label for="birth_year">Birth Year</label>
-    <input type="number" id="birth_year" name="birth_year" min="1900" max="2099" required>
+    <input type="number" id="birth_year" name="birth_year" min="1900" max="{{ max_birth_year or 2099 }}" required>
 
     <button type="submit">Register</button>
 </form>
