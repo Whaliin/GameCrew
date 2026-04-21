@@ -68,14 +68,17 @@ def build_nav_games(request: Request) -> list[dict[str, str]]:
 		for game in source_games
 	]
 
+def prepare_template_context(request: Request) -> dict[str, Any]:
+	"""Return reusable context for template rendering."""
+	return {
+		"nav_games": build_nav_games(request),
+		"current_user": build_user_content(request),
+	}
 
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request):
 	"""Get the homepage."""
-	context = {}
-
-	context["nav_games"] = build_nav_games(request)
-	context["current_user"] = build_user_content(request)
+	context = prepare_template_context(request)
 
 	# Add example game data for template testing.
 	context["played_games"] = [
@@ -98,11 +101,8 @@ def home(request: Request):
 @router.get("/game/{game_slug}", response_class=HTMLResponse)
 def game_page(request: Request, game_slug: str):
 	"""Get a game-specific page with details and player search."""
-	context = {}
+	context = prepare_template_context(request)
 
-	# Add reusable content to context
-	context["nav_games"] = build_nav_games(request)
-	context["current_user"] = build_user_content(request)
 	context["found_players"] = []
 
 	# TODO: "found_players" should be populated by a search query, either we do it here or via
@@ -124,7 +124,7 @@ def game_page(request: Request, game_slug: str):
 @router.get("/profile/{user_id}", response_class=HTMLResponse)
 def profile_page(request: Request, user_id: str):
 	"""Get a user profile page."""
-	context = {}
+	context = prepare_template_context(request)
 
 	# Example data for testing
 	context["profile"] = {
