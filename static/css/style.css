@@ -25,6 +25,35 @@ body.modal-open {
 	overflow: hidden;
 }
 
+button {
+	padding: 8px 8px;
+	font-size: 10px;
+	border-radius: 6px;
+	border: none;
+	background: var(--cyan);
+	color: #000;
+	font-family: 'Orbitron', sans-serif;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background .15s, transform .15s;
+}
+
+input[type="text"],
+input[type="password"],
+select,
+input[type="email"],
+textarea {
+	padding: 8px 12px;
+	font-size: 10px;
+	border-radius: 6px;
+	border: 1px solid var(--border);
+	background: var(--card);
+	color: var(--text);
+	font-family: 'Share Tech Mono', monospace;
+	transition: border-color .15s, background .15s;
+}
+
 .wrapper {
 	max-width: 1100px;
 	margin: 0 auto;
@@ -648,6 +677,17 @@ h2 {
 
 .profile-card-modal .game-tile {
 	align-self: start;
+}
+
+.profile-card-modal .profile-panel .profile-buttons {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	width: 100%;
+}
+
+.profile-card-modal .profile-panel .profile-buttons button {
+	width: 100%;
 }
 
 /* ── RESPONSIVE ── */
