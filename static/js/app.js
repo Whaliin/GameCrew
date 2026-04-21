@@ -1,3 +1,12 @@
+/* --- UTILITY FUNCTIONS --- */
+/*
+	Utility function to return a fallback value if the main value is null, undefined or empty
+*/
+function withFallback(value, fallback) {
+	return value || fallback;
+}
+
+/* --- NAVIGATION FUNCTIONS --- */
 /*
 	Set the page location to the index/home page
 */
@@ -20,6 +29,43 @@ function goLogin() {
 }
 
 /*
+	Set the page location to the registration page
+*/
+function goRegister() {
+  	window.location.href = '/register';
+}
+
+/*
+	Set the page location to a specific user's profile page
+*/
+function goProfile(username) {
+  	window.location.href = `/profile/${username}`;
+}
+
+/* --- API FUNCTIONS --- */
+/*
+	Fetch the player profile data from the API for a given username
+	Returns a promise that resolves to the profile data in JSON format
+*/
+async function fetchProfile(username) {
+	const response = await fetch(`/api/players/${username}`);
+	if (!response.ok) {
+		throw new Error('Network response was not ok');
+	}
+	return response.json();
+}
+
+/*
+	Add user to friends list (placeholder)
+*/
+async function addFriend(username) {
+	// TODO: How do we implement this?
+	// Where do we store the currently logged in user data?
+	alert("Funktion inte implementerad");
+}
+
+/* --- NAVIGATION SCROLLING --- */
+/*
 	Scroll the games navigation track left or right based on the direction parameter
 */
 function scrollNavGames(direction) {
@@ -37,6 +83,7 @@ function scrollNavGames(direction) {
   	track.scrollBy({ left: distance * direction, behavior: 'smooth' });
 }
 
+/* --- PROFILE CARD LOGIC --- */
 /*
 	Creates an info row element with a label and value, and appends it to the given infobox element
 	Used when rendering the profile cards
@@ -98,8 +145,9 @@ function getProfileCardElements() {
 	const gamePanel = card.getElementsByClassName('games-panel')[0];
 	const avatarImage = profilePanel.querySelector('.profile-avatar img');
 	const bioText = infoBox.querySelector('.bio-text');
+	const profileButtons = profilePanel.querySelector('.profile-buttons');
 
-	return { card, loading, infoBox, gamePanel, avatarImage, bioText };
+	return { card, loading, infoBox, gamePanel, avatarImage, bioText, profileButtons: profileButtons };
 }
 
 /*
@@ -146,6 +194,15 @@ function resetProfileCard(elements) {
 	elements.loading.style.display = 'block';
 }
 
+function addActionButton(element, label, onClick) {
+	// Create the button element
+	const button = document.createElement('button');
+	button.className = 'action-button';
+	button.textContent = label;
+	button.addEventListener('click', onClick);
+	element.appendChild(button);
+}
+
 /*
 	Render the fetched profile data into the modal
 */
@@ -158,6 +215,10 @@ function renderProfileData(elements, data) {
 	elements.bioText.textContent = withFallback(data.bio, 'No bio available.');
 	// Render the favorite games
 	renderProfileGames(elements.gamePanel, data.games);
+	// TODO: Add friend button
+	addActionButton(elements.profileButtons, 'Lägg till som vän', () => addFriend(data.username));
+	// Add the show profile button
+	addActionButton(elements.profileButtons, 'Visa full profil', () => goProfile(data.username));
 	// Hide the loading state
 	elements.loading.style.display = 'none';
 }
@@ -166,17 +227,10 @@ function renderProfileData(elements, data) {
 	Render an error state in the profile modal if fetching data fails
 */
 function renderProfileError(elements, username, error) {
-	elements.loading.textContent = 'Kunde inte ladda profil. Forsok igen.';
+	elements.loading.textContent = 'Kunde inte ladda profil. Försök igen.';
 	createInfoRow(elements.infoBox, 'Username', username);
-	elements.bioText.textContent = 'Nagot gick fel nar vi hamtade profilen.';
+	elements.bioText.textContent = 'Något gick fel när vi hämtade profilen.';
 	console.error('Error fetching player profile:', error);
-}
-
-/*
-	Utility function to return a fallback value if the main value is null, undefined or empty
-*/
-function withFallback(value, fallback) {
-	return value || fallback;
 }
 
 /*
@@ -260,6 +314,7 @@ function closeProfile() {
 	hideProfileCard(elements.card);
 }
 
+/* --- EVENT LISTENERS --- */
 /*
 	Event listener for the escape key
 */
