@@ -1,6 +1,6 @@
 from collections.abc import Generator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 DATABASE_URL = "sqlite:///./gamecrew.db"
@@ -21,7 +21,27 @@ def get_db() -> Generator[Session, None, None]:
 def init_database() -> None:
 	"""Initialize database tables."""
 	Base.metadata.create_all(bind=engine)
+	_ensure_games_name_column()
 	seed_default_data()
+
+
+def _ensure_games_name_column() -> None:
+	"""Ensure legacy databases have the `games.name` column expected by the ORM."""
+	with engine.begin() as connection:
+		columns = connection.execute(text("PRAGMA table_info(games)")).fetchall()
+		column_names = {column[1] for column in columns}
+
+		if "name" not in column_names:
+			connection.execute(text("ALTER TABLE games ADD COLUMN name VARCHAR(120)"))
+
+		if "display_name" in column_names:
+			connection.execute(
+				text("UPDATE games SET name = COALESCE(name, display_name) WHERE name IS NULL")
+			)
+
+		connection.execute(
+			text("UPDATE games SET name = COALESCE(name, slug) WHERE name IS NULL")
+		)
 
 
 def _seed_named_rows(db: Session, model, names: list[str]) -> None:
@@ -73,8 +93,8 @@ def seed_default_data() -> None:
 		]
 		existing_slugs = {row.slug for row in db.query(Game).all()}
 		games_to_add = [
-			Game(slug=slug, display_name=display_name)
-			for slug, display_name in default_games
+			Game(slug=slug, name=game_name)
+			for slug, game_name in default_games
 			if slug not in existing_slugs
 		]
 		if games_to_add:

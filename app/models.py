@@ -5,8 +5,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
-# Player model represents a user in the system.
-# It contains basic account info
+# SQLAlchemy ORM models map Python classes to DB tables used by the app.
+
+# Player account row with profile metadata and authentication fields.
 class Player(Base):
 	__tablename__ = "players"
 
@@ -26,6 +27,7 @@ class Player(Base):
 #	game_profiles: Mapped[list["PlayerGameProfile"]] = relationship(back_populates="player")
 
 	region: Mapped["ValidRegions"] = relationship("ValidRegions")
+	favorite_games: Mapped[list["PlayerGameFavorites"]] = relationship("PlayerGameFavorites", back_populates="player")
 
 # Friend relationships (many-to-many self-referential)
 # We use a single table to track friend requests and their status.
@@ -49,26 +51,24 @@ class Game(Base):
 	slug: Mapped[str] = mapped_column(String(80), unique=True, index=True, nullable=False)
 	name: Mapped[str] = mapped_column(String(120), nullable=False)
 
-#	player_profiles: Mapped[list["PlayerGameProfile"]] = relationship(back_populates="game")
+	# Back-reference to association rows linking players that favorited this game.
+	players_who_favorited: Mapped[list["PlayerGameFavorites"]] = relationship("PlayerGameFavorites", back_populates="game")
 
-# TODO: This is a very basic model for storing game-specific profile info
-# It is not dynamic enough to handle arbitrary games with different profile fields.
-# Perhaps we should look into using a more flexible schema or JSON data for storage.
-# class PlayerGameProfile(Base):
-# 	__tablename__ = "player_game_profiles"
-# 
-# 	id: Mapped[int] = mapped_column(primary_key=True, index=True)
-# 	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False)
-# 	game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"), nullable=False)
-# 	rank_label: Mapped[str] = mapped_column(String(100), nullable=True)
-# 
-# 	player: Mapped["Player"] = relationship("Player", back_populates="game_profiles")
-# 	game: Mapped["Game"] = relationship("Game", back_populates="player_profiles")
+class PlayerGameFavorites(Base):
+	__tablename__ = "player_game_favorites"
+
+	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False, primary_key=True)
+	game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"), nullable=False, primary_key=True)
+
+	# Association row between one player and one game.
+	player: Mapped["Player"] = relationship("Player", back_populates="favorite_games")
+	game: Mapped["Game"] = relationship("Game", back_populates="players_who_favorited")
 
 class ValidRegions(Base):
 	__tablename__ = "valid_regions"
 
 	id: Mapped[int] = mapped_column(primary_key=True, index=True)
+	# Region labels used by player profiles.
 	name: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
 
 # Contains valid playtime preferences that players can select from
@@ -86,7 +86,7 @@ class PlayerPlaytimePreferences(Base):
 	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False, primary_key=True)
 	playtime_preference_id: Mapped[int] = mapped_column(Integer, ForeignKey("playtime_preferences.id"), nullable=False, primary_key=True)
 
-	player: Mapped["Player"] = relationship("Player", back_populates="playtime_preferences")
+	player: Mapped["Player"] = relationship("Player")
 	playtime_preference: Mapped["PlaytimePreferences"] = relationship("PlaytimePreferences")
 
 # Contains valid platform preferences that players can select from
@@ -104,7 +104,7 @@ class PlayerPlatformSelections(Base):
 	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False, primary_key=True)
 	platform_selection_id: Mapped[int] = mapped_column(Integer, ForeignKey("platform_selections.id"), nullable=False, primary_key=True)
 
-	player: Mapped["Player"] = relationship("Player", back_populates="platform_selections")
+	player: Mapped["Player"] = relationship("Player")
 	platform_selection: Mapped["PlatformSelections"] = relationship("PlatformSelections")
 
 # Contains valid language preferences that players can select from
@@ -122,5 +122,5 @@ class PlayerLanguagePreferences(Base):
 	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False, primary_key=True)
 	language_preference_id: Mapped[int] = mapped_column(Integer, ForeignKey("language_preferences.id"), nullable=False, primary_key=True)
 
-	player: Mapped["Player"] = relationship("Player", back_populates="language_preferences")
+	player: Mapped["Player"] = relationship("Player")
 	language_preference: Mapped["LanguagePreferences"] = relationship("LanguagePreferences")

@@ -1,15 +1,15 @@
 from sqlalchemy import select
 
 from app.database import SessionLocal, init_database
-from app.models import Game, Player, PlayerGameProfile
+from app.models import Game, Player
 
 
-def get_or_create_game(db, slug: str, display_name: str) -> Game:
+def get_or_create_game(db, slug: str, name: str) -> Game:
 	game = db.scalar(select(Game).where(Game.slug == slug))
 	if game is not None:
 		return game
 
-	game = Game(slug=slug, display_name=display_name)
+	game = Game(slug=slug, name=name)
 	db.add(game)
 	db.flush()
 	return game
@@ -51,11 +51,11 @@ def seed_test_data() -> None:
 	init_database()
 
 	games_to_seed = [
-		{"slug": "cs2", "display_name": "Counter-Strike 2"},
-		{"slug": "lol", "display_name": "League of Legends"},
-		{"slug": "valorant", "display_name": "Valorant"},
-		{"slug": "arcraiders", "display_name": "ARC Raiders"},
-		{"slug": "mobilelegends", "display_name": "Mobile Legends"},
+		{"slug": "cs2", "name": "Counter-Strike 2"},
+		{"slug": "lol", "name": "League of Legends"},
+		{"slug": "valorant", "name": "Valorant"},
+		{"slug": "arcraiders", "name": "ARC Raiders"},
+		{"slug": "mobilelegends", "name": "Mobile Legends"},
 	]
 
 	with SessionLocal() as db:
@@ -64,7 +64,7 @@ def seed_test_data() -> None:
 			game = get_or_create_game(
 				db,
 				slug=game_data["slug"],
-				display_name=game_data["display_name"],
+				name=game_data["name"],
 			)
 			games_by_slug[game.slug] = game
 

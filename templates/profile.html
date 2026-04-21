@@ -30,10 +30,6 @@
 					<div class="info-box-title">// Info om spelaren</div>
 
 					<div class="info-row">
-						<span class="lbl">Namn</span>
-						<span class="val">{{ profile.username }}</span>
-					</div>
-					<div class="info-row">
 						<!-- TODO: Add discord icon -->
 						<span class="lbl">Discord ID</span>
 						<span class="val">{{ profile.discord }}</span>
@@ -48,12 +44,16 @@
 						<span class="val">{{ profile.age_range }}</span>
 					</div>
 					<div class="info-row">
+						<span class="lbl">Region</span>
+						<span class="val">{{ profile.region }}</span>
+					</div>
+					<div class="info-row">
 						<span class="lbl">Plattformar</span>
-						<span class="val">{{ profile.platform }}</span>
+						<span class="val">{{ profile.platforms }}</span>
 					</div>
 					<div class="info-row">
 						<span class="lbl">Speltider</span>
-						<span class="val">{{ profile.playtime }}</span>
+						<span class="val">{{ profile.playtimes }}</span>
 					</div>
 					<div class="info-row">
 						<span class="lbl">Språk</span>
