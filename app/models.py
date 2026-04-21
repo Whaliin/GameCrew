@@ -9,6 +9,7 @@ class Player(Base):
 
 	id: Mapped[int] = mapped_column(primary_key=True, index=True)
 	username: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
+	birth_year: Mapped[int] = mapped_column(Integer, nullable=False)
 	avatar_url: Mapped[str] = mapped_column(String(255), nullable=True)
 	bio: Mapped[str] = mapped_column(Text, nullable=True)
 	password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
