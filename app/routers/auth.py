@@ -60,8 +60,10 @@ def post_register(
 		db.add(new_player)
 		db.commit()
 		db.refresh(new_player)
-	except Exception:
+	except Exception as e:
 		db.rollback()
+		print("Error creating user:")
+		print(e)
 		return templates.TemplateResponse(
 			request=request,
 			name="auth/register.html",
