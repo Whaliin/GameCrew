@@ -33,6 +33,7 @@ def get_current_user(request: Request) -> dict:
 			return session
 	raise RedirectResponse("/login")
 
+# Session with for unregisterted user
 def get_optional_user(request: Request) -> dict | None:
 	"""FastAPI dependency — returns session data or None (no redirect)."""
 	session_id = request.cookies.get("session_id")
