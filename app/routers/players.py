@@ -1,5 +1,4 @@
 from random import random
-
 from fastapi import APIRouter, HTTPException
 
 router = APIRouter(prefix="/api/players", tags=["players"])
