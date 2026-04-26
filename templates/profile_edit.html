@@ -1,40 +1,89 @@
 {% extends "base.html" %}
 
+{% block title %}Edit profile — GameCrew{% endblock %}
+
 {% block content %}
-<h2>Edit Profile</h2>
-{% if error %}
-<p class="error">{{ error }}</p>
-{% endif %}
-<form method="post" action="/players/{{ player.username }}/edit">
-    <label for="bio">Bio</label>
-    <textarea id="bio" name="bio">{{ player.bio or "" }}</textarea>
+{% include "partials/navbar.html" %}
 
-    <label for="region">Region</label>
-    <select id="region" name="region">
-        <option value="">-- Select region --</option>
-        {% for r in valid_regions %}
-        <option value="{{ r }}" {% if player.region == r %}selected{% endif %}>{{ r }}</option>
-        {% endfor %}
-    </select>
+<div class="auth-shell">
+	<div class="auth-card auth-card-wide">
+		<div class="auth-title">Edit profile</div>
 
-    <label>Languages (up to 3)</label>
-    {% for lang in valid_languages %}
-    <label>
-        <input type="checkbox" name="languages" value="{{ lang }}"
-            {% if lang in languages %}checked{% endif %}>
-        {{ lang }}
-    </label>
-    {% endfor %}
+		{% if error %}
+		<div class="error">{{ error }}</div>
+		{% endif %}
 
-    <label for="hardware_platform">Platform</label>
-    <select id="hardware_platform" name="hardware_platform">
-        <option value="">-- Select platform --</option>
-        {% for hw in valid_hardware %}
-        <option value="{{ hw }}" {% if player.hardware_platform == hw %}selected{% endif %}>{{ hw }}</option>
-        {% endfor %}
-    </select>
+		<form class="auth-form" method="post" action="/profile/{{ profile.username }}/edit">
+			<div class="field">
+				<label for="username">Username</label>
+				<input type="text" id="username" name="username" value="{{ profile.username }}" required autocomplete="username">
+			</div>
 
-    <button type="submit">Save</button>
-    <a href="/players/{{ player.username }}">Cancel</a>
-</form>
+			<div class="field">
+				<label for="bio">Bio</label>
+				<textarea id="bio" name="bio" rows="3" placeholder="Tell other players about yourself…">{{ profile.bio|default('') }}</textarea>
+			</div>
+
+			<div class="field-row">
+				<div class="field">
+					<label for="birth_year">Birth year</label>
+					<input type="number" id="birth_year" name="birth_year" min="1900" max="2026" value="{{ profile.birth_year|default('') }}" placeholder="2000">
+				</div>
+				<div class="field">
+					<label for="rank">Rank</label>
+					<input type="text" id="rank" name="rank" value="{{ profile.rank|default('') }}" placeholder="e.g. Gold Nova">
+				</div>
+			</div>
+
+			{% if filter_options and filter_options.platform %}
+			<div class="field">
+				<label>Platforms</label>
+				<div class="checkbox-grid">
+					{% for option in filter_options.platform %}
+					<label>
+						<input type="checkbox" name="platforms" value="{{ option }}"
+							{% if profile.platforms and option in profile.platforms %}checked{% endif %}>
+						{{ option }}
+					</label>
+					{% endfor %}
+				</div>
+			</div>
+			{% endif %}
+
+			{% if filter_options and filter_options.language %}
+			<div class="field">
+				<label>Languages</label>
+				<div class="checkbox-grid">
+					{% for option in filter_options.language %}
+					<label>
+						<input type="checkbox" name="languages" value="{{ option }}"
+							{% if profile.languages and option in profile.languages %}checked{% endif %}>
+						{{ option }}
+					</label>
+					{% endfor %}
+				</div>
+			</div>
+			{% endif %}
+
+			{% if filter_options and filter_options.playtime %}
+			<div class="field">
+				<label for="playtime">Play time</label>
+				<div class="select-wrap">
+					<select id="playtime" name="playtime">
+						<option value="">Choose…</option>
+						{% for option in filter_options.playtime %}
+						<option value="{{ option }}" {% if profile.playtime == option %}selected{% endif %}>{{ option }}</option>
+						{% endfor %}
+					</select>
+				</div>
+			</div>
+			{% endif %}
+
+			<div class="auth-actions">
+				<button type="submit" class="btn-primary">Save changes</button>
+				<button type="button" class="btn-link" onclick="window.location.href='/profile/{{ profile.username }}'">Cancel</button>
+			</div>
+		</form>
+	</div>
+</div>
 {% endblock %}

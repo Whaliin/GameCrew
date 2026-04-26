@@ -1,130 +1,156 @@
 {% extends "base.html" %}
 
+{% block title %}{{ game.name }} — GameCrew{% endblock %}
+
 {% block content %}
-<div id="page-spel" data-game-slug="{{ game.game_slug }}">
-	<div class="wrapper">
-		{% include "partials/navbar.html" %}
+{% include "partials/navbar.html" %}
 
-		<div class="spel-layout">
+<main id="page-spel" class="wrapper" data-game-slug="{{ game.game_slug }}">
+	<div class="spel-layout">
+		<div>
+			<button class="back-btn" onclick="goHome()">← Back</button>
 
-			<div>
-				<button class="back-btn" onclick="goHome()">← Tillbaka</button>
-				<div class="spel-title">
-					<img id="spel-img" src="{{ game.image_url }}" alt="" />
-					<span id="spel-namn">{{ game.name }}</span>
-				</div>
-				
-				<div class="players-grid">
-					{% if found_players %}
-					{% for player in found_players %}
-						<div class="player-card" onclick="openProfile('{{ player.username }}')">
-							<div class="p-top">
-								<img class="p-avatar" src="{{ player.avatar_url }}" alt="{{ player.username }} avatar" />
-								<div>
-									<div class="p-name">{{ player.username }}</div>
-									<div class="p-tag">{{ player.user_tag }}</div>
-									{% if player.rank %}
-									<div class="p-rank">{{ player.rank }}</div>
-									{% endif %}
-								</div>
-							</div>
-						</div>
-					{% endfor %}
-					{% else %}
-						<p>Inga spelare hittades för det här spelet.</p>
-					{% endif %}
+			<div class="spel-title">
+				<img src="{{ game.image_url }}" alt="{{ game.name }}">
+				<div class="spel-title-text">
+					<div class="spel-title-eyebrow">// Game · {{ game.game_slug }}</div>
+					<span class="spel-name">{{ game.name }}</span>
 				</div>
 			</div>
 
-			<div class="filter-panel">
-				<h3>// Filter</h3>
+			<div class="hud-header">
+				<h2>Available players</h2>
+				<div class="hud-line"></div>
+				<div class="hud-count">{{ found_players|length }} found</div>
+			</div>
+
+			<div class="players-grid">
+				{% for player in found_players %}
+				<div class="player-card" tabindex="0" role="button"
+					 onclick="openProfile('{{ player.username }}')"
+					 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProfile('{{ player.username }}')}">
+					<div class="p-top">
+						<div class="p-avatar-wrap">
+							<img class="p-avatar" src="{{ player.avatar_url }}" alt="{{ player.username }} avatar">
+							<span class="p-status online" aria-label="Online"></span>
+						</div>
+						<div class="p-meta">
+							<div class="p-name">{{ player.username }}</div>
+							<div class="p-tag">{{ player.user_tag }}</div>
+							{% if player.rank %}
+							<div class="p-rank">{{ player.rank }}</div>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+				{% else %}
+				<p>No players found yet — try adjusting your filters.</p>
+				{% endfor %}
+			</div>
+		</div>
+
+		<aside class="filter-panel" aria-label="Player filters">
+			<header class="filter-header">
+				<div class="filter-header-title">Filters</div>
+				<button type="button" class="filter-reset-btn" id="filter-reset" aria-label="Reset all filters">Reset</button>
+			</header>
+
+			<div class="filter-body">
+				<!-- AGE -->
+				<div class="filter-group age-range-filter" data-age-range-filter>
+					<div class="filter-group-label">Age range</div>
+
+					<div class="age-range-values">
+						<span data-age-low>{{ age_marks[0] }}</span>
+						<span>to</span>
+						<span data-age-high>{{ age_marks[-1] }}</span>
+					</div>
+
+					<div class="age-range-slider-wrap">
+						<div class="age-range-track" aria-hidden="true"></div>
+						<div class="age-range-progress" data-age-progress aria-hidden="true"></div>
+						<input type="range" class="age-range-slider age-range-slider-low"
+							   min="0" max="{{ age_marks|length - 1 }}" step="1" value="0"
+							   data-age-input="low" aria-label="Minimum age">
+						<input type="range" class="age-range-slider age-range-slider-high"
+							   min="0" max="{{ age_marks|length - 1 }}" step="1" value="{{ age_marks|length - 1 }}"
+							   data-age-input="high" aria-label="Maximum age">
+					</div>
+
+					<div class="age-range-marks" aria-hidden="true">
+						{% for mark in age_marks %}<span>{{ mark }}</span>{% endfor %}
+					</div>
+				</div>
+
+				<!-- LANGUAGE — dropdown per request -->
 				<div class="filter-group">
-					<label>Ålder</label>
-					<div class="age-range-filter" data-age-range-filter>
-						<div class="age-range-values">
-							<span data-age-low>{{ age_marks[0] }}</span>
-							<span>till</span>
-							<span data-age-high>{{ age_marks[age_marks | length - 1] }}</span>
-						</div>
-						<div class="age-range-slider-wrap">
-							<div class="age-range-track"></div>
-							<div class="age-range-progress" data-age-progress></div>
-							<input class="age-range-slider age-range-slider-low" type="range" min="0" max="{{ age_marks | length - 1 }}" step="1" value="0" data-age-input="low" aria-label="Lägsta ålder" />
-							<input class="age-range-slider age-range-slider-high" type="range" min="0" max="{{ age_marks | length - 1 }}" step="1" value="{{ age_marks | length - 1 }}" data-age-input="high" aria-label="Högsta ålder" />
-						</div>
-						<div class="age-range-marks" aria-hidden="true">
-							{% for age_mark in age_marks %}
-							<span>{{ age_mark }}</span>
+					<div class="filter-group-label">Language</div>
+					<div class="select-wrap">
+						<select id="filter-language" data-filter-group="language" aria-label="Filter by language">
+							<option value="">Any language</option>
+							{% for option in filter_options.language %}
+							<option value="{{ option }}">{{ option }}</option>
 							{% endfor %}
-						</div>
+						</select>
 					</div>
 				</div>
-				<!-- TODO: game specific filters -->
-				<!--
+
+				<!-- RANK — populated by JS based on game slug -->
 				<div class="filter-group">
-					<label>Rank</label>
-					<div class="filter-options">
-						<button class="filter-btn">Nybörjare</button>
-						<button class="filter-btn">Silver</button>
-						<button class="filter-btn">Gold</button>
-						<button class="filter-btn">Platinum</button>
-						<button class="filter-btn">Pro</button>
+					<div class="filter-group-label">Rank</div>
+					<div class="filter-options" id="filter-rank-options" data-filter-group-container="rank">
+						<span class="filter-empty">Select a rank tier</span>
 					</div>
 				</div>
-				-->
+
+				<!-- TIME / PLAYTIME -->
 				<div class="filter-group">
-					<label>Speltid</label>
+					<div class="filter-group-label">Play time</div>
 					<div class="filter-options">
-						{% for playtime in filter_options.playtime %}
-						<button type="button" class="filter-btn" data-filter-group="playtime" data-filter-value="{{ playtime }}">{{ playtime }}</button>
-						{% endfor %}
+						{% if filter_options.playtime %}
+							{% for option in filter_options.playtime %}
+							<button type="button" class="filter-btn" data-filter-group="playtime" data-filter-value="{{ option }}">{{ option }}</button>
+							{% endfor %}
+						{% else %}
+							<span class="filter-empty">No options available</span>
+						{% endif %}
 					</div>
 				</div>
+
+				<!-- PLATFORM -->
 				<div class="filter-group">
-					<label>Plattform</label>
+					<div class="filter-group-label">Platform</div>
 					<div class="filter-options">
-						{% for platform in filter_options.platform %}
-						<button type="button" class="filter-btn" data-filter-group="platform" data-filter-value="{{ platform }}">{{ platform }}</button>
-						{% endfor %}
+						{% if filter_options.platform %}
+							{% for option in filter_options.platform %}
+							<button type="button" class="filter-btn" data-filter-group="platform" data-filter-value="{{ option }}">{{ option }}</button>
+							{% endfor %}
+						{% else %}
+							<span class="filter-empty">No options available</span>
+						{% endif %}
 					</div>
 				</div>
-				<div class="filter-group">
-					<label>Språk</label>
-					<div class="filter-options">
-						{% for language in filter_options.language %}
-						<button type="button" class="filter-btn" data-filter-group="language" data-filter-value="{{ language }}">{{ language }}</button>
-						{% endfor %}
-					</div>
+			</div>
+		</aside>
+	</div>
+
+	<!-- Profile modal (hidden by default) -->
+	<div id="profile-card" class="profile-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
+		<div class="profile-card profile-card-modal">
+			<button class="close-btn" onclick="closeProfile()" aria-label="Close profile">×</button>
+			<div id="profile-loading" class="profile-loading">Loading profile…</div>
+			<div class="games-panel" aria-label="Favorite games"></div>
+			<div class="profile-panel">
+				<div class="profile-avatar">
+					<img src="/static/img/profiles/default.jpg" alt="Profile avatar">
 				</div>
+				<div class="info-box">
+					<div class="info-box-title">Player Info</div>
+					<div class="bio-text"></div>
+				</div>
+				<div class="profile-buttons"></div>
 			</div>
 		</div>
 	</div>
-</div>
-<div id="profile-card" class="profile-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Player profile card">
-	<div class="profile-card profile-card-modal" role="document">
-		<button class="close-btn" type="button" onclick="closeProfile()" aria-label="Stäng profilkort">&times;</button>
-		<p id="profile-loading" class="profile-loading">Laddar profil...</p>
-
-		<div class="games-panel">
-			<!-- Game icons will be added here -->
-		</div>
-
-		<div class="profile-panel">
-			<div class="profile-avatar">
-				<!-- Profile avatar will be modified here -->
-				<img src="/static/img/profiles/default.jpg" alt="Profilbild" />
-			</div>
-
-			<div class="info-box">
-				<div class="info-box-title">// Info om spelaren</div>
-
-				<!-- Info rows will be added here -->
-				<p class="bio-text"></p>
-			</div>
-			<div class="profile-buttons">
-				<!-- Action buttons will be added here -->
-			</div>
-		</div>
-	</div>
-</div>
+</main>
 {% endblock %}

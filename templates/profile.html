@@ -1,69 +1,77 @@
 {% extends "base.html" %}
 
-{% block title %}GC – Profil{% endblock %}
+{% block title %}{{ profile.username }} — GameCrew{% endblock %}
 
 {% block content %}
-<div class="wrapper">
-	{% include "partials/navbar.html" %}
+{% include "partials/navbar.html" %}
 
+<main>
 	<div class="profile-wrapper">
 		<div class="back-row">
-			<button class="back-btn" onclick="history.back()">← Tillbaka</button>
+			<button class="back-btn" onclick="goHome()">← Back</button>
 		</div>
 
 		<div class="profile-card">
-			<div class="games-panel">
-				{% for game in profile_games %}
-				<a class="game-tile" href="/game/{{ game.slug }}"><img
-						src="{{ game.image_url }}"
-						alt="{{ game.name }}" /></a>
+			<div class="games-panel" aria-label="Favorite games">
+				{% for game in profile.games %}
+				<a class="game-tile" href="/game/{{ game.slug }}" aria-label="{{ game.name }}">
+					<img src="{{ game.image_url }}" alt="{{ game.name }}">
+				</a>
 				{% endfor %}
 			</div>
 
 			<div class="profile-panel">
-				<div class="profile-avatar"><img
-						src="{{ profile.avatar_url }}"
-						alt="{{ profile.username }}" />
+				<div class="profile-avatar">
+					<img src="{{ profile.avatar_url|default('/static/img/profiles/default.jpg') }}" alt="{{ profile.username }} avatar">
 				</div>
 
 				<div class="info-box">
-					<div class="info-box-title">// Info om spelaren</div>
+					<div class="info-box-title">Player Info</div>
 
 					<div class="info-row">
-						<!-- TODO: Add discord icon -->
-						<span class="lbl">Discord ID</span>
-						<span class="val">{{ profile.discord }}</span>
+						<span class="lbl">Username</span>
+						<span class="val">{{ profile.username }}</span>
 					</div>
 					<div class="info-row">
-						<!-- TODO: Add steam icon -->
-						<span class="lbl">Steam</span>
-						<span class="val">{{ profile.steam }}</span>
+						<span class="lbl">Tag</span>
+						<span class="val">{{ profile.user_tag|default('N/A') }}</span>
 					</div>
 					<div class="info-row">
-						<span class="lbl">Ålder</span>
-						<span class="val">{{ profile.age_range }}</span>
+						<span class="lbl">Rank</span>
+						<span class="val">{{ profile.rank|default('N/A') }}</span>
 					</div>
 					<div class="info-row">
-						<span class="lbl">Region</span>
-						<span class="val">{{ profile.region }}</span>
+						<span class="lbl">Age Range</span>
+						<span class="val">{{ profile.age_range|default('N/A') }}</span>
 					</div>
 					<div class="info-row">
-						<span class="lbl">Plattformar</span>
-						<span class="val">{{ profile.platforms }}</span>
+						<span class="lbl">Platform</span>
+						<span class="val">{{ profile.platform|default('N/A') }}</span>
 					</div>
 					<div class="info-row">
-						<span class="lbl">Speltider</span>
-						<span class="val">{{ profile.playtimes }}</span>
+						<span class="lbl">Playtime</span>
+						<span class="val">{{ profile.playtime|default('N/A') }}</span>
 					</div>
 					<div class="info-row">
-						<span class="lbl">Språk</span>
-						<span class="val">{{ profile.languages }}</span>
+						<span class="lbl">Languages</span>
+						<span class="val">{{ profile.languages|default('N/A') }}</span>
 					</div>
 
-					<p class="bio-text">{{ profile.bio }}</p>
+					{% if profile.bio %}
+					<div class="bio-text">{{ profile.bio }}</div>
+					{% endif %}
+				</div>
+
+				<div class="profile-buttons">
+					{% if current_user and current_user.username != profile.username %}
+					<button class="action-button" onclick="addFriend('{{ profile.username }}')">Add as friend</button>
+					{% endif %}
+					{% if current_user and current_user.username == profile.username %}
+					<button class="action-button" onclick="window.location.href='/profile/{{ profile.username }}/edit'">Edit profile</button>
+					{% endif %}
 				</div>
 			</div>
 		</div>
 	</div>
-</div>
+</main>
 {% endblock %}

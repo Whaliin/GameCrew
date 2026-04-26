@@ -15,11 +15,13 @@ templates = Jinja2Templates(directory="templates")
 
 
 POPULAR_NAV_GAMES: list[dict[str, str]] = [
-	{"name": "Counter-Strike 2", "slug": "cs2"},
-	{"name": "League of Legends", "slug": "lol"},
-	{"name": "Valorant", "slug": "valorant"},
-	{"name": "ARC Raiders", "slug": "arcraiders"},
-	{"name": "Mobile Legends", "slug": "mobilelegends"},
+    {"name": "Counter-Strike 2", "slug": "cs2"},
+    {"name": "League of Legends", "slug": "lol"},
+    {"name": "Valorant", "slug": "valorant"},
+    {"name": "ARC Raiders", "slug": "arcraiders"},
+    {"name": "Mobile Legends", "slug": "mobilelegends"},
+    {"name": "Apex Legends", "slug": "apex"},
+    {"name": "Minecraft", "slug": "minecraft"},
 ]
 
 GAME_IMAGE_URLS: dict[str, str] = {
@@ -133,9 +135,15 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 	language_options = _get_lookup_names(db, LanguagePreferences)
 
 	context["found_players"] = [
-		{"username": "gamer123", "user_tag": "#gamer123", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Gold Nova III"},
-		{"username": "proplayer", "user_tag": "#proplayer", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Global Elite"},
-	]
+    {"username": "Vipergg",     "user_tag": "#vipergg",     "avatar_url": "/static/img/profiles/default.jpg", "rank": "Diamond III"},
+    {"username": "NightOwl_42", "user_tag": "#nightowl",    "avatar_url": "/static/img/profiles/default.jpg", "rank": "Platinum"},
+    {"username": "kira",        "user_tag": "#kira",        "avatar_url": "/static/img/profiles/default.jpg", "rank": "Immortal"},
+    {"username": "ProPlayer99", "user_tag": "#proplayer99", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Global Elite"},
+    {"username": "casual_cat",  "user_tag": "#casualcat",   "avatar_url": "/static/img/profiles/default.jpg", "rank": "Gold"},
+    {"username": "Stormbreaker","user_tag": "#stormbreaker","avatar_url": "/static/img/profiles/default.jpg", "rank": "Master"},
+    {"username": "ZenSniper",   "user_tag": "#zensniper",   "avatar_url": "/static/img/profiles/default.jpg", "rank": "Ascendant"},
+    {"username": "BobTheBuilder","user_tag": "#bob",        "avatar_url": "/static/img/profiles/default.jpg", "rank": "Veteran"},
+]
 
 	context["game"] = {
 		"game_slug": game.slug,

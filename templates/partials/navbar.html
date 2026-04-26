@@ -1,27 +1,33 @@
-<nav>
-	<a class="logo" href="/">GC</a>
-	<div class="nav-games-shell" aria-label="Popular and favorite games">
-		<button class="nav-scroll-btn nav-scroll-btn-left" type="button" onclick="scrollNavGames(-1)" aria-label="Scroll games left">‹</button>
-		<div class="nav-games-track" id="nav-games-track">
+<nav class="wrapper">
+	<a href="/" class="logo" aria-label="GameCrew home">GAMECREW</a>
+
+	<div class="nav-games-shell">
+		<button type="button" class="nav-scroll-btn nav-scroll-left" onclick="scrollNavGames(-1)" aria-label="Scroll games left">‹</button>
+
+		<div class="nav-games-track" id="nav-games-track" aria-label="Game shortcuts">
 			{% for game in nav_games %}
-			<a class="nav-game-link" href="/game/{{ game.slug }}" title="{{ game.name }}">
-				<img src="{{ game.image_url }}" alt="{{ game.name }}" />
+			<a href="/game/{{ game.slug }}" class="nav-game-link" aria-label="{{ game.name }}">
+				<img src="{{ game.image_url }}" alt="{{ game.name }}">
 			</a>
 			{% endfor %}
 		</div>
-		<button class="nav-scroll-btn nav-scroll-btn-right" type="button" onclick="scrollNavGames(1)" aria-label="Scroll games right">›</button>
+
+		<button type="button" class="nav-scroll-btn nav-scroll-right" onclick="scrollNavGames(1)" aria-label="Scroll games right">›</button>
 	</div>
+
 	<div class="user-area">
 		{% if current_user %}
-		<a href="/profile/{{ current_user.username }}" class="user-profile-link" title="Go to your profile">
+		<a href="/profile/{{ current_user.username }}" class="user-profile-link" aria-label="Open your profile">
 			<div>
 				<div class="user-name">{{ current_user.username }}</div>
 				<div class="user-tag">{{ current_user.user_tag }}</div>
 			</div>
-			<div class="user-avatar"><img src="{{ current_user.avatar_url }}" alt="{{ current_user.username }} avatar" /></div>
+			<div class="user-avatar">
+				<img src="{{ current_user.avatar_url }}" alt="{{ current_user.username }} avatar">
+			</div>
 		</a>
 		{% else %}
-		<button class="login-btn" onclick="goLogin()">Logga in</button>
+		<button type="button" class="login-btn" onclick="goLogin()">Sign in</button>
 		{% endif %}
 	</div>
 </nav>

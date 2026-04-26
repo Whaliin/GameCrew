@@ -1,61 +1,104 @@
 {% extends "base.html" %}
 
+{% block title %}GameCrew — Find your crew{% endblock %}
+
 {% block content %}
-<div id="page-hem">
-	<div class="wrapper">
-		{% include "partials/navbar.html" %}
+{% include "partials/navbar.html" %}
 
-		<main>
-			<section>
-				<h2>Dina mest spelade</h2>
-				<div class="game-row">
-					{% for game in played_games %}
-						<div class="game-card">
-							<button class="game-btn" onclick="goGame('{{ game.slug }}')"><img
-									src="{{ game.image_url }}"
-									alt="{{ game.name }}" /></button>
-							<span class="game-label">{{ game.name }}</span>
-							<span class="game-stat">{{ game.hours_played }} h</span>
-						</div>
-					{% endfor %}
+<main class="wrapper">
+	<!-- Hero strip — gives the home page a heartbeat -->
+	<section class="hero-strip">
+		<div>
+			<div class="hero-tag">System online · Matchmaking active</div>
+			<h1 class="hero-title">Find your <em>crew.</em> Drop into the next match.</h1>
+		</div>
+		<div class="hero-stats">
+			<div class="hero-stat">
+				<div class="hero-stat-value">12.4k</div>
+				<div class="hero-stat-label">Online</div>
+			</div>
+			<div class="hero-stat">
+				<div class="hero-stat-value">847</div>
+				<div class="hero-stat-label">Squads</div>
+			</div>
+		</div>
+	</section>
+
+	<section>
+		<div class="hud-header">
+			<h2>Most played</h2>
+			<div class="hud-line"></div>
+			<div class="hud-count">{{ played_games|length }} titles</div>
+		</div>
+		<div class="game-row">
+			{% for game in played_games %}
+			<div class="game-card">
+				<span class="game-btn-wrap">
+					<span class="corner-tr"></span>
+					<span class="corner-bl"></span>
+					<button class="game-btn" onclick="goGame('{{ game.slug }}')" aria-label="Open {{ game.name }}">
+						<img src="{{ game.image_url }}" alt="{{ game.name }}">
+					</button>
+				</span>
+				<div class="game-label">{{ game.name }}</div>
+				<div>
+					<div class="game-stat">{{ game.hours_played }}h</div>
+					<div class="game-stat-label">Played</div>
 				</div>
-			</section>
+			</div>
+			{% endfor %}
+		</div>
+	</section>
 
-			<section>
-				<h2>Folk i din ålder spelar</h2>
-				<div class="game-row">
-					{% for game in agegroup_games %}
-						<div class="game-card">
-							<button class="game-btn" onclick="goGame('{{ game.slug }}')"><img
-									src="{{ game.image_url }}"
-									alt="{{ game.name }}" /></button>
-							<span class="game-label">{{ game.name }}</span>
-							<span class="game-stat">{{ game.players }}+</span>
-						</div>
-					{% endfor %}
+	<section>
+		<div class="hud-header">
+			<h2>Match your age group</h2>
+			<div class="hud-line"></div>
+			<div class="hud-count">{{ agegroup_games|length }} titles</div>
+		</div>
+		<div class="game-row">
+			{% for game in agegroup_games %}
+			<div class="game-card">
+				<span class="game-btn-wrap">
+					<span class="corner-tr"></span>
+					<span class="corner-bl"></span>
+					<button class="game-btn" onclick="goGame('{{ game.slug }}')" aria-label="Open {{ game.name }}">
+						<img src="{{ game.image_url }}" alt="{{ game.name }}">
+					</button>
+				</span>
+				<div class="game-label">{{ game.name }}</div>
+				<div>
+					<div class="game-stat">{{ game.players }}</div>
+					<div class="game-stat-label">Players</div>
 				</div>
-			</section>
+			</div>
+			{% endfor %}
+		</div>
+	</section>
 
-			<section>
-				<h2>Trendar just nu</h2>
-				<div class="game-row">
-					{% for game in trending_games %}
-					<div class="game-card">
-						<div class="badge-wrap">
-							<button class="game-btn" onclick="goGame('{{ game.slug }}')">
-								<img
-									src="{{ game.image_url }}"
-									alt="{{ game.name }}" />
-								</button>
-							<span class="badge">#{{ loop.index }}</span>
-						</div>
-						<span class="game-label">{{ game.name }}</span>
-					</div>
-					{% endfor %}
-				</div>
-			</section>
-
-		</main>
-	</div>
-</div>
+	<section>
+		<div class="hud-header">
+			<h2>Trending now</h2>
+			<div class="hud-line"></div>
+			<div class="hud-count">{{ trending_games|length }} titles</div>
+		</div>
+		<div class="game-row">
+			{% for game in trending_games %}
+			<div class="game-card">
+				<span class="badge-wrap">
+					<span class="badge">TRENDING</span>
+					<span class="game-btn-wrap">
+						<span class="corner-tr"></span>
+						<span class="corner-bl"></span>
+						<button class="game-btn" onclick="goGame('{{ game.slug }}')" aria-label="Open {{ game.name }}">
+							<img src="{{ game.image_url }}" alt="{{ game.name }}">
+						</button>
+					</span>
+				</span>
+				<div class="game-label">{{ game.name }}</div>
+			</div>
+			{% endfor %}
+		</div>
+	</section>
+</main>
 {% endblock %}

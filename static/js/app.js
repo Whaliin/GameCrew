@@ -1,52 +1,16 @@
 /* --- UTILITY FUNCTIONS --- */
-/*
-	Utility function to return a fallback value if the main value is null, undefined or empty
-*/
 function withFallback(value, fallback) {
 	return value || fallback;
 }
 
 /* --- NAVIGATION FUNCTIONS --- */
-/*
-	Set the page location to the index/home page
-*/
-function goHome() {
-  	window.location.href = '/';
-}
-
-/*
-	Set the page location to a specific game id
-*/
-function goGame(id) {
-  	window.location.href = `/game/${id}`;
-}
-
-/*
-	Set the page location to the login page
-*/
-function goLogin() {
-  	window.location.href = '/login';
-}
-
-/*
-	Set the page location to the registration page
-*/
-function goRegister() {
-  	window.location.href = '/register';
-}
-
-/*
-	Set the page location to a specific user's profile page
-*/
-function goProfile(username) {
-  	window.location.href = `/profile/${username}`;
-}
+function goHome()              { window.location.href = '/'; }
+function goGame(id)            { window.location.href = `/game/${id}`; }
+function goLogin()             { window.location.href = '/login'; }
+function goRegister()          { window.location.href = '/register'; }
+function goProfile(username)   { window.location.href = `/profile/${username}`; }
 
 /* --- API FUNCTIONS --- */
-/*
-	Fetch the player profile data from the API for a given username
-	Returns a promise that resolves to the profile data in JSON format
-*/
 async function fetchProfile(username) {
 	const response = await fetch(`/api/players/${username}`);
 	if (!response.ok) {
@@ -55,149 +19,124 @@ async function fetchProfile(username) {
 	return response.json();
 }
 
-/*
-	Add user to friends list (placeholder)
-*/
 async function addFriend(username) {
-	// TODO: How do we implement this?
-	// Where do we store the currently logged in user data?
-	alert("Funktion inte implementerad");
+	// TODO: implement when sessions/friend list backend exists
+	alert('Feature not implemented yet');
 }
 
 /* --- NAVIGATION SCROLLING --- */
-/*
-	Scroll the games navigation track left or right based on the direction parameter
-*/
 function scrollNavGames(direction) {
-	// direction: -1 for left, 1 for right
 	const track = document.getElementById('nav-games-track');
-	// if track is null or undefined do nothing 
-  	if (!track) {
-    	return;
-  	}
+	if (!track) {
+		return;
+	}
+	const distance = Math.max(track.clientWidth * 0.8, 220);
+	track.scrollBy({ left: distance * direction, behavior: 'smooth' });
+}
 
-  	// scroll by 80% of the track width or a minimum of 220px, whichever is greater
-	// calculate the distance to scroll
-  	const distance = Math.max(track.clientWidth * 0.8, 220);
-	// scroll the element
-  	track.scrollBy({ left: distance * direction, behavior: 'smooth' });
+/* --- RANK CATALOG (per game) --- */
+const RANKS_BY_GAME = {
+	cs2:           ['Silver', 'Gold Nova', 'Master Guardian', 'Legendary Eagle', 'Supreme', 'Global Elite'],
+	counterstrike: ['Silver', 'Gold Nova', 'Master Guardian', 'Legendary Eagle', 'Supreme', 'Global Elite'],
+	lol:           ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'],
+	valorant:      ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'],
+	arcraiders:    ['Rookie', 'Raider', 'Veteran', 'Elite', 'Legend'],
+	mobilelegends: ['Warrior', 'Elite', 'Master', 'Grandmaster', 'Epic', 'Legend', 'Mythic', 'Mythical Glory'],
+	apex:          ['Rookie', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Apex Predator'],
+	minecraft:     ['Casual', 'Builder', 'Survivalist', 'Veteran', 'Master Crafter'],
+};
+
+/*
+	Build rank filter buttons for the current game. Falls back to "no ranks"
+	state if the game has no rank tiers defined.
+*/
+function populateRankFilter(gameSlug) {
+	const container = document.getElementById('filter-rank-options');
+	if (!container) {
+		return;
+	}
+	const ranks = RANKS_BY_GAME[gameSlug] || [];
+
+	if (ranks.length === 0) {
+		container.innerHTML = '<span class="filter-empty">No rank tiers for this game</span>';
+		return;
+	}
+
+	container.innerHTML = '';
+	ranks.forEach(rank => {
+		const btn = document.createElement('button');
+		btn.type = 'button';
+		btn.className = 'filter-btn';
+		btn.dataset.filterGroup = 'rank';
+		btn.dataset.filterValue = rank;
+		btn.textContent = rank;
+		container.appendChild(btn);
+	});
 }
 
 /* --- PROFILE CARD LOGIC --- */
-/*
-	Creates an info row element with a label and value, and appends it to the given infobox element
-	Used when rendering the profile cards
-*/
 function createInfoRow(infobox, label, value) {
-	// Create a new div element for the info row
 	const row = document.createElement('div');
-	// Set the class for styling
 	row.className = 'info-row';
-	// Set the inner HTML to include the label and value with classes for styling
 	row.innerHTML = `<span class="lbl">${label}</span><span class="val">${value}</span>`;
-	// Append the new row to the passed infobox element
 	infobox.appendChild(row);
 }
 
-/*
-	Creates a game icon element (link with image) and append it to the given game panel element
-	Used when rendering the profile cards to show favorite games
-*/
 function createGameIcon(gamePanel, game) {
-	/*
-	<a class="game-tile" href="/game/{{ game.slug }}"><img
-				src="{{ game.image_url }}"
-				alt="{{ game.name }}" /></a>
-	*/
-	// Create the link element
 	const link = document.createElement('a');
 	link.className = 'game-tile';
 	link.href = `/game/${game.slug}`;
 
-	// Create the image element
 	const img = document.createElement('img');
 	img.src = game.image_url;
 	img.alt = game.name;
-	// Make sure we add the image as a child
 	link.appendChild(img);
 
-	// Add the link to the game panel
 	gamePanel.appendChild(link);
 }
 
-/*
-	Get all relevant elements for the profile modal in one place to avoid repeated DOM queries
-*/
 function getProfileCardElements() {
-	// Get the main card element
 	const card = document.getElementById('profile-card');
-
-	// If the card doesn't exist on the page, return null
-	// This allows us to null check and return when we are on a page without the profile cards
 	if (!card) {
 		return null;
 	}
 
-	// Find all of the relevant child elements within the card
-	const profilePanel = card.getElementsByClassName('profile-panel')[0];
-	const loading = card.querySelector('#profile-loading');
-	const infoBox = card.getElementsByClassName('info-box')[0];
-	const gamePanel = card.getElementsByClassName('games-panel')[0];
-	const avatarImage = profilePanel.querySelector('.profile-avatar img');
-	const bioText = infoBox.querySelector('.bio-text');
+	const profilePanel  = card.getElementsByClassName('profile-panel')[0];
+	const loading       = card.querySelector('#profile-loading');
+	const infoBox       = card.getElementsByClassName('info-box')[0];
+	const gamePanel     = card.getElementsByClassName('games-panel')[0];
+	const avatarImage   = profilePanel.querySelector('.profile-avatar img');
+	const bioText       = infoBox.querySelector('.bio-text');
 	const profileButtons = profilePanel.querySelector('.profile-buttons');
 
-	return { card, loading, infoBox, gamePanel, avatarImage, bioText, profileButtons: profileButtons };
+	return { card, loading, infoBox, gamePanel, avatarImage, bioText, profileButtons };
 }
 
-/*
-	Show the profile card modal and display the "loading" state while fetching profile data
-*/
 function showProfileCard(card, loading) {
-	// Remove the "hidden" class
 	card.classList.remove('hidden');
-	// Set the aria-hidden attribute (useful for screen readers and accessibility)
 	card.setAttribute('aria-hidden', 'false');
-	// Add a class to the body to prevent background scrolling when the modal is open
 	document.body.classList.add('modal-open');
-	// Set the display of the loading element to block to show it
 	loading.style.display = 'block';
 }
 
-/*
-	Hide the profile card modal and reset any dynamic content (prepare for next open)
-*/
 function hideProfileCard(card) {
-	// Add the "hidden" class to hide the card
 	card.classList.add('hidden');
-	// Set the aria-hidden attribute to true to indicate it's hidden (for screen readers)
 	card.setAttribute('aria-hidden', 'true');
-	// Remove the "modal-open" class from the body to allow scrolling again
 	document.body.classList.remove('modal-open');
 }
 
-/*
-	Reset the profile card content to a clean state before loading new data
-*/
 function resetProfileCard(elements) {
-	// Get all elements with info row class and remove them
 	elements.infoBox.querySelectorAll('.info-row').forEach(row => row.remove());
-	// Get all elements with game tile class and remove them
 	elements.gamePanel.querySelectorAll('.game-tile').forEach(tile => tile.remove());
-	// Remove bio text
 	elements.bioText.textContent = '';
-	// Reset avatar to default loading state
 	elements.avatarImage.src = '/static/img/profiles/default.jpg';
 	elements.avatarImage.alt = 'Loading...';
-	// Show loading state
-	elements.loading.textContent = 'Laddar profil...';
+	elements.loading.textContent = 'Loading profile…';
 	elements.loading.style.display = 'block';
-	// Remove any existing buttons in the profile buttons container
 	elements.profileButtons.querySelectorAll('.action-button').forEach(btn => btn.remove());
 }
 
 function addActionButton(element, label, onClick) {
-	// Create the button element
 	const button = document.createElement('button');
 	button.className = 'action-button';
 	button.textContent = label;
@@ -205,141 +144,82 @@ function addActionButton(element, label, onClick) {
 	element.appendChild(button);
 }
 
-/*
-	Render the fetched profile data into the modal
-*/
 function renderProfileData(elements, data) {
-	// Set the avatar image
 	setProfileAvatar(elements, data);
-	// Create the info rows
 	renderProfileInfoRows(elements, data);
-	// Set the bio text
 	elements.bioText.textContent = withFallback(data.bio, 'No bio available.');
-	// Render the favorite games
 	renderProfileGames(elements.gamePanel, data.games);
-	// TODO: Add friend button
-	addActionButton(elements.profileButtons, 'Lägg till som vän', () => addFriend(data.username));
-	// Add the show profile button
-	addActionButton(elements.profileButtons, 'Visa full profil', () => goProfile(data.username));
-	// Hide the loading state
+	addActionButton(elements.profileButtons, 'Add as friend', () => addFriend(data.username));
+	addActionButton(elements.profileButtons, 'Open full profile', () => goProfile(data.username));
 	elements.loading.style.display = 'none';
 }
 
-/*
-	Render an error state in the profile modal if fetching data fails
-*/
 function renderProfileError(elements, username, error) {
-	elements.loading.textContent = 'Kunde inte ladda profil. Försök igen.';
+	elements.loading.textContent = 'Could not load profile. Try again.';
 	createInfoRow(elements.infoBox, 'Username', username);
-	elements.bioText.textContent = 'Något gick fel när vi hämtade profilen.';
+	elements.bioText.textContent = 'Something went wrong while loading the profile.';
 	console.error('Error fetching player profile:', error);
 }
 
-/*
-	Set the profile avatar image source and alt text using fallbacks if necessary
-*/
 function setProfileAvatar(elements, data) {
 	elements.avatarImage.src = withFallback(data.avatar_url, '/static/img/profiles/default.jpg');
 	elements.avatarImage.alt = withFallback(data.username, 'Player avatar');
 }
 
-/*
-	Render the profile information rows based on data
-*/
 function renderProfileInfoRows(elements, data) {
-	// Define the rows to display
 	const rows = [
-		['Username', withFallback(data.username, 'Unknown')],
-		['Tag', withFallback(data.user_tag, 'N/A')],
-		['Rank', withFallback(data.rank, 'N/A')],
-		['Age Range', withFallback(data.age_range, 'N/A')],
-		['Platform', withFallback(data.platform, 'N/A')],
-		['Playtime', withFallback(data.playtime, 'N/A')],
-		['Languages', withFallback(data.languages, 'N/A')],
+		['Username',   withFallback(data.username, 'Unknown')],
+		['Tag',        withFallback(data.user_tag, 'N/A')],
+		['Rank',       withFallback(data.rank, 'N/A')],
+		['Age Range',  withFallback(data.age_range, 'N/A')],
+		['Platform',   withFallback(data.platform, 'N/A')],
+		['Playtime',   withFallback(data.playtime, 'N/A')],
+		['Languages',  withFallback(data.languages, 'N/A')],
 	];
-
-	// Loop over them and create info rows in the card/modal
 	rows.forEach(([label, value]) => createInfoRow(elements.infoBox, label, value));
 }
 
-/*
-	Render the favorite games as icons in the profile modal
-*/
 function renderProfileGames(gamePanel, games) {
-	// If the games data is not an array, do not attempt to render
 	if (!Array.isArray(games)) {
 		return;
 	}
-
-	// For each game in the array, create a game icon element and append it to the game panel
 	games.forEach(game => createGameIcon(gamePanel, game));
 }
 
-/*
-	Open the profile modal for a given username.
-	Fetches the profile from the API and renders it, showing loading state and handling errors
-*/
 function openProfile(username) {
-	// Get the card elements
 	const elements = getProfileCardElements();
-
-	// If no elements found, return (for pages where the card doesn't exist)
 	if (!elements) {
 		return;
 	}
-
-	// Show the profile card with loading state and reset any previous content
 	showProfileCard(elements.card, elements.loading);
-
-	// Reset the profile card content
 	resetProfileCard(elements);
 
 	fetch(`/api/players/${username}`)
-	.then(response => response.json())
-	.then(data => renderProfileData(elements, data))
-	.catch(error => renderProfileError(elements, username, error));
+		.then(response => response.json())
+		.then(data => renderProfileData(elements, data))
+		.catch(error => renderProfileError(elements, username, error));
 }
 
-/*
-	Close the profile card and reset its content
-*/
 function closeProfile() {
-	// Get profile elements
 	const elements = getProfileCardElements();
-
-	// If no elements found, return
 	if (!elements) {
 		return;
 	}
-
-	// Hide the profile card
 	hideProfileCard(elements.card);
 }
 
 /* --- EVENT LISTENERS --- */
-/*
-	Event listener for the escape key
-*/
 document.addEventListener('keydown', event => {
 	if (event.key === 'Escape') {
-		// Close any open profiles when the escape key is pressed
 		closeProfile();
 	}
 });
 
-/*
-	Event listener for clicks
-*/
 document.addEventListener('click', event => {
-	// Profile check: if the click is outside the profile card, close it
-	// Get the profile elements
 	const elements = getProfileCardElements();
-	// If no elements or the card is hidden, do nothing
 	if (!elements || elements.card.classList.contains('hidden')) {
-		// TODO: If adding more modals, this logic should be updated
 		return;
 	}
-
 	if (event.target === elements.card) {
 		closeProfile();
 	}
@@ -353,9 +233,15 @@ function debounce(callback, waitMs) {
 	};
 }
 
+/* --- AGE RANGE SLIDER (FIXED) --- */
 /*
-	Initialize a dual age range slider with fixed custom increments.
-	Slider positions map to labels so we can support values like "45+".
+	Two key fixes vs iter 1:
+	  1. CLAMP THE ACTIVE THUMB instead of pushing the other one.
+	     If user drags the low past high, low is clamped DOWN to high.
+	     If user drags the high below low, high is clamped UP to low.
+	     This prevents the "gliching" where both thumbs jumped together.
+	  2. DYNAMIC z-index — whichever thumb is being grabbed is on top,
+	     so it's always reachable even when both are at the same position.
 */
 function setupAgeRangeFilter(onChange) {
 	const container = document.querySelector('[data-age-range-filter]');
@@ -363,15 +249,18 @@ function setupAgeRangeFilter(onChange) {
 		return null;
 	}
 
-	const labels = Array.from(container.querySelectorAll('.age-range-marks span')).map(mark => mark.textContent?.trim() || '').filter(Boolean);
+	const labels = Array.from(container.querySelectorAll('.age-range-marks span'))
+		.map(mark => mark.textContent?.trim() || '')
+		.filter(Boolean);
 	if (labels.length === 0) {
 		return null;
 	}
-	const lowInput = container.querySelector('[data-age-input="low"]');
+
+	const lowInput  = container.querySelector('[data-age-input="low"]');
 	const highInput = container.querySelector('[data-age-input="high"]');
-	const lowLabel = container.querySelector('[data-age-low]');
+	const lowLabel  = container.querySelector('[data-age-low]');
 	const highLabel = container.querySelector('[data-age-high]');
-	const progress = container.querySelector('[data-age-progress]');
+	const progress  = container.querySelector('[data-age-progress]');
 
 	if (!lowInput || !highInput || !lowLabel || !highLabel || !progress) {
 		return null;
@@ -380,26 +269,27 @@ function setupAgeRangeFilter(onChange) {
 	const maxIndex = labels.length - 1;
 
 	function clampInputs(changed) {
-		let low = Number(lowInput.value);
+		let low  = Number(lowInput.value);
 		let high = Number(highInput.value);
 
+		// FIX: clamp the ACTIVE input only — never push the other one.
 		if (low > high) {
 			if (changed === 'low') {
-				high = low;
-				highInput.value = String(high);
-			} else {
 				low = high;
 				lowInput.value = String(low);
+			} else {
+				high = low;
+				highInput.value = String(high);
 			}
 		}
 
-		const lowPercent = (low / maxIndex) * 100;
+		const lowPercent  = (low  / maxIndex) * 100;
 		const highPercent = (high / maxIndex) * 100;
 
-		lowLabel.textContent = labels[low];
+		lowLabel.textContent  = labels[low];
 		highLabel.textContent = labels[high];
-		progress.style.left = `${lowPercent}%`;
-		progress.style.right = `${100 - highPercent}%`;
+		progress.style.left   = `${lowPercent}%`;
+		progress.style.right  = `${100 - highPercent}%`;
 
 		if (typeof onChange === 'function' && changed !== 'init') {
 			onChange();
@@ -407,14 +297,14 @@ function setupAgeRangeFilter(onChange) {
 	}
 
 	function getAgeBounds() {
-		const lowIndex = Number(lowInput.value);
-		const highIndex = Number(highInput.value);
-		const lowLabelText = labels[lowIndex] || labels[0];
-		const highLabelText = labels[highIndex] || labels[maxIndex];
+		const lowIndex   = Number(lowInput.value);
+		const highIndex  = Number(highInput.value);
+		const lowText    = labels[lowIndex]  || labels[0];
+		const highText   = labels[highIndex] || labels[maxIndex];
 
-		const ageLo = Number.parseInt(lowLabelText, 10);
-		const isUnboundedHigh = highIndex === maxIndex && highLabelText.includes('+');
-		const parsedHigh = Number.parseInt(highLabelText, 10);
+		const ageLo            = Number.parseInt(lowText, 10);
+		const isUnboundedHigh  = highIndex === maxIndex && highText.includes('+');
+		const parsedHigh       = Number.parseInt(highText, 10);
 
 		return {
 			ageLo: Number.isNaN(ageLo) ? null : ageLo,
@@ -422,27 +312,65 @@ function setupAgeRangeFilter(onChange) {
 		};
 	}
 
-	lowInput.addEventListener('input', () => clampInputs('low'));
+	// FIX: dynamic z-index so the grabbed thumb is always on top.
+	function setActive(input) {
+		lowInput.classList.remove('active');
+		highInput.classList.remove('active');
+		input.classList.add('active');
+	}
+	function clearActive() {
+		lowInput.classList.remove('active');
+		highInput.classList.remove('active');
+	}
+
+	[lowInput, highInput].forEach(input => {
+		input.addEventListener('pointerdown',   () => setActive(input));
+		input.addEventListener('focus',         () => setActive(input));
+		input.addEventListener('pointerup',     clearActive);
+		input.addEventListener('pointercancel', clearActive);
+		input.addEventListener('blur',          clearActive);
+	});
+
+	lowInput.addEventListener('input',  () => clampInputs('low'));
 	highInput.addEventListener('input', () => clampInputs('high'));
 	clampInputs('init');
 
 	return { getAgeBounds };
 }
 
+/* --- PLAYER CARDS --- */
 function createPlayerCard(player) {
 	const card = document.createElement('div');
 	card.className = 'player-card';
+	card.tabIndex = 0;
+	card.setAttribute('role', 'button');
 	card.addEventListener('click', () => openProfile(player.username));
+	card.addEventListener('keydown', event => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			openProfile(player.username);
+		}
+	});
 
 	const top = document.createElement('div');
 	top.className = 'p-top';
+
+	const avatarWrap = document.createElement('div');
+	avatarWrap.className = 'p-avatar-wrap';
 
 	const avatar = document.createElement('img');
 	avatar.className = 'p-avatar';
 	avatar.src = withFallback(player.avatar_url, '/static/img/profiles/default.jpg');
 	avatar.alt = `${withFallback(player.username, 'Player')} avatar`;
 
-	const textWrap = document.createElement('div');
+	const status = document.createElement('span');
+	status.className = `p-status ${withFallback(player.status, 'online')}`;
+
+	avatarWrap.appendChild(avatar);
+	avatarWrap.appendChild(status);
+
+	const meta = document.createElement('div');
+	meta.className = 'p-meta';
 
 	const name = document.createElement('div');
 	name.className = 'p-name';
@@ -452,18 +380,18 @@ function createPlayerCard(player) {
 	tag.className = 'p-tag';
 	tag.textContent = withFallback(player.user_tag, '#unknown');
 
-	textWrap.appendChild(name);
-	textWrap.appendChild(tag);
+	meta.appendChild(name);
+	meta.appendChild(tag);
 
 	if (player.rank) {
 		const rank = document.createElement('div');
 		rank.className = 'p-rank';
 		rank.textContent = player.rank;
-		textWrap.appendChild(rank);
+		meta.appendChild(rank);
 	}
 
-	top.appendChild(avatar);
-	top.appendChild(textWrap);
+	top.appendChild(avatarWrap);
+	top.appendChild(meta);
 	card.appendChild(top);
 
 	return card;
@@ -474,7 +402,7 @@ function renderPlayersGrid(gridElement, players) {
 
 	if (!Array.isArray(players) || players.length === 0) {
 		const empty = document.createElement('p');
-		empty.textContent = 'Inga spelare hittades för det här spelet.';
+		empty.textContent = 'No players found — try adjusting your filters.';
 		gridElement.appendChild(empty);
 		return;
 	}
@@ -487,21 +415,12 @@ function renderPlayersGrid(gridElement, players) {
 async function fetchFilteredPlayers(gameSlug, filters) {
 	const params = new URLSearchParams();
 
-	if (filters.ageLo !== null) {
-		params.set('age_lo', String(filters.ageLo));
-	}
-	if (filters.ageHi !== null) {
-		params.set('age_hi', String(filters.ageHi));
-	}
-	if (filters.playtime) {
-		params.set('playtime', filters.playtime);
-	}
-	if (filters.platform) {
-		params.set('platform', filters.platform);
-	}
-	if (filters.language) {
-		params.set('language', filters.language);
-	}
+	if (filters.ageLo !== null)  { params.set('age_lo', String(filters.ageLo)); }
+	if (filters.ageHi !== null)  { params.set('age_hi', String(filters.ageHi)); }
+	if (filters.playtime)        { params.set('playtime', filters.playtime); }
+	if (filters.platform)        { params.set('platform', filters.platform); }
+	if (filters.language)        { params.set('language', filters.language); }
+	if (filters.rank)            { params.set('rank',     filters.rank); }
 
 	const response = await fetch(`/api/search/games/${encodeURIComponent(gameSlug)}/players?${params.toString()}`);
 	if (!response.ok) {
@@ -512,14 +431,17 @@ async function fetchFilteredPlayers(gameSlug, filters) {
 }
 
 function setupGameFiltersSearch() {
-	const gamePage = document.getElementById('page-spel');
+	const gamePage    = document.getElementById('page-spel');
 	const playersGrid = document.querySelector('#page-spel .players-grid');
-	const gameSlug = gamePage?.dataset.gameSlug;
+	const gameSlug    = gamePage?.dataset.gameSlug;
 
 	if (!gamePage || !playersGrid || !gameSlug) {
 		setupAgeRangeFilter();
 		return;
 	}
+
+	// Populate rank filter for this game
+	populateRankFilter(gameSlug);
 
 	let latestRequestId = 0;
 
@@ -530,15 +452,18 @@ function setupGameFiltersSearch() {
 
 	const triggerSearch = debounce(async () => {
 		const requestId = ++latestRequestId;
-		playersGrid.innerHTML = '<p>Söker spelare...</p>';
+		playersGrid.innerHTML = '<p>Searching players…</p>';
 
 		const ageBounds = ageFilterController?.getAgeBounds() ?? { ageLo: null, ageHi: null };
+		const languageSelect = document.getElementById('filter-language');
+
 		const filters = {
-			ageLo: ageBounds.ageLo,
-			ageHi: ageBounds.ageHi,
+			ageLo:    ageBounds.ageLo,
+			ageHi:    ageBounds.ageHi,
 			playtime: getSelectedFilterValue('playtime'),
 			platform: getSelectedFilterValue('platform'),
-			language: getSelectedFilterValue('language'),
+			language: languageSelect?.value || '',
+			rank:     getSelectedFilterValue('rank'),
 		};
 
 		try {
@@ -551,29 +476,60 @@ function setupGameFiltersSearch() {
 			if (requestId !== latestRequestId) {
 				return;
 			}
-			playersGrid.innerHTML = '<p>Kunde inte hämta spelare just nu.</p>';
+			playersGrid.innerHTML = '<p>Could not load players right now.</p>';
 			console.error('Player search failed:', error);
 		}
 	}, 180);
 
 	const ageFilterController = setupAgeRangeFilter(triggerSearch);
 
-	document.querySelectorAll('.filter-btn[data-filter-group]').forEach(button => {
-		button.addEventListener('click', () => {
-			const group = button.dataset.filterGroup;
-			const isOn = button.classList.contains('on');
+	// EVENT DELEGATION — handles both static buttons (playtime/platform)
+	// and dynamically-added rank buttons.
+	document.addEventListener('click', event => {
+		const button = event.target.closest('.filter-btn[data-filter-group]');
+		if (!button) {
+			return;
+		}
 
-			document.querySelectorAll(`.filter-btn[data-filter-group="${group}"]`).forEach(groupBtn => {
-				groupBtn.classList.remove('on');
-			});
+		const group = button.dataset.filterGroup;
+		const isOn  = button.classList.contains('on');
 
-			if (!isOn) {
-				button.classList.add('on');
+		document.querySelectorAll(`.filter-btn[data-filter-group="${group}"]`).forEach(groupBtn => {
+			groupBtn.classList.remove('on');
+		});
+
+		if (!isOn) {
+			button.classList.add('on');
+		}
+
+		triggerSearch();
+	});
+
+	// Language dropdown
+	const languageSelect = document.getElementById('filter-language');
+	if (languageSelect) {
+		languageSelect.addEventListener('change', triggerSearch);
+	}
+
+	// Reset button — clears all filter buttons, language, and age range.
+	const resetBtn = document.getElementById('filter-reset');
+	if (resetBtn) {
+		resetBtn.addEventListener('click', () => {
+			document.querySelectorAll('.filter-btn.on').forEach(b => b.classList.remove('on'));
+			if (languageSelect) {
+				languageSelect.value = '';
 			}
-
+			const lowInput  = document.querySelector('[data-age-input="low"]');
+			const highInput = document.querySelector('[data-age-input="high"]');
+			if (lowInput && highInput) {
+				lowInput.value  = lowInput.min;
+				highInput.value = highInput.max;
+				lowInput.dispatchEvent(new Event('input'));
+				highInput.dispatchEvent(new Event('input'));
+			}
 			triggerSearch();
 		});
-	});
+	}
 }
 
 setupGameFiltersSearch();
