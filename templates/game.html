@@ -16,6 +16,10 @@
 					<div class="spel-title-eyebrow">// Game · {{ game.game_slug }}</div>
 					<span class="spel-name">{{ game.name }}</span>
 				</div>
+				<button id="fav-btn" class="fav-btn" data-fav-slug="{{ game.game_slug }}" type="button" aria-pressed="false">
+					<span class="fav-icon">☆</span>
+					<span class="fav-label">Add to favorites</span>
+				</button>
 			</div>
 
 			<div class="hud-header">
@@ -82,7 +86,7 @@
 					</div>
 				</div>
 
-				<!-- LANGUAGE — dropdown per request -->
+				<!-- LANGUAGE -->
 				<div class="filter-group">
 					<div class="filter-group-label">Language</div>
 					<div class="select-wrap">
@@ -95,7 +99,7 @@
 					</div>
 				</div>
 
-				<!-- RANK — populated by JS based on game slug -->
+				<!-- RANK -->
 				<div class="filter-group">
 					<div class="filter-group-label">Rank</div>
 					<div class="filter-options" id="filter-rank-options" data-filter-group-container="rank">
@@ -103,7 +107,7 @@
 					</div>
 				</div>
 
-				<!-- TIME / PLAYTIME -->
+				<!-- TIME -->
 				<div class="filter-group">
 					<div class="filter-group-label">Play time</div>
 					<div class="filter-options">
@@ -134,7 +138,7 @@
 		</aside>
 	</div>
 
-	<!-- Profile modal (hidden by default) -->
+	<!-- Profile modal -->
 	<div id="profile-card" class="profile-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
 		<div class="profile-card profile-card-modal">
 			<button class="close-btn" onclick="closeProfile()" aria-label="Close profile">×</button>
