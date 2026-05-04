@@ -100,10 +100,14 @@ def create_profile_context(request: Request, username: str, db: Session) -> dict
 
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request):
-	"""Get the homepage."""
+	"""Get the homepage. Shows landing page for guests, dashboard for users."""
 	context = prepare_template_context(request)
 
-	# Add example game data for template testing.
+	# Not logged in → show landing/marketing page
+	if context["current_user"] is None:
+		return templates.TemplateResponse(request=request, name="landing.html", context=context)
+
+	# Logged in → show the actual home dashboard
 	context["played_games"] = [
 		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/cs2.jpg", "hours_played": 123},
 		{"name": "League of Legends", "slug": "lol", "image_url": "/static/img/games/lol.jpg", "hours_played": 999},
@@ -187,3 +191,14 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 #		return templates.TemplateResponse(request=request, name="profile_edit.html", context=context)
 
 	return templates.TemplateResponse(request=request, name="profile.html", context=context)
+
+@router.get("/settings", response_class=HTMLResponse)
+def settings(request: Request):
+	"""Get the settings page."""
+	context = prepare_template_context(request)
+	if context["current_user"] is None:
+		return RedirectResponse(url="/login", status_code=303)
+	# Add profile and filter_options to context here when ready
+	context["profile"] = {"username": context["current_user"]["username"]}
+	context["filter_options"] = {"platform": ["PC", "PlayStation", "Xbox", "Switch", "Mobile"], "language": ["English", "Swedish", "Spanish", "French", "German"], "playtime": ["Mornings", "Afternoons", "Evenings", "Late night", "Weekends"]}
+	return templates.TemplateResponse(request=request, name="settings.html", context=context)

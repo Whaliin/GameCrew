@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+
+{% block title %}Settings — GameCrew{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<main class="settings-wrapper">
+	<div class="settings-header-row">
+		<button type="button" class="back-btn" onclick="history.back()">← Back</button>
+		<h1 class="settings-title">Settings</h1>
+	</div>
+
+	{% if success %}
+	<div class="settings-banner success">{{ success }}</div>
+	{% endif %}
+	{% if error %}
+	<div class="settings-banner error">{{ error }}</div>
+	{% endif %}
+
+	<div class="settings-layout">
+		<!-- SIDEBAR NAV -->
+		<aside class="settings-sidebar">
+			<div class="settings-sidebar-title">// Sections</div>
+			<nav class="settings-nav">
+				<a href="#account" class="settings-nav-link active" data-settings-link="account">
+					<span class="settings-nav-icon">⚙</span>
+					<span>Account</span>
+				</a>
+				<a href="#profile" class="settings-nav-link" data-settings-link="profile">
+					<span class="settings-nav-icon">◇</span>
+					<span>Profile</span>
+				</a>
+				<a href="#privacy" class="settings-nav-link" data-settings-link="privacy">
+					<span class="settings-nav-icon">◎</span>
+					<span>Privacy</span>
+				</a>
+				<a href="#notifications" class="settings-nav-link" data-settings-link="notifications">
+					<span class="settings-nav-icon">◈</span>
+					<span>Notifications</span>
+				</a>
+				<a href="#appearance" class="settings-nav-link" data-settings-link="appearance">
+					<span class="settings-nav-icon">◐</span>
+					<span>Appearance</span>
+				</a>
+				<a href="#danger" class="settings-nav-link danger" data-settings-link="danger">
+					<span class="settings-nav-icon">⚠</span>
+					<span>Danger zone</span>
+				</a>
+			</nav>
+		</aside>
+
+		<!-- PANELS -->
+		<div class="settings-content">
+
+			<!-- ACCOUNT -->
+			<section id="account" class="settings-panel" data-settings-panel="account">
+				<header class="settings-panel-header">
+					<div class="settings-panel-eyebrow">// Account</div>
+					<h2>Account credentials</h2>
+					<p>Your sign-in identity. Username is what other players see.</p>
+				</header>
+
+				<form class="settings-form" method="post" action="/settings/account">
+					<div class="settings-field">
+						<label for="set-username">Username</label>
+						<input type="text" id="set-username" name="username" value="{{ profile.username|default('') }}" autocomplete="username" required>
+					</div>
+
+					<div class="settings-divider"></div>
+
+					<div class="settings-subhead">Change password</div>
+
+					<div class="settings-field">
+						<label for="set-current-password">Current password</label>
+						<input type="password" id="set-current-password" name="current_password" autocomplete="current-password" placeholder="••••••••">
+					</div>
+
+					<div class="settings-field-row">
+						<div class="settings-field">
+							<label for="set-new-password">New password</label>
+							<input type="password" id="set-new-password" name="new_password" autocomplete="new-password" placeholder="••••••••">
+							<small>At least 8 characters.</small>
+						</div>
+						<div class="settings-field">
+							<label for="set-confirm-password">Confirm new password</label>
+							<input type="password" id="set-confirm-password" name="confirm_password" autocomplete="new-password" placeholder="••••••••">
+						</div>
+					</div>
+
+					<div class="settings-actions">
+						<button type="submit" class="btn-primary">Save changes</button>
+					</div>
+				</form>
+			</section>
+
+			<!-- PROFILE -->
+			<section id="profile" class="settings-panel" data-settings-panel="profile" hidden>
+				<header class="settings-panel-header">
+					<div class="settings-panel-eyebrow">// Profile</div>
+					<h2>Public profile</h2>
+					<p>What other players see when they open your card.</p>
+				</header>
+
+				<form class="settings-form" method="post" action="/settings/profile">
+					<div class="settings-field">
+						<label for="set-bio">Bio</label>
+						<textarea id="set-bio" name="bio" rows="3" placeholder="Tell other players about yourself…">{{ profile.bio|default('') }}</textarea>
+					</div>
+
+					<div class="settings-field-row">
+						<div class="settings-field">
+							<label for="set-birth-year">Birth year</label>
+							<input type="number" id="set-birth-year" name="birth_year" min="1900" max="2026" value="{{ profile.birth_year|default('') }}" placeholder="2000">
+						</div>
+						<div class="settings-field">
+							<label for="set-rank">Default rank</label>
+							<input type="text" id="set-rank" name="rank" value="{{ profile.rank|default('') }}" placeholder="e.g. Gold Nova">
+						</div>
+					</div>
+
+					{% if filter_options and filter_options.platform %}
+					<div class="settings-field">
+						<label>Platforms</label>
+						<div class="settings-checkbox-grid">
+							{% for option in filter_options.platform %}
+							<label class="settings-checkbox">
+								<input type="checkbox" name="platforms" value="{{ option }}"
+									{% if profile.platforms and option in profile.platforms %}checked{% endif %}>
+								<span>{{ option }}</span>
+							</label>
+							{% endfor %}
+						</div>
+					</div>
+					{% endif %}
+
+					{% if filter_options and filter_options.language %}
+					<div class="settings-field">
+						<label>Languages</label>
+						<div class="settings-checkbox-grid">
+							{% for option in filter_options.language %}
+							<label class="settings-checkbox">
+								<input type="checkbox" name="languages" value="{{ option }}"
+									{% if profile.languages and option in profile.languages %}checked{% endif %}>
+								<span>{{ option }}</span>
+							</label>
+							{% endfor %}
+						</div>
+					</div>
+					{% endif %}
+
+					{% if filter_options and filter_options.playtime %}
+					<div class="settings-field">
+						<label for="set-playtime">Play time</label>
+						<div class="select-wrap">
+							<select id="set-playtime" name="playtime">
+								<option value="">Choose…</option>
+								{% for option in filter_options.playtime %}
+								<option value="{{ option }}" {% if profile.playtime == option %}selected{% endif %}>{{ option }}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+					{% endif %}
+
+					<div class="settings-actions">
+						<button type="submit" class="btn-primary">Save profile</button>
+					</div>
+				</form>
+			</section>
+
+			<!-- PRIVACY -->
+			<section id="privacy" class="settings-panel" data-settings-panel="privacy" hidden>
+				<header class="settings-panel-header">
+					<div class="settings-panel-eyebrow">// Privacy</div>
+					<h2>Who can see you</h2>
+					<p>Control your visibility on the platform.</p>
+				</header>
+
+				<form class="settings-form" method="post" action="/settings/privacy">
+					<div class="settings-field">
+						<label>Profile visibility</label>
+						<div class="settings-radio-stack">
+							<label class="settings-radio">
+								<input type="radio" name="visibility" value="public" {% if profile.visibility == 'public' or not profile.visibility %}checked{% endif %}>
+								<div>
+									<div class="settings-radio-title">Public</div>
+									<div class="settings-radio-sub">Everyone can find your profile and see your stats.</div>
+								</div>
+							</label>
+							<label class="settings-radio">
+								<input type="radio" name="visibility" value="friends" {% if profile.visibility == 'friends' %}checked{% endif %}>
+								<div>
+									<div class="settings-radio-title">Friends only</div>
+									<div class="settings-radio-sub">Only your friends can see your full profile and online status.</div>
+								</div>
+							</label>
+							<label class="settings-radio">
+								<input type="radio" name="visibility" value="private" {% if profile.visibility == 'private' %}checked{% endif %}>
+								<div>
+									<div class="settings-radio-title">Private</div>
+									<div class="settings-radio-sub">Profile hidden from search. Only direct links work.</div>
+								</div>
+							</label>
+						</div>
+					</div>
+
+					<div class="settings-divider"></div>
+
+					<div class="settings-field">
+						<label class="settings-toggle">
+							<input type="checkbox" name="show_online" {% if profile.show_online != False %}checked{% endif %}>
+							<span class="settings-toggle-track"></span>
+							<div>
+								<div class="settings-radio-title">Show online status</div>
+								<div class="settings-radio-sub">Display green dot when you're active.</div>
+							</div>
+						</label>
+					</div>
+
+					<div class="settings-field">
+						<label class="settings-toggle">
+							<input type="checkbox" name="hide_age" {% if profile.hide_age %}checked{% endif %}>
+							<span class="settings-toggle-track"></span>
+							<div>
+								<div class="settings-radio-title">Hide my age</div>
+								<div class="settings-radio-sub">Others won't see your age range on your profile.</div>
+							</div>
+						</label>
+					</div>
+
+					<div class="settings-actions">
+						<button type="submit" class="btn-primary">Save privacy</button>
+					</div>
+				</form>
+
+				<div class="settings-divider"></div>
+
+				<div class="settings-subhead">Blocked users</div>
+				<div class="settings-blocked-list">
+					{% for blocked in profile.blocked_users|default([]) %}
+					<div class="settings-blocked-item">
+						<span class="settings-blocked-name">{{ blocked.username }}</span>
+						<button type="button" class="settings-unblock-btn" onclick="unblockUser('{{ blocked.username }}')">Unblock</button>
+					</div>
+					{% else %}
+					<div class="settings-empty">No blocked users.</div>
+					{% endfor %}
+				</div>
+			</section>
+
+			<!-- NOTIFICATIONS -->
+			<section id="notifications" class="settings-panel" data-settings-panel="notifications" hidden>
+				<header class="settings-panel-header">
+					<div class="settings-panel-eyebrow">// Notifications</div>
+					<h2>Stay updated</h2>
+					<p>Pick what you want to be alerted about.</p>
+				</header>
+
+				<form class="settings-form" method="post" action="/settings/notifications">
+					<label class="settings-toggle">
+						<input type="checkbox" name="notify_friend_requests" {% if profile.notify_friend_requests != False %}checked{% endif %}>
+						<span class="settings-toggle-track"></span>
+						<div>
+							<div class="settings-radio-title">Friend requests</div>
+							<div class="settings-radio-sub">When someone wants to add you as a friend.</div>
+						</div>
+					</label>
+
+					<label class="settings-toggle">
+						<input type="checkbox" name="notify_match_invites" {% if profile.notify_match_invites != False %}checked{% endif %}>
+						<span class="settings-toggle-track"></span>
+						<div>
+							<div class="settings-radio-title">Match invites</div>
+							<div class="settings-radio-sub">When a friend invites you to a squad or match.</div>
+						</div>
+					</label>
+
+					<label class="settings-toggle">
+						<input type="checkbox" name="notify_messages" {% if profile.notify_messages != False %}checked{% endif %}>
+						<span class="settings-toggle-track"></span>
+						<div>
+							<div class="settings-radio-title">Direct messages</div>
+							<div class="settings-radio-sub">Chat messages from other players.</div>
+						</div>
+					</label>
+
+					<label class="settings-toggle">
+						<input type="checkbox" name="notify_squad_activity" {% if profile.notify_squad_activity %}checked{% endif %}>
+						<span class="settings-toggle-track"></span>
+						<div>
+							<div class="settings-radio-title">Squad activity</div>
+							<div class="settings-radio-sub">When someone in your squad goes online.</div>
+						</div>
+					</label>
+
+					<div class="settings-divider"></div>
+
+					<label class="settings-toggle">
+						<input type="checkbox" name="notify_sounds" {% if profile.notify_sounds != False %}checked{% endif %}>
+						<span class="settings-toggle-track"></span>
+						<div>
+							<div class="settings-radio-title">Notification sounds</div>
+							<div class="settings-radio-sub">Play a sound when notifications arrive.</div>
+						</div>
+					</label>
+
+					<div class="settings-actions">
+						<button type="submit" class="btn-primary">Save preferences</button>
+					</div>
+				</form>
+			</section>
+
+			<!-- APPEARANCE -->
+			<section id="appearance" class="settings-panel" data-settings-panel="appearance" hidden>
+				<header class="settings-panel-header">
+					<div class="settings-panel-eyebrow">// Appearance</div>
+					<h2>Look and feel</h2>
+					<p>Customize how GameCrew looks for you.</p>
+				</header>
+
+				<form class="settings-form" method="post" action="/settings/appearance">
+					<div class="settings-field">
+						<label>Theme accent</label>
+						<div class="settings-theme-grid">
+							<label class="settings-theme-tile">
+								<input type="radio" name="accent" value="cyan" checked>
+								<span class="settings-theme-swatch" style="--swatch: var(--cyan);"></span>
+								<span class="settings-theme-name">Cyan</span>
+							</label>
+							<label class="settings-theme-tile">
+								<input type="radio" name="accent" value="purple">
+								<span class="settings-theme-swatch" style="--swatch: var(--purple);"></span>
+								<span class="settings-theme-name">Purple</span>
+							</label>
+							<label class="settings-theme-tile">
+								<input type="radio" name="accent" value="pink">
+								<span class="settings-theme-swatch" style="--swatch: var(--pink);"></span>
+								<span class="settings-theme-name">Pink</span>
+							</label>
+							<label class="settings-theme-tile">
+								<input type="radio" name="accent" value="green">
+								<span class="settings-theme-swatch" style="--swatch: var(--green);"></span>
+								<span class="settings-theme-name">Green</span>
+							</label>
+						</div>
+					</div>
+
+					<label class="settings-toggle">
+						<input type="checkbox" name="high_contrast" {% if profile.high_contrast %}checked{% endif %}>
+						<span class="settings-toggle-track"></span>
+						<div>
+							<div class="settings-radio-title">High contrast</div>
+							<div class="settings-radio-sub">Stronger borders and text for better readability.</div>
+						</div>
+					</label>
+
+					<div class="settings-actions">
+						<button type="submit" class="btn-primary">Save appearance</button>
+					</div>
+				</form>
+			</section>
+
+			<!-- DANGER ZONE -->
+			<section id="danger" class="settings-panel" data-settings-panel="danger" hidden>
+				<header class="settings-panel-header">
+					<div class="settings-panel-eyebrow">// Danger zone</div>
+					<h2>Account actions</h2>
+					<p>Be careful — some of these can't be undone.</p>
+				</header>
+
+				<div class="settings-danger-card">
+					<div>
+						<div class="settings-radio-title">Sign out</div>
+						<div class="settings-radio-sub">End your session on this device.</div>
+					</div>
+					<form method="post" action="/logout" style="margin: 0;">
+						<button type="submit" class="btn-ghost">Sign out</button>
+					</form>
+				</div>
+
+				<div class="settings-danger-card">
+					<div>
+						<div class="settings-radio-title">Sign out everywhere</div>
+						<div class="settings-radio-sub">End all active sessions across all devices.</div>
+					</div>
+					<form method="post" action="/logout/all" style="margin: 0;">
+						<button type="submit" class="btn-ghost">Sign out all</button>
+					</form>
+				</div>
+
+				<div class="settings-danger-card severe">
+					<div>
+						<div class="settings-radio-title" style="color: var(--pink);">Delete account</div>
+						<div class="settings-radio-sub">Permanently remove your account, profile, and all data. This cannot be undone.</div>
+					</div>
+					<button type="button" class="btn-danger" onclick="confirmDeleteAccount()">Delete account</button>
+				</div>
+			</section>
+
+		</div>
+	</div>
+</main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+	(function () {
+		'use strict';
+
+		const links  = document.querySelectorAll('[data-settings-link]');
+		const panels = document.querySelectorAll('[data-settings-panel]');
+
+		function showPanel(name) {
+			panels.forEach(function (panel) {
+				panel.hidden = panel.dataset.settingsPanel !== name;
+			});
+			links.forEach(function (link) {
+				link.classList.toggle('active', link.dataset.settingsLink === name);
+			});
+		}
+
+		links.forEach(function (link) {
+			link.addEventListener('click', function (event) {
+				event.preventDefault();
+				const name = link.dataset.settingsLink;
+				showPanel(name);
+				history.replaceState(null, '', '#' + name);
+			});
+		});
+
+		// Open the panel matching the URL hash (e.g. /settings#privacy)
+		const initial = window.location.hash.replace('#', '');
+		if (initial && document.querySelector('[data-settings-panel="' + initial + '"]')) {
+			showPanel(initial);
+		}
+	})();
+
+	function unblockUser(username) {
+		if (!confirm('Unblock ' + username + '?')) return;
+		// TODO: call backend endpoint when available
+		alert('Feature not implemented yet');
+	}
+
+	function confirmDeleteAccount() {
+		const confirmation = prompt('This will permanently delete your account.\nType DELETE to confirm:');
+		if (confirmation === 'DELETE') {
+			// TODO: call backend endpoint when available
+			alert('Account deletion not implemented yet');
+		}
+	}
+</script>
+{% endblock %}
