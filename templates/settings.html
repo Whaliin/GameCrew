@@ -218,17 +218,6 @@
 						</label>
 					</div>
 
-					<div class="settings-field">
-						<label class="settings-toggle">
-							<input type="checkbox" name="hide_age" {% if profile.hide_age %}checked{% endif %}>
-							<span class="settings-toggle-track"></span>
-							<div>
-								<div class="settings-radio-title">Hide my age</div>
-								<div class="settings-radio-sub">Others won't see your age range on your profile.</div>
-							</div>
-						</label>
-					</div>
-
 					<div class="settings-actions">
 						<button type="submit" class="btn-primary">Save privacy</button>
 					</div>
@@ -249,118 +238,7 @@
 				</div>
 			</section>
 
-			<!-- NOTIFICATIONS -->
-			<section id="notifications" class="settings-panel" data-settings-panel="notifications" hidden>
-				<header class="settings-panel-header">
-					<div class="settings-panel-eyebrow">// Notifications</div>
-					<h2>Stay updated</h2>
-					<p>Pick what you want to be alerted about.</p>
-				</header>
-
-				<form class="settings-form" method="post" action="/settings/notifications">
-					<label class="settings-toggle">
-						<input type="checkbox" name="notify_friend_requests" {% if profile.notify_friend_requests != False %}checked{% endif %}>
-						<span class="settings-toggle-track"></span>
-						<div>
-							<div class="settings-radio-title">Friend requests</div>
-							<div class="settings-radio-sub">When someone wants to add you as a friend.</div>
-						</div>
-					</label>
-
-					<label class="settings-toggle">
-						<input type="checkbox" name="notify_match_invites" {% if profile.notify_match_invites != False %}checked{% endif %}>
-						<span class="settings-toggle-track"></span>
-						<div>
-							<div class="settings-radio-title">Match invites</div>
-							<div class="settings-radio-sub">When a friend invites you to a squad or match.</div>
-						</div>
-					</label>
-
-					<label class="settings-toggle">
-						<input type="checkbox" name="notify_messages" {% if profile.notify_messages != False %}checked{% endif %}>
-						<span class="settings-toggle-track"></span>
-						<div>
-							<div class="settings-radio-title">Direct messages</div>
-							<div class="settings-radio-sub">Chat messages from other players.</div>
-						</div>
-					</label>
-
-					<label class="settings-toggle">
-						<input type="checkbox" name="notify_squad_activity" {% if profile.notify_squad_activity %}checked{% endif %}>
-						<span class="settings-toggle-track"></span>
-						<div>
-							<div class="settings-radio-title">Squad activity</div>
-							<div class="settings-radio-sub">When someone in your squad goes online.</div>
-						</div>
-					</label>
-
-					<div class="settings-divider"></div>
-
-					<label class="settings-toggle">
-						<input type="checkbox" name="notify_sounds" {% if profile.notify_sounds != False %}checked{% endif %}>
-						<span class="settings-toggle-track"></span>
-						<div>
-							<div class="settings-radio-title">Notification sounds</div>
-							<div class="settings-radio-sub">Play a sound when notifications arrive.</div>
-						</div>
-					</label>
-
-					<div class="settings-actions">
-						<button type="submit" class="btn-primary">Save preferences</button>
-					</div>
-				</form>
-			</section>
-
-			<!-- APPEARANCE -->
-			<section id="appearance" class="settings-panel" data-settings-panel="appearance" hidden>
-				<header class="settings-panel-header">
-					<div class="settings-panel-eyebrow">// Appearance</div>
-					<h2>Look and feel</h2>
-					<p>Customize how GameCrew looks for you.</p>
-				</header>
-
-				<form class="settings-form" method="post" action="/settings/appearance">
-					<div class="settings-field">
-						<label>Theme accent</label>
-						<div class="settings-theme-grid">
-							<label class="settings-theme-tile">
-								<input type="radio" name="accent" value="cyan" checked>
-								<span class="settings-theme-swatch" style="--swatch: var(--cyan);"></span>
-								<span class="settings-theme-name">Cyan</span>
-							</label>
-							<label class="settings-theme-tile">
-								<input type="radio" name="accent" value="purple">
-								<span class="settings-theme-swatch" style="--swatch: var(--purple);"></span>
-								<span class="settings-theme-name">Purple</span>
-							</label>
-							<label class="settings-theme-tile">
-								<input type="radio" name="accent" value="pink">
-								<span class="settings-theme-swatch" style="--swatch: var(--pink);"></span>
-								<span class="settings-theme-name">Pink</span>
-							</label>
-							<label class="settings-theme-tile">
-								<input type="radio" name="accent" value="green">
-								<span class="settings-theme-swatch" style="--swatch: var(--green);"></span>
-								<span class="settings-theme-name">Green</span>
-							</label>
-						</div>
-					</div>
-
-					<label class="settings-toggle">
-						<input type="checkbox" name="high_contrast" {% if profile.high_contrast %}checked{% endif %}>
-						<span class="settings-toggle-track"></span>
-						<div>
-							<div class="settings-radio-title">High contrast</div>
-							<div class="settings-radio-sub">Stronger borders and text for better readability.</div>
-						</div>
-					</label>
-
-					<div class="settings-actions">
-						<button type="submit" class="btn-primary">Save appearance</button>
-					</div>
-				</form>
-			</section>
-
+			
 			<!-- DANGER ZONE -->
 			<section id="danger" class="settings-panel" data-settings-panel="danger" hidden>
 				<header class="settings-panel-header">
@@ -379,15 +257,6 @@
 					</form>
 				</div>
 
-				<div class="settings-danger-card">
-					<div>
-						<div class="settings-radio-title">Sign out everywhere</div>
-						<div class="settings-radio-sub">End all active sessions across all devices.</div>
-					</div>
-					<form method="post" action="/logout/all" style="margin: 0;">
-						<button type="submit" class="btn-ghost">Sign out all</button>
-					</form>
-				</div>
 
 				<div class="settings-danger-card severe">
 					<div>
