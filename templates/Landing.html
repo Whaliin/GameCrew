@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}GameCrew - Find your crew{% endblock %}
+
+{% block content %}
+<div class="lp">
+
+	<header class="lp-nav">
+		<div class="lp-nav-inner">
+			<a href="/" class="logo">GAMECREW</a>
+			<div class="lp-nav-actions">
+				<a href="/login" class="lp-link-btn lp-link-btn-secondary">Sign in</a>
+				<a href="/register" class="lp-link-btn lp-link-btn-primary">Sign up</a>
+			</div>
+		</div>
+	</header>
+
+	<!-- HERO -->
+	<section class="lp-hero">
+		<div class="lp-hero-inner">
+			<div class="lp-eyebrow">System online · Network active</div>
+
+			<h1 class="lp-title">
+				Find your <em>crew.</em><br>
+				Drop into the next match.
+			</h1>
+
+			<p class="lp-subtitle">
+				GameCrew connects gamers across titles, ranks, and time zones.
+				Filter by skill, language, and schedule - then squad up with players who actually fit.
+			</p>
+
+			<div class="lp-cta-row">
+				<a href="/register" class="lp-link-btn lp-link-btn-primary lp-link-btn-large">Create free account</a>
+				<a href="/login" class="lp-link-btn lp-link-btn-secondary lp-link-btn-large">I already have one</a>
+			</div>
+
+			<div class="lp-stats">
+				<div class="lp-stat">
+					<div class="lp-stat-num" data-count="12400" data-suffix="K" data-divisor="1000" data-decimals="1">0</div>
+					<div class="lp-stat-cap">Online now</div>
+				</div>
+				<div class="lp-stat">
+					<div class="lp-stat-num" data-count="847">0</div>
+					<div class="lp-stat-cap">Active squads</div>
+				</div>
+				<div class="lp-stat">
+					<div class="lp-stat-num" data-count="8" data-suffix="+">0</div>
+					<div class="lp-stat-cap">Supported games</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- HOW IT WORKS -->
+	<section class="lp-section">
+		<header class="lp-section-header">
+			<div class="lp-section-eyebrow">How it works</div>
+			<h2 class="lp-section-title">Three steps to your next match</h2>
+		</header>
+
+		<div class="lp-steps">
+			<article class="lp-step">
+				<div class="lp-step-num">01</div>
+				<h3>Create your profile</h3>
+				<p>Pick the games you play, set your rank, choose your platforms and languages. One profile covers everything.</p>
+			</article>
+
+			<article class="lp-step">
+				<div class="lp-step-num">02</div>
+				<h3>Filter &amp; find</h3>
+				<p>Match by skill, age range, schedule, and platform. See only the players who actually fit how you play.</p>
+			</article>
+
+			<article class="lp-step">
+				<div class="lp-step-num">03</div>
+				<h3>Squad up &amp; play</h3>
+				<p>Send a friend request, drop into a queue together, and stop wasting matches on randoms who go AFK.</p>
+			</article>
+		</div>
+	</section>
+
+	<!-- LIVE ACTIVITY FEED -->
+	<section class="lp-feed-section">
+		<div class="lp-section">
+			<header class="lp-section-header">
+				<div class="lp-section-eyebrow">Live · See the platform in action</div>
+				<h2 class="lp-section-title">Real players. Right now.</h2>
+			</header>
+
+			<div class="lp-feed">
+				<div class="lp-feed-header">
+					<span class="lp-feed-header-dot"></span>
+					<span class="lp-feed-header-title">Live activity</span>
+					<span class="lp-feed-header-meta">Network</span>
+				</div>
+				<div class="lp-feed-list" id="lp-feed-list" aria-live="polite">
+					<!-- Populated by JS in extra_scripts -->
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- GAMES -->
+	<section class="lp-section">
+		<header class="lp-section-header">
+			<div class="lp-section-eyebrow">Supported titles</div>
+			<h2 class="lp-section-title">Pick your game.</h2>
+		</header>
+
+		<div class="lp-games-grid">
+			<a class="lp-game-tile" href="/game/cs2" aria-label="Counter-Strike 2">
+				<span class="lp-game-online">3.2K online</span>
+				<img src="/static/img/games/cs2.jpg" alt="Counter-Strike 2">
+				<div class="lp-game-tile-name">CS2</div>
+			</a>
+			<a class="lp-game-tile" href="/game/valorant" aria-label="Valorant">
+				<span class="lp-game-online">2.8K online</span>
+				<img src="/static/img/games/valorant.jpg" alt="Valorant">
+				<div class="lp-game-tile-name">Valorant</div>
+			</a>
+			<a class="lp-game-tile" href="/game/lol" aria-label="League of Legends">
+				<span class="lp-game-online">2.1K online</span>
+				<img src="/static/img/games/lol.jpg" alt="League of Legends">
+				<div class="lp-game-tile-name">League</div>
+			</a>
+			<a class="lp-game-tile" href="/game/apex" aria-label="Apex Legends">
+				<span class="lp-game-online">1.4K online</span>
+				<img src="/static/img/games/apexlegends.jpg" alt="Apex Legends">
+				<div class="lp-game-tile-name">Apex</div>
+			</a>
+			<a class="lp-game-tile" href="/game/arcraiders" aria-label="ARC Raiders">
+				<span class="lp-game-online">980 online</span>
+				<img src="/static/img/games/arcraiders.jpg" alt="ARC Raiders">
+				<div class="lp-game-tile-name">ARC Raiders</div>
+			</a>
+			<a class="lp-game-tile" href="/game/mobilelegends" aria-label="Mobile Legends">
+				<span class="lp-game-online">1.1K online</span>
+				<img src="/static/img/games/mobilelegends.jpg" alt="Mobile Legends">
+				<div class="lp-game-tile-name">Mobile Legends</div>
+			</a>
+			<a class="lp-game-tile" href="/game/minecraft" aria-label="Minecraft">
+				<span class="lp-game-online">820 online</span>
+				<img src="/static/img/games/minecraft.jpg" alt="Minecraft">
+				<div class="lp-game-tile-name">Minecraft</div>
+			</a>
+		</div>
+	</section>
+
+	<!-- FINAL CTA -->
+	<section class="lp-final">
+		<div class="lp-final-inner">
+			<h2>Ready to <em>squad up?</em></h2>
+			<p>Free forever for players. No ads, no inbox spam, no shady tracking. Just better teammates.</p>
+			<div class="lp-cta-row">
+				<a href="/register" class="lp-link-btn lp-link-btn-primary lp-link-btn-large">Create free account</a>
+			</div>
+		</div>
+	</section>
+
+	<footer class="lp-footer">
+		// GameCrew · Group 8 · 2026
+	</footer>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+	(function () {
+		'use strict';
+
+		// Animated stat counters
+		const counters = document.querySelectorAll('.lp-stat-num[data-count]');
+
+		function formatStat(el, current) {
+			const suffix   = el.dataset.suffix || '';
+			const divisor  = parseFloat(el.dataset.divisor) || 1;
+			const decimals = parseInt(el.dataset.decimals || '0', 10);
+			const value    = current / divisor;
+			const display  = decimals > 0 ? value.toFixed(decimals) : Math.round(value).toString();
+			el.textContent = display + suffix;
+		}
+
+		function animateCounter(el) {
+			const target   = parseFloat(el.dataset.count);
+			const duration = 1400;
+			const start    = performance.now();
+
+			function tick(now) {
+				const elapsed  = now - start;
+				const progress = Math.min(elapsed / duration, 1);
+				const eased    = 1 - Math.pow(1 - progress, 3);
+				const current  = target * eased;
+				formatStat(el, current);
+				if (progress < 1) requestAnimationFrame(tick);
+				else formatStat(el, target);
+			}
+
+			requestAnimationFrame(tick);
+		}
+
+		if ('IntersectionObserver' in window) {
+			const observer = new IntersectionObserver(function (entries) {
+				entries.forEach(function (entry) {
+					if (entry.isIntersecting) {
+						animateCounter(entry.target);
+						observer.unobserve(entry.target);
+					}
+				});
+			}, { threshold: 0.3 });
+
+			counters.forEach(function (el) { observer.observe(el); });
+		} else {
+			counters.forEach(animateCounter);
+		}
+
+		// Live activity feed
+		const feedEntries = [
+			{ user: 'kira',          action: 'queued for CS2' },
+			{ user: 'StormBreaker',  action: 'joined a Valorant squad' },
+			{ user: 'nightowl_42',   action: 'is looking for ARC Raiders' },
+			{ user: 'ProPlayer99',   action: 'created a LoL squad' },
+			{ user: 'casual_cat',    action: 'queued for Apex' },
+			{ user: 'Vipergg',       action: 'joined a Mobile Legends squad' },
+			{ user: 'BobTheBuilder', action: 'is hosting a Minecraft server' },
+			{ user: 'ZenSniper',     action: 'queued for Valorant' },
+			{ user: 'NeonRunner',    action: 'joined a CS2 squad' },
+			{ user: 'mochi',         action: 'is looking for League ranked' },
+		];
+
+		const feedListEl = document.getElementById('lp-feed-list');
+		let feedIndex = 0;
+
+		function buildFeedItem(entry, slotIndex) {
+			const seconds = (slotIndex + 1) * 8 + Math.floor(Math.random() * 6);
+			const item = document.createElement('div');
+			item.className = 'lp-feed-item';
+			item.style.animationDelay = (slotIndex * 70) + 'ms';
+
+			const avatarLetter = entry.user.charAt(0).toUpperCase();
+
+			item.innerHTML =
+				'<div class="lp-feed-avatar">' + avatarLetter + '</div>' +
+				'<div class="lp-feed-text"><span class="username">@' + entry.user + '</span> ' + entry.action + '</div>' +
+				'<div class="lp-feed-time">' + seconds + 's ago</div>';
+
+			return item;
+		}
+
+		function renderFeed() {
+			if (!feedListEl) return;
+			feedListEl.innerHTML = '';
+			for (let i = 0; i < 4; i++) {
+				const entry = feedEntries[(feedIndex + i) % feedEntries.length];
+				feedListEl.appendChild(buildFeedItem(entry, i));
+			}
+			feedIndex = (feedIndex + 1) % feedEntries.length;
+		}
+
+		renderFeed();
+		setInterval(renderFeed, 4200);
+	})();
+</script>
+{% endblock %}

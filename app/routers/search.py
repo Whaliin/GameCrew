@@ -27,6 +27,7 @@ def search_players_for_game(
 	playtime: str = Query(default=""),
 	platform: str = Query(default=""),
 	language: str = Query(default=""),
+ 	rank: str = Query(default=""),
 	db: Session = Depends(get_db),
 ):
 	if age_lo is not None and age_hi is not None and age_lo > age_hi:

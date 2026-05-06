@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - GameCrew{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<main class="settings-wrapper">
+	<div class="settings-header-row">
+		<button type="button" class="back-btn" onclick="history.back()">← Back</button>
+		<h1 class="settings-title">Settings</h1>
+	</div>
+
+	{% if success %}
+	<div class="settings-banner success">{{ success }}</div>
+	{% endif %}
+	{% if error %}
+	<div class="settings-banner error">{{ error }}</div>
+	{% endif %}
+
+	<div class="settings-layout">
+		<!-- SIDEBAR NAV -->
+		<aside class="settings-sidebar">
+			<div class="settings-sidebar-title">// Sections</div>
+			<nav class="settings-nav">
+				<a href="#account" class="settings-nav-link active" data-settings-link="account">
+					<span class="settings-nav-icon">⚙</span>
+					<span>Account</span>
+				</a>
+				<a href="#profile" class="settings-nav-link" data-settings-link="profile">
+					<span class="settings-nav-icon">◇</span>
+					<span>Profile</span>
+				</a>
+				<a href="#visibility" class="settings-nav-link" data-settings-link="visibility">
+					<span class="settings-nav-icon">◎</span>
+					<span>Visibility</span>
+				</a>
+				<a href="#appearance" class="settings-nav-link" data-settings-link="appearance">
+					<span class="settings-nav-icon">◐</span>
+					<span>Appearance</span>
+				</a>
+			</nav>
+		</aside>
+
+		<!-- PANELS -->
+		<div class="settings-content">
+
+			<!-- ACCOUNT -->
+			<section id="account" class="settings-panel" data-settings-panel="account">
+				<header class="settings-panel-header">
+					<div class="settings-panel-eyebrow">// Account</div>
+					<h2>Account credentials</h2>
+					<p>Your sign-in identity. Username is what other players see.</p>
+				</header>
+
+				<form class="settings-form" method="post" action="/settings/account">
+					<div class="settings-field">
+						<label for="set-username">Username</label>
+						<input type="text" id="set-username" name="username" value="{{ profile.username|default('') }}" autocomplete="username" required>
+					</div>
+
+					<div class="settings-divider"></div>
+
+					<div class="settings-subhead">Change password</div>
+
+					<div class="settings-field">
+						<label for="set-current-password">Current password</label>
+						<input type="password" id="set-current-password" name="current_password" autocomplete="current-password" placeholder="••••••••">
+					</div>
+
+					<div class="settings-field-row">
+						<div class="settings-field">
+							<label for="set-new-password">New password</label>
+							<input type="password" id="set-new-password" name="new_password" autocomplete="new-password" placeholder="••••••••">
+							<small>At least 8 characters.</small>
+						</div>
+						<div class="settings-field">
+							<label for="set-confirm-password">Confirm new password</label>
+							<input type="password" id="set-confirm-password" name="confirm_password" autocomplete="new-password" placeholder="••••••••">
+						</div>
+					</div>
+
+					<div class="settings-actions">
+						<button type="submit" class="btn-primary">Save changes</button>
+					</div>
+				</form>
+
+				<!-- Collapsible: Account actions -->
+				<div class="settings-divider"></div>
+
+				<details class="settings-collapse">
+					<summary class="settings-collapse-summary">
+						<span class="settings-collapse-icon">▸</span>
+						<span class="settings-collapse-title">Account actions</span>
+						<span class="settings-collapse-hint">Sign out · delete account</span>
+					</summary>
+
+					<div class="settings-collapse-body">
+						<div class="settings-action-row">
+							<div>
+								<div class="settings-action-title">Sign out</div>
+								<div class="settings-action-sub">End your session on this device.</div>
+							</div>
+							<form method="post" action="/logout" style="margin: 0;">
+								<button type="submit" class="btn-ghost">Sign out</button>
+							</form>
+						</div>
+
+						<div class="settings-action-row severe">
+							<div>
+								<div class="settings-action-title danger-text">Delete account</div>
+								<div class="settings-action-sub">Permanently remove your account, profile, and all data. This cannot be undone.</div>
+							</div>
+							<button type="button" class="btn-danger" onclick="confirmDeleteAccount()">Delete account</button>
+						</div>
+					</div>
+				</details>
+			</section>
+
+			<!-- PROFILE -->
+			<section id="profile" class="settings-panel" data-settings-panel="profile" hidden>
+				<header class="settings-panel-header">
+					<div class="settings-panel-eyebrow">// Profile</div>
+					<h2>Public profile</h2>
+					<p>What other players see when they open your card.</p>
+				</header>
+
+				<form class="settings-form" method="post" action="/settings/profile">
+					<div class="settings-field">
+						<label for="set-bio">Bio</label>
+						<textarea id="set-bio" name="bio" rows="3" placeholder="Tell other players about yourself…">{{ profile.bio|default('') }}</textarea>
+					</div>
+
+					<div class="settings-field-row">
+						<div class="settings-field">
+							<label for="set-birth-year">Birth year</label>
+							<input type="number" id="set-birth-year" name="birth_year" min="1900" max="2026" value="{{ profile.birth_year|default('') }}" placeholder="2000">
+						</div>
+						<div class="settings-field">
+							<label for="set-rank">Default rank</label>
+							<input type="text" id="set-rank" name="rank" value="{{ profile.rank|default('') }}" placeholder="e.g. Gold Nova">
+						</div>
+					</div>
+
+					{% if filter_options and filter_options.platform %}
+					<div class="settings-field">
+						<label>Platforms</label>
+						<div class="settings-checkbox-grid">
+							{% for option in filter_options.platform %}
+							<label class="settings-checkbox">
+								<input type="checkbox" name="platforms" value="{{ option }}"
+									{% if profile.platforms and option in profile.platforms %}checked{% endif %}>
+								<span>{{ option }}</span>
+							</label>
+							{% endfor %}
+						</div>
+					</div>
+					{% endif %}
+
+					{% if filter_options and filter_options.language %}
+					<div class="settings-field">
+						<label>Languages</label>
+						<div class="settings-checkbox-grid">
+							{% for option in filter_options.language %}
+							<label class="settings-checkbox">
+								<input type="checkbox" name="languages" value="{{ option }}"
+									{% if profile.languages and option in profile.languages %}checked{% endif %}>
+								<span>{{ option }}</span>
+							</label>
+							{% endfor %}
+						</div>
+					</div>
+					{% endif %}
+
+					{% if filter_options and filter_options.playtime %}
+					<div class="settings-field">
+						<label>Play time</label>
+						<div class="settings-checkbox-grid">
+							{% for option in filter_options.playtime %}
+							<label class="settings-checkbox">
+								<input type="checkbox" name="playtime" value="{{ option }}"
+									{% if profile.playtime and option in profile.playtime %}checked{% endif %}>
+								<span>{{ option }}</span>
+							</label>
+							{% endfor %}
+						</div>
+					</div>
+					{% endif %}
+
+					<div class="settings-divider"></div>
+
+					<div class="settings-subhead">Linked accounts</div>
+
+					<div class="settings-field-row">
+						<div class="settings-field">
+							<label for="set-steam">Steam ID or profile URL</label>
+							<input type="text" id="set-steam" name="steam" value="{{ profile.steam|default('') }}" placeholder="steamcommunity.com/id/your-name">
+						</div>
+						<div class="settings-field">
+							<label for="set-discord">Discord username</label>
+							<input type="text" id="set-discord" name="discord" value="{{ profile.discord|default('') }}" placeholder="username#0000 or @handle">
+						</div>
+					</div>
+					<small class="settings-help">These are only shown if your profile visibility is set to Public - change it under Visibility.</small>
+
+					<div class="settings-actions">
+						<button type="submit" class="btn-primary">Save profile</button>
+					</div>
+				</form>
+			</section>
+
+			<!-- VISIBILITY -->
+			<section id="visibility" class="settings-panel" data-settings-panel="visibility" hidden>
+				<header class="settings-panel-header">
+					<div class="settings-panel-eyebrow">// Visibility</div>
+					<h2>Profile visibility</h2>
+					<p>Choose who can see your linked Steam and Discord accounts.</p>
+				</header>
+
+				<form class="settings-form" method="post" action="/settings/visibility">
+					<div class="settings-field">
+						<div class="settings-radio-stack">
+							<label class="settings-radio">
+								<input type="radio" name="visibility" value="public" {% if profile.visibility == 'public' or not profile.visibility %}checked{% endif %}>
+								<div>
+									<div class="settings-radio-title">Public</div>
+									<div class="settings-radio-sub">Anyone visiting your profile can see your Steam and Discord.</div>
+								</div>
+							</label>
+							<label class="settings-radio">
+								<input type="radio" name="visibility" value="friends" {% if profile.visibility == 'friends' %}checked{% endif %}>
+								<div>
+									<div class="settings-radio-title">Friends only</div>
+									<div class="settings-radio-sub">Only players you've added as friends can see your Steam and Discord. Everyone else sees just your in-game profile.</div>
+								</div>
+							</label>
+						</div>
+					</div>
+
+					<div class="settings-actions">
+						<button type="submit" class="btn-primary">Save visibility</button>
+					</div>
+				</form>
+			</section>
+
+			<!-- APPEARANCE -->
+			<section id="appearance" class="settings-panel" data-settings-panel="appearance" hidden>
+				<header class="settings-panel-header">
+					<div class="settings-panel-eyebrow">// Appearance</div>
+					<h2>Look and feel</h2>
+					<p>Customize how GameCrew looks. Changes apply instantly and save on this device.</p>
+				</header>
+
+				<div class="settings-form">
+					<div class="settings-field">
+						<label>Theme accent</label>
+						<div class="settings-theme-grid">
+							<label class="settings-theme-tile">
+								<input type="radio" name="accent" value="cyan" data-theme-control="accent">
+								<span class="settings-theme-swatch" style="--swatch: #00F0FF;"></span>
+								<span class="settings-theme-name">Cyan</span>
+							</label>
+							<label class="settings-theme-tile">
+								<input type="radio" name="accent" value="purple" data-theme-control="accent">
+								<span class="settings-theme-swatch" style="--swatch: #9D00FF;"></span>
+								<span class="settings-theme-name">Purple</span>
+							</label>
+							<label class="settings-theme-tile">
+								<input type="radio" name="accent" value="pink" data-theme-control="accent">
+								<span class="settings-theme-swatch" style="--swatch: #FF0090;"></span>
+								<span class="settings-theme-name">Pink</span>
+							</label>
+							<label class="settings-theme-tile">
+								<input type="radio" name="accent" value="green" data-theme-control="accent">
+								<span class="settings-theme-swatch" style="--swatch: #00FF88;"></span>
+								<span class="settings-theme-name">Green</span>
+							</label>
+							<label class="settings-theme-tile">
+								<input type="radio" name="accent" value="orange" data-theme-control="accent">
+								<span class="settings-theme-swatch" style="--swatch: #FF8C00;"></span>
+								<span class="settings-theme-name">Orange</span>
+							</label>
+						</div>
+					</div>
+
+					<div class="settings-divider"></div>
+
+					<label class="settings-toggle">
+						<input type="checkbox" data-theme-control="reduce-motion">
+						<span class="settings-toggle-track"></span>
+						<div>
+							<div class="settings-radio-title">Reduce motion</div>
+							<div class="settings-radio-sub">Disable animations, hover effects, and background glows.</div>
+						</div>
+					</label>
+
+					<label class="settings-toggle">
+						<input type="checkbox" data-theme-control="high-contrast">
+						<span class="settings-toggle-track"></span>
+						<div>
+							<div class="settings-radio-title">High contrast</div>
+							<div class="settings-radio-sub">Brighter text and stronger borders for better readability.</div>
+						</div>
+					</label>
+
+					<label class="settings-toggle">
+						<input type="checkbox" data-theme-control="hide-grid">
+						<span class="settings-toggle-track"></span>
+						<div>
+							<div class="settings-radio-title">Hide background grid</div>
+							<div class="settings-radio-sub">Remove the subtle grid pattern in the page background.</div>
+						</div>
+					</label>
+
+					<div class="settings-actions">
+						<button type="button" class="btn-ghost" id="reset-appearance">Reset to defaults</button>
+					</div>
+				</div>
+			</section>
+
+		</div>
+	</div>
+</main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+	(function () {
+		'use strict';
+
+		const links  = document.querySelectorAll('[data-settings-link]');
+		const panels = document.querySelectorAll('[data-settings-panel]');
+
+		function showPanel(name) {
+			panels.forEach(function (panel) {
+				panel.hidden = panel.dataset.settingsPanel !== name;
+			});
+			links.forEach(function (link) {
+				link.classList.toggle('active', link.dataset.settingsLink === name);
+			});
+		}
+
+		links.forEach(function (link) {
+			link.addEventListener('click', function (event) {
+				event.preventDefault();
+				const name = link.dataset.settingsLink;
+				showPanel(name);
+				history.replaceState(null, '', '#' + name);
+			});
+		});
+
+		// Open the panel matching the URL hash (e.g. /settings#visibility)
+		const initial = window.location.hash.replace('#', '');
+		if (initial && document.querySelector('[data-settings-panel="' + initial + '"]')) {
+			showPanel(initial);
+		}
+
+		// ── Appearance: theme accent + language + toggles ──
+		if (window.GameCrewTheme) {
+			const state = window.GameCrewTheme.get();
+
+			// Theme accent
+			document.querySelectorAll('[data-theme-control="accent"]').forEach(function (input) {
+				input.checked = (input.value === state.accent);
+				input.addEventListener('change', function () {
+					if (input.checked) window.GameCrewTheme.set('accent', input.value);
+				});
+			});
+
+			// Language dropdown
+			const langSelect = document.querySelector('[data-theme-control="language"]');
+			if (langSelect) {
+				langSelect.value = state.language || 'en';
+				langSelect.addEventListener('change', function () {
+					window.GameCrewTheme.set('language', langSelect.value);
+				});
+			}
+
+			// Toggle checkboxes
+			['reduce-motion', 'high-contrast', 'hide-grid'].forEach(function (key) {
+				const cb = document.querySelector('[data-theme-control="' + key + '"]');
+				if (!cb) return;
+				cb.checked = !!state[key];
+				cb.addEventListener('change', function () {
+					window.GameCrewTheme.set(key, cb.checked);
+				});
+			});
+
+			// Reset
+			const resetBtn = document.getElementById('reset-appearance');
+			if (resetBtn) {
+				resetBtn.addEventListener('click', function () {
+					window.GameCrewTheme.reset();
+					document.querySelectorAll('[data-theme-control="accent"]').forEach(function (i) {
+						i.checked = (i.value === 'cyan');
+					});
+					if (langSelect) langSelect.value = 'en';
+					['reduce-motion', 'high-contrast', 'hide-grid'].forEach(function (key) {
+						const cb = document.querySelector('[data-theme-control="' + key + '"]');
+						if (cb) cb.checked = false;
+					});
+				});
+			}
+		}
+	})();
+
+	function confirmDeleteAccount() {
+		const confirmation = prompt('This will permanently delete your account.\nType DELETE to confirm:');
+		if (confirmation === 'DELETE') {
+			// TODO: call backend endpoint when available
+			alert('Account deletion not implemented yet');
+		}
+	}
+</script>
+{% endblock %}

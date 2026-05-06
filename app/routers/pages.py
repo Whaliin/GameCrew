@@ -15,11 +15,13 @@ templates = Jinja2Templates(directory="templates")
 
 
 POPULAR_NAV_GAMES: list[dict[str, str]] = [
-	{"name": "Counter-Strike 2", "slug": "cs2"},
-	{"name": "League of Legends", "slug": "lol"},
-	{"name": "Valorant", "slug": "valorant"},
-	{"name": "ARC Raiders", "slug": "arcraiders"},
-	{"name": "Mobile Legends", "slug": "mobilelegends"},
+    {"name": "Counter-Strike 2", "slug": "cs2"},
+    {"name": "League of Legends", "slug": "lol"},
+    {"name": "Valorant", "slug": "valorant"},
+    {"name": "ARC Raiders", "slug": "arcraiders"},
+    {"name": "Mobile Legends", "slug": "mobilelegends"},
+    {"name": "Apex Legends", "slug": "apex"},
+    {"name": "Minecraft", "slug": "minecraft"},
 ]
 
 GAME_IMAGE_URLS: dict[str, str] = {
@@ -77,9 +79,12 @@ def build_nav_games(request: Request) -> list[dict[str, str]]:
 
 def prepare_template_context(request: Request) -> dict[str, Any]:
 	"""Return reusable context for template rendering."""
+	current_user = build_user_content(request)
+	pending_count = 2 if current_user else 0
 	return {
 		"nav_games": build_nav_games(request),
-		"current_user": build_user_content(request),
+		"current_user": current_user,
+		"pending_count": pending_count,
 	}
 
 
@@ -98,10 +103,14 @@ def create_profile_context(request: Request, username: str, db: Session) -> dict
 
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request):
-	"""Get the homepage."""
+	"""Get the homepage. Shows landing page for guests, dashboard for users."""
 	context = prepare_template_context(request)
 
-	# Add example game data for template testing.
+	# Not logged in → show landing/marketing page
+	if context["current_user"] is None:
+		return templates.TemplateResponse(request=request, name="landing.html", context=context)
+
+	# Logged in → show the actual home dashboard
 	context["played_games"] = [
 		{"name": "Counter-Strike 2", "slug": "cs2", "image_url": "/static/img/games/cs2.jpg", "hours_played": 123},
 		{"name": "League of Legends", "slug": "lol", "image_url": "/static/img/games/lol.jpg", "hours_played": 999},
@@ -133,9 +142,15 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 	language_options = _get_lookup_names(db, LanguagePreferences)
 
 	context["found_players"] = [
-		{"username": "gamer123", "user_tag": "#gamer123", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Gold Nova III"},
-		{"username": "proplayer", "user_tag": "#proplayer", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Global Elite"},
-	]
+    {"username": "Vipergg",     "user_tag": "#vipergg",     "avatar_url": "/static/img/profiles/default.jpg", "rank": "Diamond III"},
+    {"username": "NightOwl_42", "user_tag": "#nightowl",    "avatar_url": "/static/img/profiles/default.jpg", "rank": "Platinum"},
+    {"username": "kira",        "user_tag": "#kira",        "avatar_url": "/static/img/profiles/default.jpg", "rank": "Immortal"},
+    {"username": "ProPlayer99", "user_tag": "#proplayer99", "avatar_url": "/static/img/profiles/default.jpg", "rank": "Global Elite"},
+    {"username": "casual_cat",  "user_tag": "#casualcat",   "avatar_url": "/static/img/profiles/default.jpg", "rank": "Gold"},
+    {"username": "Stormbreaker","user_tag": "#stormbreaker","avatar_url": "/static/img/profiles/default.jpg", "rank": "Master"},
+    {"username": "ZenSniper",   "user_tag": "#zensniper",   "avatar_url": "/static/img/profiles/default.jpg", "rank": "Ascendant"},
+    {"username": "BobTheBuilder","user_tag": "#bob",        "avatar_url": "/static/img/profiles/default.jpg", "rank": "Veteran"},
+]
 
 	context["game"] = {
 		"game_slug": game.slug,
@@ -179,3 +194,35 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 #		return templates.TemplateResponse(request=request, name="profile_edit.html", context=context)
 
 	return templates.TemplateResponse(request=request, name="profile.html", context=context)
+
+@router.get("/settings", response_class=HTMLResponse)
+def settings(request: Request):
+	"""Get the settings page."""
+	context = prepare_template_context(request)
+	if context["current_user"] is None:
+		return RedirectResponse(url="/login", status_code=303)
+	# Add profile and filter_options to context here when ready
+	context["profile"] = {"username": context["current_user"]["username"]}
+	context["filter_options"] = {"platform": ["PC", "PlayStation", "Xbox", "Switch", "Mobile"], "language": ["English", "Swedish", "Spanish", "French", "German"], "playtime": ["Mornings", "Afternoons", "Evenings", "Late night", "Weekends"]}
+	return templates.TemplateResponse(request=request, name="settings.html", context=context)
+
+@router.get("/friends", response_class=HTMLResponse)
+def friends_page(request: Request):
+	"""Get the friends page."""
+	context = prepare_template_context(request)
+	if context["current_user"] is None:
+		return RedirectResponse(url="/login", status_code=303)
+
+	# Mock data - replace with database queries when friend system exists
+	context["friends"] = [
+		{"username": "kira", "rank": "Diamond III", "status": "online", "avatar_url": "/static/img/profiles/default.jpg"},
+		{"username": "Vipergg", "rank": "Master", "status": "online", "avatar_url": "/static/img/profiles/default.jpg"},
+		{"username": "NightOwl_42", "rank": "Platinum", "status": "away", "avatar_url": "/static/img/profiles/default.jpg"},
+		{"username": "casual_cat", "rank": "Gold", "status": "offline", "avatar_url": "/static/img/profiles/default.jpg"},
+	]
+	context["pending_requests"] = [
+		{"username": "ProPlayer99", "rank": "Global Elite", "platform": "PC", "sent_at": "2 hours ago", "avatar_url": "/static/img/profiles/default.jpg"},
+		{"username": "ZenSniper", "rank": "Ascendant", "platform": "PC", "sent_at": "1 day ago", "avatar_url": "/static/img/profiles/default.jpg"},
+	]
+	context["pending_count"] = len(context["pending_requests"])
+	return templates.TemplateResponse(request=request, name="friends.html", context=context)

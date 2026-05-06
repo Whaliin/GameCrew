@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from app.routers import auth, games, pages, players, search
+from app.routers import auth, favorites, games, pages, players, search
 
 
 def create_app() -> FastAPI:
@@ -17,6 +17,8 @@ def create_app() -> FastAPI:
 	application.include_router(players.router)
 	application.include_router(games.router)
 	application.include_router(search.router)
+	application.include_router(favorites.router)
+
 
 	return application
 
