@@ -6,6 +6,18 @@ function withFallback(value, fallback) {
 	return value || fallback;
 }
 
+/*
+	Utility function to debounce another function, preventing it from being called too frequently.
+	Useful for optimizing search input or filter changes to avoid excessive API calls.
+*/
+function debounce(callback, waitMs) {
+	let timeoutId;
+	return (...args) => {
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(() => callback(...args), waitMs);
+	};
+}
+
 /* --- NAVIGATION FUNCTIONS --- */
 /*
 	Set the page location to the index/home page
@@ -344,14 +356,6 @@ document.addEventListener('click', event => {
 		closeProfile();
 	}
 });
-
-function debounce(callback, waitMs) {
-	let timeoutId;
-	return (...args) => {
-		clearTimeout(timeoutId);
-		timeoutId = setTimeout(() => callback(...args), waitMs);
-	};
-}
 
 /*
 	Initialize a dual age range slider with fixed custom increments.
