@@ -79,9 +79,12 @@ def build_nav_games(request: Request) -> list[dict[str, str]]:
 
 def prepare_template_context(request: Request) -> dict[str, Any]:
 	"""Return reusable context for template rendering."""
+	current_user = build_user_content(request)
+	pending_count = 2 if current_user else 0
 	return {
 		"nav_games": build_nav_games(request),
-		"current_user": build_user_content(request),
+		"current_user": current_user,
+		"pending_count": pending_count,
 	}
 
 
@@ -202,3 +205,24 @@ def settings(request: Request):
 	context["profile"] = {"username": context["current_user"]["username"]}
 	context["filter_options"] = {"platform": ["PC", "PlayStation", "Xbox", "Switch", "Mobile"], "language": ["English", "Swedish", "Spanish", "French", "German"], "playtime": ["Mornings", "Afternoons", "Evenings", "Late night", "Weekends"]}
 	return templates.TemplateResponse(request=request, name="settings.html", context=context)
+
+@router.get("/friends", response_class=HTMLResponse)
+def friends_page(request: Request):
+	"""Get the friends page."""
+	context = prepare_template_context(request)
+	if context["current_user"] is None:
+		return RedirectResponse(url="/login", status_code=303)
+
+	# Mock data - replace with database queries when friend system exists
+	context["friends"] = [
+		{"username": "kira", "rank": "Diamond III", "status": "online", "avatar_url": "/static/img/profiles/default.jpg"},
+		{"username": "Vipergg", "rank": "Master", "status": "online", "avatar_url": "/static/img/profiles/default.jpg"},
+		{"username": "NightOwl_42", "rank": "Platinum", "status": "away", "avatar_url": "/static/img/profiles/default.jpg"},
+		{"username": "casual_cat", "rank": "Gold", "status": "offline", "avatar_url": "/static/img/profiles/default.jpg"},
+	]
+	context["pending_requests"] = [
+		{"username": "ProPlayer99", "rank": "Global Elite", "platform": "PC", "sent_at": "2 hours ago", "avatar_url": "/static/img/profiles/default.jpg"},
+		{"username": "ZenSniper", "rank": "Ascendant", "platform": "PC", "sent_at": "1 day ago", "avatar_url": "/static/img/profiles/default.jpg"},
+	]
+	context["pending_count"] = len(context["pending_requests"])
+	return templates.TemplateResponse(request=request, name="friends.html", context=context)

@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Friends - GameCrew{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<main class="friends-wrapper">
+	<div class="friends-header">
+		<button type="button" class="back-btn" onclick="history.back()">← Back</button>
+		<h1 class="friends-title">Network</h1>
+	</div>
+
+	<div class="friends-tabs">
+		<button type="button" class="friends-tab active" data-tab="all">
+			<span class="friends-tab-label">All Friends</span>
+			<span class="friends-tab-count">{{ friends|length|default(0) }}</span>
+		</button>
+		<button type="button" class="friends-tab" data-tab="pending">
+			<span class="friends-tab-label">Pending Requests</span>
+			<span class="friends-tab-count {% if pending_requests and pending_requests|length > 0 %}has-pending{% endif %}">{{ pending_requests|length|default(0) }}</span>
+		</button>
+	</div>
+
+	<!-- ALL FRIENDS PANEL -->
+	<div class="friends-panel" data-panel="all">
+		{% if friends and friends|length > 0 %}
+		<div class="friends-search">
+			<input type="text" placeholder="Search friends by name…" id="friends-search-input" autocomplete="off">
+		</div>
+
+		<div class="friends-grid">
+			{% for friend in friends %}
+			<div class="friend-card" data-username="{{ friend.username }}">
+				<div class="friend-card-top">
+					<div class="p-avatar-wrap">
+						<img class="p-avatar" src="{{ friend.avatar_url|default('/static/img/profiles/default.jpg') }}" alt="{{ friend.username }}">
+						<span class="p-status {{ friend.status|default('offline') }}"></span>
+					</div>
+					<div class="p-meta">
+						<div class="p-name">{{ friend.username }}</div>
+						<div class="friend-card-line">
+							{% if friend.status == 'online' %}
+								<span class="friend-status-text online">● Online</span>
+							{% elif friend.status == 'away' %}
+								<span class="friend-status-text away">● Away</span>
+							{% else %}
+								<span class="friend-status-text offline">● Offline</span>
+							{% endif %}
+							{% if friend.rank %}
+								<span class="friend-card-divider">·</span>
+								<span class="friend-card-rank">{{ friend.rank }}</span>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+
+				<div class="friend-card-actions">
+					<button type="button" class="friend-action-btn primary" onclick="openProfile('{{ friend.username }}')">View profile</button>
+					<button type="button" class="friend-action-btn danger" data-username="{{ friend.username }}" onclick="confirmRemoveFriend(this)" aria-label="Remove {{ friend.username }} from friends">Remove</button>
+				</div>
+			</div>
+			{% endfor %}
+		</div>
+		{% else %}
+		<div class="friends-empty">
+			<div class="friends-empty-icon">∅</div>
+			<h3>No friends yet</h3>
+			<p>Search for players in your favorite games and add them as friends to build your crew.</p>
+			<a href="/" class="btn-secondary" style="text-decoration: none;">Browse games</a>
+		</div>
+		{% endif %}
+	</div>
+
+	<!-- PENDING REQUESTS PANEL -->
+	<div class="friends-panel" data-panel="pending" hidden>
+		{% if pending_requests and pending_requests|length > 0 %}
+		<div class="friends-grid">
+			{% for req in pending_requests %}
+			<div class="friend-card pending" data-username="{{ req.username }}">
+				<div class="friend-card-pending-banner">
+					<span class="pending-dot"></span>
+					<span>Wants to be friends</span>
+					{% if req.sent_at %}
+					<span class="friend-card-time">{{ req.sent_at }}</span>
+					{% endif %}
+				</div>
+
+				<div class="friend-card-top">
+					<div class="p-avatar-wrap">
+						<img class="p-avatar" src="{{ req.avatar_url|default('/static/img/profiles/default.jpg') }}" alt="{{ req.username }}">
+					</div>
+					<div class="p-meta">
+						<div class="p-name">{{ req.username }}</div>
+						<div class="friend-card-line">
+							{% if req.rank %}<span class="friend-card-rank">{{ req.rank }}</span>{% endif %}
+							{% if req.rank and req.platform %}<span class="friend-card-divider">·</span>{% endif %}
+							{% if req.platform %}<span class="friend-card-platform">{{ req.platform }}</span>{% endif %}
+						</div>
+					</div>
+				</div>
+
+				<div class="friend-card-actions">
+					<button type="button" class="friend-action-btn accept" data-username="{{ req.username }}" onclick="acceptRequest(this)">
+						<span>Accept</span>
+					</button>
+					<button type="button" class="friend-action-btn ignore" data-username="{{ req.username }}" onclick="ignoreRequest(this)">
+						<span>Ignore</span>
+					</button>
+				</div>
+			</div>
+			{% endfor %}
+		</div>
+		{% else %}
+		<div class="friends-empty">
+			<div class="friends-empty-icon">✓</div>
+			<h3>No pending requests</h3>
+			<p>You're all caught up. New friend requests will appear here.</p>
+		</div>
+		{% endif %}
+	</div>
+</main>
+
+<!-- Profile modal - opened by openProfile() in app.js -->
+<div id="profile-card" class="profile-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
+	<div class="profile-card profile-card-modal">
+		<button class="close-btn" onclick="closeProfile()" aria-label="Close profile">×</button>
+		<div id="profile-loading" class="profile-loading">Loading profile…</div>
+		<div class="games-panel" aria-label="Favorite games"></div>
+		<div class="profile-panel">
+			<div class="profile-avatar">
+				<img src="/static/img/profiles/default.jpg" alt="Profile avatar">
+			</div>
+			<div class="info-box">
+				<div class="info-box-title">Player Info</div>
+				<div class="bio-text"></div>
+			</div>
+			<div class="profile-buttons"></div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+	(function () {
+		'use strict';
+
+		const tabs = document.querySelectorAll('[data-tab]');
+		const panels = document.querySelectorAll('[data-panel]');
+
+		function showTab(target) {
+			tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === target));
+			panels.forEach(p => p.hidden = p.dataset.panel !== target);
+		}
+
+		tabs.forEach(tab => {
+			tab.addEventListener('click', () => {
+				const target = tab.dataset.tab;
+				showTab(target);
+				history.replaceState(null, '', '#' + target);
+			});
+		});
+
+		// Open the tab from URL hash, e.g. /friends#pending
+		const initial = window.location.hash.replace('#', '');
+		if (initial && document.querySelector('[data-tab="' + initial + '"]')) {
+			showTab(initial);
+		}
+
+		// Search filter for friends
+		const searchInput = document.getElementById('friends-search-input');
+		if (searchInput) {
+			searchInput.addEventListener('input', () => {
+				const query = searchInput.value.toLowerCase().trim();
+				document.querySelectorAll('[data-panel="all"] .friend-card').forEach(card => {
+					const name = (card.dataset.username || '').toLowerCase();
+					card.style.display = (!query || name.includes(query)) ? '' : 'none';
+				});
+			});
+		}
+	})();
+
+	function acceptRequest(btn) {
+		const username = btn.dataset.username;
+		const card = btn.closest('.friend-card');
+		// TODO: fetch('/friends/accept', { method: 'POST', body: ... })
+		card.classList.add('is-accepted');
+		const actions = card.querySelector('.friend-card-actions');
+		if (actions) {
+			actions.innerHTML = '<div class="friend-action-result accepted">✓ Friend added</div>';
+		}
+		// Decrement pending badge in navbar if present
+		decrementPendingBadge();
+	}
+
+	function ignoreRequest(btn) {
+		const username = btn.dataset.username;
+		const card = btn.closest('.friend-card');
+		// TODO: fetch('/friends/ignore', { method: 'POST', body: ... })
+		card.style.transition = 'opacity .3s ease, transform .3s ease, max-height .3s ease, margin .3s ease, padding .3s ease';
+		card.style.opacity = '0';
+		card.style.transform = 'scale(.95)';
+		setTimeout(() => card.remove(), 300);
+		decrementPendingBadge();
+	}
+
+	function confirmRemoveFriend(btn) {
+		const username = btn.dataset.username;
+		if (!confirm('Remove ' + username + ' from your friends?')) return;
+		const card = btn.closest('.friend-card');
+		// TODO: fetch('/friends/remove', { method: 'POST', body: ... })
+		card.style.transition = 'opacity .3s ease, transform .3s ease';
+		card.style.opacity = '0';
+		card.style.transform = 'scale(.95)';
+		setTimeout(() => card.remove(), 300);
+	}
+
+	function decrementPendingBadge() {
+		const badge = document.querySelector('.nav-friends-badge');
+		if (!badge) return;
+		const current = parseInt(badge.textContent, 10) || 0;
+		const next = Math.max(0, current - 1);
+		if (next === 0) {
+			badge.remove();
+		} else {
+			badge.textContent = next;
+		}
+		// Also update tab count
+		const tabBadge = document.querySelector('[data-tab="pending"] .friends-tab-count');
+		if (tabBadge) {
+			tabBadge.textContent = next;
+			if (next === 0) tabBadge.classList.remove('has-pending');
+		}
+	}
+</script>
+{% endblock %}

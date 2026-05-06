@@ -37,7 +37,7 @@ function scrollNavGames(direction) {
 /*
 	Favorites are persisted client-side under "gamecrew:favorites".
 	When the backend gains a /api/me/favorites endpoint, swap the
-	read/write helpers below to fetch/PUT calls — the rest of the
+	read/write helpers below to fetch/PUT calls - the rest of the
 	UI logic stays the same.
 */
 const FAV_STORAGE_KEY = 'gamecrew:favorites';
@@ -340,7 +340,7 @@ function setupAgeRangeFilter(onChange) {
 		let low  = Number(lowInput.value);
 		let high = Number(highInput.value);
 
-		// Clamp the ACTIVE input only — never push the other one.
+		// Clamp the ACTIVE input only - never push the other one.
 		if (low > high) {
 			if (changed === 'low') {
 				low = high;
@@ -406,6 +406,8 @@ function setupAgeRangeFilter(onChange) {
 }
 
 /* --- PLAYER CARDS --- */
+const DISCORD_SVG_PATH = 'M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.099.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.029zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z';
+
 function createPlayerCard(player) {
 	const card = document.createElement('div');
 	card.className = 'player-card';
@@ -419,6 +421,7 @@ function createPlayerCard(player) {
 		}
 	});
 
+	// Top row - avatar + meta side by side
 	const top = document.createElement('div');
 	top.className = 'p-top';
 
@@ -442,34 +445,264 @@ function createPlayerCard(player) {
 	const name = document.createElement('div');
 	name.className = 'p-name';
 	name.textContent = withFallback(player.username, 'Unknown');
-
-	const tag = document.createElement('div');
-	tag.className = 'p-tag';
-	tag.textContent = withFallback(player.user_tag, '#unknown');
-
 	meta.appendChild(name);
-	meta.appendChild(tag);
 
-	if (player.rank) {
-		const rank = document.createElement('div');
-		rank.className = 'p-rank';
-		rank.textContent = player.rank;
-		meta.appendChild(rank);
+	// Stats row - rank · age (only show what we have)
+	const hasRank = !!player.rank;
+	const hasAge = !!player.age;
+
+	if (hasRank || hasAge) {
+		const stats = document.createElement('div');
+		stats.className = 'p-stats';
+
+		if (hasRank) {
+			const rank = document.createElement('span');
+			rank.className = 'p-rank';
+			rank.textContent = player.rank;
+			stats.appendChild(rank);
+		}
+
+		if (hasRank && hasAge) {
+			const dot = document.createElement('span');
+			dot.className = 'p-stat-divider';
+			dot.textContent = '·';
+			stats.appendChild(dot);
+		}
+
+		if (hasAge) {
+			const age = document.createElement('span');
+			age.className = 'p-age';
+			age.textContent = player.age + ' yrs';
+			stats.appendChild(age);
+		}
+
+		meta.appendChild(stats);
 	}
 
 	top.appendChild(avatarWrap);
 	top.appendChild(meta);
+
+	// Action buttons row
+	const actions = document.createElement('div');
+	actions.className = 'p-actions';
+	actions.addEventListener('click', e => e.stopPropagation());
+	actions.addEventListener('keydown', e => e.stopPropagation());
+
+	const discordBtn = document.createElement('button');
+	discordBtn.type = 'button';
+	discordBtn.className = 'p-action-btn p-action-btn-discord';
+	discordBtn.dataset.discord = player.discord || '';
+	discordBtn.dataset.username = player.username || '';
+	discordBtn.setAttribute('aria-label', `Show Discord for ${player.username || 'player'}`);
+	discordBtn.innerHTML =
+		`<svg class="p-action-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="${DISCORD_SVG_PATH}"/></svg>` +
+		`<span class="p-action-label">Discord</span>`;
+	discordBtn.addEventListener('click', e => showDiscord(e, discordBtn));
+
+	const platformBtn = document.createElement('button');
+	platformBtn.type = 'button';
+	platformBtn.className = 'p-action-btn p-action-btn-platform';
+	platformBtn.dataset.platform = player.platform || '';
+	platformBtn.dataset.username = player.username || '';
+	platformBtn.setAttribute('aria-label', `Show platform for ${player.username || 'player'}`);
+	platformBtn.innerHTML =
+		`<svg class="p-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+			`<rect x="2" y="4" width="20" height="13" rx="2" ry="2"/>` +
+			`<line x1="8" y1="21" x2="16" y2="21"/>` +
+			`<line x1="12" y1="17" x2="12" y2="21"/>` +
+		`</svg>` +
+		`<span class="p-action-label">Platform</span>`;
+	platformBtn.addEventListener('click', e => showPlatform(e, platformBtn));
+
+	actions.appendChild(discordBtn);
+	actions.appendChild(platformBtn);
+
 	card.appendChild(top);
+	card.appendChild(actions);
 
 	return card;
 }
+
+/* ── Player card actions ── */
+
+function showDiscord(event, btn) {
+	event.stopPropagation();
+	const tag = btn.dataset.discord;
+	const user = btn.dataset.username || 'this player';
+
+	if (!tag) {
+		showPopup({
+			title: user + "'s Discord",
+			body: "This player hasn't linked a Discord account.",
+			variant: 'muted',
+		});
+		return;
+	}
+
+	showPopup({
+		title: user + "'s Discord",
+		body: tag,
+		variant: 'discord',
+		copyable: true,
+	});
+}
+
+function showPlatform(event, btn) {
+	event.stopPropagation();
+	const platform = btn.dataset.platform;
+	const user = btn.dataset.username || 'this player';
+
+	if (!platform) {
+		showPopup({
+			title: user + "'s platform",
+			body: "This player hasn't set a platform yet.",
+			variant: 'muted',
+		});
+		return;
+	}
+
+	showPopup({
+		title: user + ' plays on',
+		body: platform,
+		variant: 'platform',
+		platform: platform,
+	});
+}
+
+/* ── Reusable info popup ── */
+
+const PLATFORM_ICONS = {
+	pc:          { label: 'PC',          symbol: '🖥' },
+	playstation: { label: 'PlayStation', symbol: 'PS' },
+	ps:          { label: 'PlayStation', symbol: 'PS' },
+	ps4:         { label: 'PlayStation 4', symbol: 'PS' },
+	ps5:         { label: 'PlayStation 5', symbol: 'PS' },
+	xbox:        { label: 'Xbox',        symbol: 'XB' },
+	switch:      { label: 'Nintendo Switch', symbol: 'SW' },
+	mobile:      { label: 'Mobile',      symbol: '📱' },
+	ios:         { label: 'iOS',         symbol: 'iOS' },
+	android:     { label: 'Android',     symbol: 'AND' },
+};
+
+function getPlatformVisual(platform) {
+	const key = platform.toLowerCase().replace(/[^a-z0-9]/g, '');
+	return PLATFORM_ICONS[key] || { label: platform, symbol: platform.slice(0, 2).toUpperCase() };
+}
+
+function showPopup(opts) {
+	closePopup();
+
+	const overlay = document.createElement('div');
+	overlay.className = 'info-popup-overlay';
+	overlay.id = 'info-popup-overlay';
+	overlay.setAttribute('role', 'dialog');
+	overlay.setAttribute('aria-modal', 'true');
+
+	const box = document.createElement('div');
+	box.className = 'info-popup info-popup-' + (opts.variant || 'default');
+
+	// Close button
+	const closeBtn = document.createElement('button');
+	closeBtn.type = 'button';
+	closeBtn.className = 'info-popup-close';
+	closeBtn.setAttribute('aria-label', 'Close popup');
+	closeBtn.addEventListener('click', closePopup);
+
+	// Big symbol on top (only for platform / discord variants)
+	if (opts.variant === 'platform' && opts.platform) {
+		const visual = getPlatformVisual(opts.platform);
+		const icon = document.createElement('div');
+		icon.className = 'info-popup-symbol';
+		icon.textContent = visual.symbol;
+		box.appendChild(icon);
+	} else if (opts.variant === 'discord') {
+		const icon = document.createElement('div');
+		icon.className = 'info-popup-symbol info-popup-symbol-discord';
+		icon.innerHTML =
+			`<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">` +
+			`<path d="${DISCORD_SVG_PATH}"/></svg>`;
+		box.appendChild(icon);
+	}
+
+	// Title
+	const title = document.createElement('div');
+	title.className = 'info-popup-title';
+	title.textContent = opts.title || '';
+
+	// Body
+	const body = document.createElement('div');
+	body.className = 'info-popup-body';
+	body.textContent = opts.body || '';
+
+	box.appendChild(closeBtn);
+	box.appendChild(title);
+	box.appendChild(body);
+
+	// Optional copy button (Discord variant)
+	if (opts.copyable && opts.body) {
+		const copyBtn = document.createElement('button');
+		copyBtn.type = 'button';
+		copyBtn.className = 'info-popup-copy';
+		copyBtn.textContent = 'Copy tag';
+		copyBtn.addEventListener('click', () => {
+			const text = opts.body;
+			const done = () => {
+				copyBtn.textContent = 'Copied!';
+				copyBtn.classList.add('is-copied');
+				setTimeout(() => {
+					copyBtn.textContent = 'Copy tag';
+					copyBtn.classList.remove('is-copied');
+				}, 1400);
+			};
+			if (navigator.clipboard && navigator.clipboard.writeText) {
+				navigator.clipboard.writeText(text).then(done, done);
+			} else {
+				const ta = document.createElement('textarea');
+				ta.value = text;
+				ta.style.position = 'fixed';
+				ta.style.left = '-9999px';
+				document.body.appendChild(ta);
+				ta.select();
+				try { document.execCommand('copy'); } catch (e) { /* ignore */ }
+				document.body.removeChild(ta);
+				done();
+			}
+		});
+		box.appendChild(copyBtn);
+	}
+
+	overlay.appendChild(box);
+	document.body.appendChild(overlay);
+	document.body.classList.add('modal-open');
+
+	overlay.addEventListener('click', e => {
+		if (e.target === overlay) closePopup();
+	});
+}
+
+function closePopup() {
+	const existing = document.getElementById('info-popup-overlay');
+	if (existing) {
+		existing.remove();
+		// Don't unset modal-open if profile modal is still open
+		const profileCard = document.getElementById('profile-card');
+		if (!profileCard || profileCard.classList.contains('hidden')) {
+			document.body.classList.remove('modal-open');
+		}
+	}
+}
+
+// Esc closes popup too
+document.addEventListener('keydown', event => {
+	if (event.key === 'Escape') closePopup();
+});
 
 function renderPlayersGrid(gridElement, players) {
 	gridElement.innerHTML = '';
 
 	if (!Array.isArray(players) || players.length === 0) {
 		const empty = document.createElement('p');
-		empty.textContent = 'No players found — try adjusting your filters.';
+		empty.textContent = 'No players found - try adjusting your filters.';
 		gridElement.appendChild(empty);
 		return;
 	}

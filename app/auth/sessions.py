@@ -31,7 +31,7 @@ def delete_session(session_id: str) -> None:
 
 # Couple session with user
 def get_current_user(request: Request) -> UserSession | None:
-	"""FastAPI dependency — reads session_id cookie, looks up session.
+	"""FastAPI dependency - reads session_id cookie, looks up session.
 	Raises RedirectResponse to /login if unauthenticated."""
 	session_id = request.cookies.get("session_id")
 	if session_id:
@@ -41,7 +41,7 @@ def get_current_user(request: Request) -> UserSession | None:
 	raise RedirectResponse("/login")
 
 def get_optional_user(request: Request) -> UserSession | None:
-	"""FastAPI dependency — returns session data or None (no redirect)."""
+	"""FastAPI dependency - returns session data or None (no redirect)."""
 	session_id = request.cookies.get("session_id")
 	if session_id:
 		return get_session(session_id)

@@ -1,5 +1,5 @@
 /* ============================================================
-   GameCrew — Cyberpunk HUD Theme
+   GameCrew - Cyberpunk HUD Theme
    Palette per design document v1.1
    ============================================================ */
 
@@ -37,12 +37,14 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 
+html { font-size: 17px; }
+
 body {
 	background: var(--bg);
 	color: var(--text-primary);
 	font-family: 'Rajdhani', sans-serif;
 	font-weight: 500;
-	font-size: 15px;
+	font-size: 16px;
 	min-height: 100vh;
 	-webkit-font-smoothing: antialiased;
 	position: relative;
@@ -86,7 +88,7 @@ h1, h2, h3, h4, h5, h6 {
 .mono { font-family: 'Share Tech Mono', monospace; }
 
 .wrapper {
-	max-width: 1280px;
+	max-width: 1440px;
 	margin: 0 auto;
 	padding: 0 clamp(20px, 4vw, 48px);
 }
@@ -186,7 +188,7 @@ label {
 .select-wrap:hover::after { color: #4df4ff; }
 
 /* ============================================================
-   Navbar — FULL WIDTH bg/border, content centered via .nav-inner
+   Navbar - FULL WIDTH bg/border, content centered via .nav-inner
    ============================================================ */
 nav {
 	background: var(--nav-bg);
@@ -209,7 +211,7 @@ nav::before {
 	display: flex;
 	align-items: center;
 	gap: 24px;
-	max-width: 1280px;
+	max-width: 1440px;
 	margin: 0 auto;
 	padding: 16px clamp(20px, 4vw, 48px);
 }
@@ -403,6 +405,77 @@ nav::before {
 
 .nav-cog-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 
+/* Friends button in navbar */
+.nav-friends-btn {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	background: var(--card);
+	border: 1px solid var(--border);
+	color: var(--text-secondary);
+	text-decoration: none;
+	cursor: pointer;
+	flex-shrink: 0;
+	transition: border-color var(--dur-fast) var(--ease-out),
+		color var(--dur-fast) var(--ease-out),
+		background var(--dur-fast) var(--ease-out),
+		box-shadow var(--dur-base) var(--ease-out);
+}
+
+.nav-friends-btn svg,
+.nav-friends-icon {
+	width: 18px;
+	height: 18px;
+	display: block;
+	transition: transform var(--dur-base) var(--ease-out);
+}
+
+.nav-friends-icon {
+	background: currentColor;
+	-webkit-mask: url('/static/img/icons/friends.svg') no-repeat center / contain;
+	        mask: url('/static/img/icons/friends.svg') no-repeat center / contain;
+}
+
+.nav-friends-btn:hover {
+	border-color: var(--cyan);
+	color: var(--cyan);
+	background: var(--card-hover);
+	box-shadow: var(--glow-cyan);
+}
+
+.nav-friends-btn:hover svg,
+.nav-friends-btn:hover .nav-friends-icon {
+	transform: scale(1.1);
+}
+
+.nav-friends-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+.nav-friends-badge {
+	position: absolute;
+	top: -4px;
+	right: -4px;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 5px;
+	border-radius: 999px;
+	background: var(--pink);
+	color: #fff;
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 10px;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: var(--glow-pink);
+	border: 2px solid var(--nav-bg);
+	letter-spacing: 0;
+	animation: pulse-dot 2s ease-in-out infinite;
+}
+
 .login-btn {
 	font-family: 'Rajdhani', sans-serif;
 	font-weight: 600;
@@ -529,7 +602,7 @@ nav::before {
 .hero-stat-label { font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: .2em; text-transform: uppercase; margin-top: 6px; }
 
 /* ============================================================
-   Home — game cards
+   Home - game cards
    ============================================================ */
 main { padding: 32px 0 80px; animation: page-fade-in .4s var(--ease-out) both; }
 
@@ -733,26 +806,30 @@ section { margin-bottom: 48px; }
 
 .players-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-	gap: 14px;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 18px;
 }
 
 .players-grid > p {
 	grid-column: 1 / -1;
 	color: var(--text-secondary);
 	font-family: 'Share Tech Mono', monospace;
-	padding: 24px;
+	padding: 28px;
 	text-align: center;
 	border: 1px dashed var(--border);
-	border-radius: 10px;
+	border-radius: 12px;
 }
 
+/* ── Player card - compact horizontal layout, classic & clean ── */
 .player-card {
 	background: var(--card);
 	border: 1px solid var(--border);
-	border-radius: 10px;
-	padding: 14px;
+	border-radius: 12px;
+	padding: 16px;
 	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
 	transition: border-color var(--dur-base) var(--ease-out),
 		background var(--dur-base) var(--ease-out),
 		transform var(--dur-base) var(--ease-out),
@@ -761,31 +838,57 @@ section { margin-bottom: 48px; }
 	overflow: hidden;
 }
 
+/* Left accent bar */
 .player-card::before {
 	content: '';
 	position: absolute;
 	left: 0;
-	top: 12px;
-	bottom: 12px;
+	top: 16px;
+	bottom: 16px;
 	width: 2px;
 	background: var(--border);
-	transition: background var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+	border-radius: 0 2px 2px 0;
+	transition: background var(--dur-base) var(--ease-out),
+		box-shadow var(--dur-base) var(--ease-out);
 }
 
-.player-card:hover { border-color: var(--cyan); background: var(--card-hover); transform: translateY(-2px); box-shadow: var(--glow-cyan); }
-.player-card:hover::before { background: var(--cyan); box-shadow: 0 0 8px rgba(0, 240, 255, .7); }
+.player-card:hover {
+	border-color: var(--cyan);
+	background: var(--card-hover);
+	transform: translateY(-2px);
+	box-shadow: var(--glow-cyan);
+}
 
-.p-top { display: flex; align-items: center; gap: 12px; }
-.p-avatar-wrap { position: relative; flex-shrink: 0; }
+.player-card:hover::before {
+	background: var(--cyan);
+	box-shadow: 0 0 8px rgba(0, 240, 255, .7);
+}
+
+/* Top row - avatar + name/stats side by side */
+.p-top {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 14px;
+	width: 100%;
+}
+
+.p-avatar-wrap {
+	position: relative;
+	flex: 0 0 auto;
+	width: 56px;
+	height: 56px;
+}
 
 .p-avatar {
-	width: 48px;
-	height: 48px;
+	width: 56px;
+	height: 56px;
 	border-radius: 50%;
 	object-fit: cover;
 	border: 1px solid var(--border);
-	transition: border-color var(--dur-base) var(--ease-out);
+	background: var(--bg);
 	display: block;
+	transition: border-color var(--dur-base) var(--ease-out);
 }
 
 .player-card:hover .p-avatar { border-color: var(--cyan); }
@@ -794,22 +897,359 @@ section { margin-bottom: 48px; }
 	position: absolute;
 	bottom: 0;
 	right: 0;
-	width: 12px;
-	height: 12px;
+	width: 14px;
+	height: 14px;
 	border-radius: 50%;
 	border: 2px solid var(--card);
+	transition: border-color var(--dur-base) var(--ease-out);
 }
 .p-status.online { background: var(--green); box-shadow: 0 0 6px rgba(0, 255, 136, .7); }
 .p-status.away { background: var(--orange); box-shadow: 0 0 6px rgba(255, 140, 0, .6); }
 .p-status.offline { background: var(--text-muted); }
 .player-card:hover .p-status { border-color: var(--card-hover); }
 
-.p-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.p-name { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.p-tag { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--cyan); }
+/* Meta - name on top, rank+age underneath */
+.p-meta {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	flex: 1 1 auto;
+	min-width: 0;
+	text-align: left;
+	align-items: flex-start;
+}
 
-.p-rank { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 6px; }
-.p-rank::before { content: '▸'; color: var(--purple); font-size: 10px; }
+.p-name {
+	font-family: 'Orbitron', sans-serif;
+	font-weight: 700;
+	font-size: 15px;
+	color: var(--text-primary);
+	letter-spacing: .03em;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.p-stats {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 12px;
+}
+
+.p-rank {
+	color: var(--purple);
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.p-rank::before {
+	content: '◆';
+	font-size: 9px;
+	color: var(--purple);
+}
+
+.p-age {
+	color: var(--cyan);
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.p-age::before {
+	content: '';
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: var(--cyan);
+	box-shadow: 0 0 4px rgba(0, 240, 255, .8);
+}
+
+.p-stat-divider {
+	color: var(--text-muted);
+	opacity: .5;
+}
+
+/* ─── Action buttons - clean ghost buttons, full width row ─── */
+.p-actions {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+	width: 100%;
+}
+
+.p-action-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 9px 12px;
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	color: var(--text-secondary);
+	font-family: 'Rajdhani', sans-serif;
+	font-weight: 600;
+	font-size: 12px;
+	letter-spacing: .12em;
+	text-transform: uppercase;
+	cursor: pointer;
+	text-decoration: none;
+	transition: border-color var(--dur-fast) var(--ease-out),
+		color var(--dur-fast) var(--ease-out),
+		background var(--dur-fast) var(--ease-out),
+		box-shadow var(--dur-base) var(--ease-out);
+	min-width: 0;
+}
+
+.p-action-btn:hover {
+	transform: none;
+}
+
+.p-action-btn-discord:hover {
+	border-color: #5865F2;
+	color: #ffffff;
+	background: rgba(88, 101, 242, .18);
+	box-shadow: 0 0 12px rgba(88, 101, 242, .35);
+}
+
+.p-action-btn-platform:hover {
+	border-color: var(--cyan);
+	color: var(--cyan);
+	background: rgba(0, 240, 255, .1);
+	box-shadow: var(--glow-cyan);
+}
+
+.p-action-btn:focus-visible {
+	outline: 2px solid var(--cyan);
+	outline-offset: 2px;
+}
+
+.p-action-icon {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+	display: inline-block;
+}
+
+.p-action-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.p-action-btn.p-action-btn-active {
+	border-color: var(--green);
+	color: var(--green);
+	background: rgba(0, 255, 136, .1);
+	box-shadow: var(--glow-green);
+}
+
+/* ============================================================
+   INFO POPUP - small dialog used by Discord / Platform buttons
+   ============================================================ */
+.info-popup-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(6, 6, 16, .82);
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	display: grid;
+	place-items: center;
+	z-index: 1100;
+	padding: 24px;
+	animation: overlay-fade-in .2s var(--ease-out) both;
+}
+
+.info-popup {
+	position: relative;
+	width: min(420px, calc(100vw - 48px));
+	background: linear-gradient(180deg, var(--card) 0%, var(--panel) 100%);
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	padding: 28px 24px 24px;
+	text-align: center;
+	box-shadow:
+		0 24px 64px rgba(0, 0, 0, .55),
+		0 0 32px rgba(0, 240, 255, .12);
+	animation: modal-pop-in .25s var(--ease-out) both;
+	overflow: hidden;
+}
+
+.info-popup::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, var(--cyan), var(--purple), transparent);
+}
+
+.info-popup-discord::before {
+	background: linear-gradient(90deg, transparent, #5865F2, #7c87ff, transparent);
+}
+
+.info-popup-platform::before {
+	background: linear-gradient(90deg, transparent, var(--green), var(--cyan), transparent);
+}
+
+.info-popup-close {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 1px solid var(--border);
+	border-radius: 50%;
+	background: rgba(6, 6, 16, .8);
+	color: var(--text-secondary);
+	font-size: 0;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: border-color var(--dur-fast) var(--ease-out),
+		color var(--dur-fast) var(--ease-out),
+		background var(--dur-fast) var(--ease-out);
+}
+
+.info-popup-close::before,
+.info-popup-close::after {
+	content: '';
+	position: absolute;
+	width: 12px;
+	height: 2px;
+	background: currentColor;
+	border-radius: 1px;
+	top: 50%;
+	left: 50%;
+}
+.info-popup-close::before { transform: translate(-50%, -50%) rotate(45deg); }
+.info-popup-close::after  { transform: translate(-50%, -50%) rotate(-45deg); }
+
+.info-popup-close:hover {
+	border-color: var(--cyan);
+	color: var(--cyan);
+	background: rgba(0, 240, 255, .1);
+	transform: none;
+	box-shadow: none;
+}
+
+.info-popup-symbol {
+	width: 80px;
+	height: 80px;
+	margin: 4px auto 18px;
+	border-radius: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: 'Orbitron', sans-serif;
+	font-weight: 900;
+	font-size: 26px;
+	letter-spacing: .05em;
+	color: var(--cyan);
+	background: rgba(0, 240, 255, .08);
+	border: 1px solid rgba(0, 240, 255, .35);
+	box-shadow: 0 0 24px rgba(0, 240, 255, .2);
+}
+
+.info-popup-symbol-discord {
+	color: #7c87ff;
+	background: rgba(88, 101, 242, .1);
+	border-color: rgba(88, 101, 242, .4);
+	box-shadow: 0 0 24px rgba(88, 101, 242, .25);
+}
+
+.info-popup-symbol-discord svg {
+	width: 44px;
+	height: 44px;
+}
+
+.info-popup-platform .info-popup-symbol {
+	color: var(--green);
+	background: rgba(0, 255, 136, .08);
+	border-color: rgba(0, 255, 136, .35);
+	box-shadow: 0 0 24px rgba(0, 255, 136, .2);
+}
+
+.info-popup-title {
+	font-family: 'Orbitron', sans-serif;
+	font-weight: 700;
+	font-size: 12px;
+	letter-spacing: .2em;
+	text-transform: uppercase;
+	color: var(--text-secondary);
+	margin-bottom: 10px;
+}
+
+.info-popup-body {
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 18px;
+	color: var(--text-primary);
+	letter-spacing: .04em;
+	word-break: break-word;
+	padding: 8px 6px;
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	margin: 0 0 4px;
+}
+
+.info-popup-muted .info-popup-body {
+	font-size: 13px;
+	color: var(--text-muted);
+	background: transparent;
+	border: 1px dashed var(--border);
+	padding: 16px;
+}
+
+.info-popup-copy {
+	margin-top: 14px;
+	padding: 9px 18px;
+	font-family: 'Rajdhani', sans-serif;
+	font-weight: 600;
+	font-size: 12px;
+	letter-spacing: .14em;
+	text-transform: uppercase;
+	background: transparent;
+	color: var(--cyan);
+	border: 1px solid var(--cyan);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background var(--dur-fast) var(--ease-out),
+		color var(--dur-fast) var(--ease-out),
+		box-shadow var(--dur-base) var(--ease-out);
+}
+
+.info-popup-copy:hover {
+	background: rgba(0, 240, 255, .1);
+	box-shadow: var(--glow-cyan);
+	transform: none;
+}
+
+.info-popup-copy.is-copied {
+	background: var(--green);
+	color: #000;
+	border-color: var(--green);
+	box-shadow: var(--glow-green);
+}
+
+.p-action-icon {
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+	display: inline-block;
+}
+
+.p-action-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
 
 /* ============================================================
    Filter panel
@@ -971,7 +1411,7 @@ section { margin-bottom: 48px; }
 
 .age-range-slider::-moz-focus-outer { border: 0; }
 
-/* Track must stay invisible — it's the thin line we draw separately */
+/* Track must stay invisible - it's the thin line we draw separately */
 .age-range-slider::-webkit-slider-runnable-track {
 	background: transparent;
 	border: none;
@@ -984,14 +1424,14 @@ section { margin-bottom: 48px; }
 	height: 3px;
 }
 
-/* Firefox draws a "fill" from the start of the track to the thumb by default — kill it */
+/* Firefox draws a "fill" from the start of the track to the thumb by default - kill it */
 .age-range-slider::-moz-range-progress {
 	background: transparent;
 	height: 3px;
 }
 
 /*
-	Slider thumb — KEEP IDENTICAL IN ALL STATES.
+	Slider thumb - KEEP IDENTICAL IN ALL STATES.
 	No hover/active variations: no color shift, no glow change, no scale.
 	Only the cursor changes to communicate grabbing.
 */
@@ -1066,7 +1506,7 @@ section { margin-bottom: 48px; }
    Profile page
    ============================================================ */
 .profile-wrapper {
-	max-width: 1280px;
+	max-width: 1440px;
 	margin: 0 auto;
 	padding: 0 clamp(20px, 4vw, 48px) 80px;
 	animation: page-fade-in .4s var(--ease-out) both;
@@ -1407,7 +1847,7 @@ section { margin-bottom: 48px; }
 }
 
 /* ============================================================
-   LANDING PAGE — all .lp-* styles live here
+   LANDING PAGE - all .lp-* styles live here
    ============================================================ */
 .lp { animation: page-fade-in .4s var(--ease-out) both; }
 
@@ -1432,7 +1872,7 @@ section { margin-bottom: 48px; }
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	max-width: 1280px;
+	max-width: 1440px;
 	margin: 0 auto;
 	padding: 20px clamp(20px, 4vw, 48px);
 }
@@ -1577,7 +2017,7 @@ section { margin-bottom: 48px; }
 	margin-top: 8px;
 }
 
-.lp-section { padding: clamp(60px, 10vw, 100px) clamp(20px, 4vw, 48px); max-width: 1280px; margin: 0 auto; position: relative; }
+.lp-section { padding: clamp(60px, 10vw, 100px) clamp(20px, 4vw, 48px); max-width: 1440px; margin: 0 auto; position: relative; }
 
 .lp-section-header { text-align: center; margin-bottom: clamp(40px, 6vw, 64px); }
 
@@ -1897,7 +2337,7 @@ section { margin-bottom: 48px; }
    SETTINGS PAGE
    ============================================================ */
 .settings-wrapper {
-	max-width: 1280px;
+	max-width: 1440px;
 	margin: 0 auto;
 	padding: 0 clamp(20px, 4vw, 48px) 80px;
 	animation: page-fade-in .4s var(--ease-out) both;
@@ -2374,7 +2814,7 @@ section { margin-bottom: 48px; }
 	border-radius: 8px;
 }
 
-/* Danger cards */
+/* Danger cards (kept for danger zone if ever needed) */
 .settings-danger-card {
 	display: flex;
 	align-items: center;
@@ -2396,6 +2836,163 @@ section { margin-bottom: 48px; }
 .settings-danger-card > div:first-child { flex: 1; min-width: 200px; }
 .settings-danger-card .btn-ghost,
 .settings-danger-card .btn-danger { white-space: nowrap; flex-shrink: 0; }
+
+/* Help text under fields */
+.settings-help {
+	display: block;
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 11px;
+	color: var(--text-muted);
+	line-height: 1.5;
+	margin-top: 6px;
+}
+
+/* ── Collapsible <details> block ── */
+.settings-collapse {
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	background: var(--bg);
+	overflow: hidden;
+	margin-top: 4px;
+	transition: border-color var(--dur-base) var(--ease-out),
+		box-shadow var(--dur-base) var(--ease-out);
+}
+
+.settings-collapse[open] {
+	border-color: rgba(0, 240, 255, .3);
+	box-shadow: 0 0 16px rgba(0, 240, 255, .08);
+}
+
+.settings-collapse-summary {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 16px 20px;
+	cursor: pointer;
+	list-style: none;
+	user-select: none;
+	background: linear-gradient(135deg, rgba(0, 240, 255, .06), transparent 60%);
+	transition: background var(--dur-fast) var(--ease-out);
+	position: relative;
+}
+
+.settings-collapse-summary::-webkit-details-marker { display: none; }
+
+.settings-collapse-summary::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 16px;
+	bottom: 16px;
+	width: 3px;
+	background: var(--cyan);
+	opacity: .6;
+	border-radius: 0 2px 2px 0;
+	transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.settings-collapse[open] .settings-collapse-summary::before { opacity: 1; box-shadow: 0 0 8px rgba(0, 240, 255, .55); }
+
+.settings-collapse-summary:hover {
+	background: linear-gradient(135deg, rgba(0, 240, 255, .12), rgba(0, 240, 255, .02) 60%);
+}
+
+.settings-collapse-icon {
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 16px;
+	color: var(--cyan);
+	transition: transform var(--dur-base) var(--ease-out);
+	width: 14px;
+	display: inline-block;
+	flex-shrink: 0;
+	line-height: 1;
+}
+
+.settings-collapse[open] .settings-collapse-icon {
+	transform: rotate(90deg);
+}
+
+.settings-collapse-title {
+	font-family: 'Orbitron', sans-serif;
+	font-weight: 700;
+	font-size: 13px;
+	letter-spacing: .18em;
+	text-transform: uppercase;
+	color: var(--text-primary);
+	flex: 1;
+}
+
+.settings-collapse-hint {
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 11px;
+	color: var(--text-muted);
+	letter-spacing: .04em;
+}
+
+.settings-collapse-body {
+	padding: 18px 20px 20px;
+	border-top: 1px solid rgba(0, 240, 255, .15);
+	background: rgba(6, 6, 16, .35);
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	animation: collapse-fade-in .3s var(--ease-out) both;
+}
+
+@keyframes collapse-fade-in {
+	from { opacity: 0; transform: translateY(-6px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Account action rows inside the collapsible ── */
+.settings-action-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 18px;
+	padding: 16px 18px;
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	flex-wrap: wrap;
+	transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.settings-action-row:hover { border-color: rgba(0, 240, 255, .25); }
+
+.settings-action-row.severe {
+	border-color: rgba(255, 0, 144, .3);
+	background: rgba(255, 0, 144, .04);
+}
+
+.settings-action-row.severe:hover {
+	border-color: rgba(255, 0, 144, .5);
+	box-shadow: 0 0 12px rgba(255, 0, 144, .12);
+}
+
+.settings-action-row > div:first-child { flex: 1; min-width: 200px; }
+
+.settings-action-title {
+	font-family: 'Orbitron', sans-serif;
+	font-weight: 700;
+	font-size: 12px;
+	letter-spacing: .14em;
+	text-transform: uppercase;
+	color: var(--text-primary);
+	margin-bottom: 6px;
+}
+
+.settings-action-title.danger-text { color: var(--pink); }
+
+.settings-action-sub {
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 12px;
+	color: var(--text-secondary);
+	line-height: 1.6;
+}
+
+.settings-action-row .btn-ghost,
+.settings-action-row .btn-danger { white-space: nowrap; flex-shrink: 0; min-width: 110px; }
 
 
 /* ============================================================
@@ -2466,4 +3063,388 @@ section { margin-bottom: 48px; }
 		transition-duration: .01ms !important;
 		scroll-behavior: auto !important;
 	}
+}
+
+/* ============================================================
+   FRIENDS PAGE
+   ============================================================ */
+.friends-wrapper {
+	max-width: 1440px;
+	margin: 0 auto;
+	padding: 0 clamp(20px, 4vw, 48px) 80px;
+	animation: page-fade-in .4s var(--ease-out) both;
+}
+
+.friends-header {
+	display: flex;
+	align-items: baseline;
+	gap: 18px;
+	padding: 28px 0 20px;
+}
+
+.friends-title {
+	font-family: 'Orbitron', sans-serif;
+	font-weight: 900;
+	font-size: clamp(24px, 3.5vw, 32px);
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	color: var(--text-primary);
+}
+
+/* Tabs */
+.friends-tabs {
+	display: flex;
+	gap: 4px;
+	border-bottom: 1px solid var(--border);
+	margin-bottom: 24px;
+	position: relative;
+}
+
+.friends-tabs::after {
+	content: '';
+	position: absolute;
+	bottom: -1px;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(0, 240, 255, .2), transparent);
+}
+
+.friends-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 20px;
+	background: transparent;
+	border: none;
+	border-bottom: 2px solid transparent;
+	color: var(--text-secondary);
+	font-family: 'Orbitron', sans-serif;
+	font-weight: 700;
+	font-size: 12px;
+	letter-spacing: .14em;
+	text-transform: uppercase;
+	cursor: pointer;
+	margin-bottom: -1px;
+	transition: color var(--dur-fast) var(--ease-out),
+		border-color var(--dur-fast) var(--ease-out);
+}
+
+.friends-tab:hover {
+	color: var(--text-primary);
+	background: transparent;
+	box-shadow: none;
+	transform: none;
+}
+
+.friends-tab.active {
+	color: var(--cyan);
+	border-bottom-color: var(--cyan);
+}
+
+.friends-tab-count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 22px;
+	height: 22px;
+	padding: 0 6px;
+	border-radius: 999px;
+	background: var(--card);
+	border: 1px solid var(--border);
+	color: var(--text-muted);
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 11px;
+	font-weight: 400;
+	letter-spacing: 0;
+}
+
+.friends-tab.active .friends-tab-count {
+	border-color: rgba(0, 240, 255, .35);
+	color: var(--cyan);
+	background: rgba(0, 240, 255, .08);
+}
+
+.friends-tab-count.has-pending {
+	background: var(--pink);
+	border-color: var(--pink);
+	color: #fff;
+	box-shadow: var(--glow-pink);
+	animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Search */
+.friends-search { margin-bottom: 18px; }
+.friends-search input {
+	width: 100%;
+	max-width: 420px;
+}
+
+/* Grid */
+.friends-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 16px;
+}
+
+/* Friend card - reuses .p-avatar etc. but has its own shell */
+.friend-card {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	position: relative;
+	overflow: hidden;
+	transition: border-color var(--dur-base) var(--ease-out),
+		transform var(--dur-base) var(--ease-out),
+		box-shadow var(--dur-base) var(--ease-out);
+}
+
+.friend-card:hover {
+	border-color: var(--cyan);
+	transform: translateY(-2px);
+	box-shadow: var(--glow-cyan);
+}
+
+.friend-card.pending {
+	border-color: rgba(157, 0, 255, .35);
+	background: linear-gradient(180deg, rgba(157, 0, 255, .04) 0%, var(--card) 60%);
+}
+
+.friend-card.pending:hover {
+	border-color: var(--purple);
+	box-shadow: var(--glow-purple);
+}
+
+.friend-card.is-accepted {
+	border-color: rgba(0, 255, 136, .35);
+	background: linear-gradient(180deg, rgba(0, 255, 136, .05) 0%, var(--card) 60%);
+}
+
+/* Pending banner at top of pending cards */
+.friend-card-pending-banner {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	margin: -16px -16px 0;
+	background: rgba(157, 0, 255, .08);
+	border-bottom: 1px solid rgba(157, 0, 255, .2);
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 11px;
+	color: var(--purple);
+	letter-spacing: .08em;
+	text-transform: uppercase;
+}
+
+.friend-card-pending-banner .pending-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--purple);
+	box-shadow: 0 0 6px rgba(157, 0, 255, .8);
+	flex-shrink: 0;
+	animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.friend-card-time {
+	margin-left: auto;
+	color: var(--text-muted);
+	letter-spacing: .04em;
+	font-size: 10px;
+}
+
+/* Top row in card - reuses p-avatar-wrap + p-meta */
+.friend-card-top {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 14px;
+	width: 100%;
+}
+
+.friend-card-line {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 12px;
+}
+
+.friend-status-text { letter-spacing: .04em; font-size: 11px; }
+.friend-status-text.online { color: var(--green); }
+.friend-status-text.away { color: var(--orange); }
+.friend-status-text.offline { color: var(--text-muted); }
+
+.friend-card-divider { color: var(--text-muted); opacity: .5; }
+.friend-card-rank { color: var(--purple); }
+.friend-card-platform { color: var(--cyan); }
+
+/* Action buttons */
+.friend-card-actions {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+
+.friend-action-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 10px 14px;
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	color: var(--text-secondary);
+	font-family: 'Rajdhani', sans-serif;
+	font-weight: 600;
+	font-size: 12px;
+	letter-spacing: .12em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: border-color var(--dur-fast) var(--ease-out),
+		color var(--dur-fast) var(--ease-out),
+		background var(--dur-fast) var(--ease-out),
+		box-shadow var(--dur-base) var(--ease-out);
+}
+
+.friend-action-btn:hover { transform: none; }
+
+.friend-action-btn.primary:hover {
+	border-color: var(--cyan);
+	color: var(--cyan);
+	background: rgba(0, 240, 255, .1);
+	box-shadow: var(--glow-cyan);
+}
+
+.friend-action-btn.danger:hover {
+	border-color: var(--pink);
+	color: var(--pink);
+	background: rgba(255, 0, 144, .08);
+	box-shadow: 0 0 12px rgba(255, 0, 144, .2);
+}
+
+.friend-action-btn.accept {
+	border-color: rgba(0, 255, 136, .4);
+	color: var(--green);
+	background: rgba(0, 255, 136, .08);
+}
+
+.friend-action-btn.accept:hover {
+	background: var(--green);
+	color: #000;
+	border-color: var(--green);
+	box-shadow: var(--glow-green);
+}
+
+.friend-action-btn.ignore:hover {
+	border-color: var(--pink);
+	color: var(--pink);
+	background: rgba(255, 0, 144, .06);
+}
+
+.friend-action-result {
+	grid-column: 1 / -1;
+	padding: 10px;
+	text-align: center;
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 12px;
+	letter-spacing: .06em;
+	border-radius: 8px;
+}
+
+.friend-action-result.accepted {
+	color: var(--green);
+	background: rgba(0, 255, 136, .08);
+	border: 1px solid rgba(0, 255, 136, .35);
+}
+
+/* Empty state */
+.friends-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+	padding: 60px 24px;
+	background: var(--card);
+	border: 1px dashed var(--border);
+	border-radius: 14px;
+	text-align: center;
+}
+
+.friends-empty-icon {
+	font-family: 'Orbitron', sans-serif;
+	font-weight: 900;
+	font-size: 56px;
+	color: var(--cyan);
+	opacity: .5;
+	line-height: 1;
+	margin-bottom: 4px;
+}
+
+.friends-empty h3 {
+	font-family: 'Orbitron', sans-serif;
+	font-weight: 700;
+	font-size: 16px;
+	letter-spacing: .12em;
+	text-transform: uppercase;
+	color: var(--text-primary);
+}
+
+.friends-empty p {
+	font-family: 'Share Tech Mono', monospace;
+	font-size: 13px;
+	color: var(--text-secondary);
+	max-width: 400px;
+	line-height: 1.6;
+	margin-bottom: 8px;
+}
+
+/* ============================================================
+   APPEARANCE TOGGLES - applied via <html data-*> by theme.js
+   ============================================================ */
+
+/* Reduce motion - kill all animations and transitions site-wide */
+html[data-reduce-motion="true"] *,
+html[data-reduce-motion="true"] *::before,
+html[data-reduce-motion="true"] *::after {
+	animation-duration: .01ms !important;
+	animation-iteration-count: 1 !important;
+	transition-duration: .01ms !important;
+	scroll-behavior: auto !important;
+}
+
+html[data-reduce-motion="true"] body::before,
+html[data-reduce-motion="true"] body::after { display: none; }
+
+/* Hide background grid (the ::before scanlines) */
+html[data-hide-grid="true"] body::before { display: none; }
+
+/* High contrast - brighter text, stronger borders */
+html[data-high-contrast="true"] {
+	--text-primary: #FFFFFF;
+	--text-secondary: #D8D8E8;
+	--text-muted: #9090B8;
+	--border: #4D4D7A;
+	--border-soft: #3A3A5C;
+}
+
+html[data-high-contrast="true"] body::before,
+html[data-high-contrast="true"] body::after { display: none; }
+
+html[data-high-contrast="true"] .player-card,
+html[data-high-contrast="true"] .game-tile,
+html[data-high-contrast="true"] .filter-panel,
+html[data-high-contrast="true"] .settings-panel,
+html[data-high-contrast="true"] .settings-sidebar,
+html[data-high-contrast="true"] .feature-card,
+html[data-high-contrast="true"] .lp-step,
+html[data-high-contrast="true"] .lp-feed,
+html[data-high-contrast="true"] .auth-card {
+	border-width: 2px;
 }
