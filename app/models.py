@@ -1,9 +1,27 @@
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+
+player_platforms = Table(
+    "player_platforms", Base.metadata,
+    Column("player_id", Integer, ForeignKey("players.id"), primary_key=True),
+    Column("platform_id", Integer, ForeignKey("platforms.id"), primary_key=True),
+)
+
+player_languages = Table(
+    "player_languages", Base.metadata,
+    Column("player_id", Integer, ForeignKey("players.id"), primary_key=True),
+    Column("language_id", Integer, ForeignKey("languages.id"), primary_key=True),
+)
+
+player_playtimes = Table(
+    "player_playtimes", Base.metadata,
+    Column("player_id", Integer, ForeignKey("players.id"), primary_key=True),
+    Column("playtime_id", Integer, ForeignKey("playtimes.id"), primary_key=True),
+)
 
 # Database classes representing tables used by the app.
 # Each class represents a table, and each attribute represents a column in that table.
@@ -116,15 +134,6 @@ class PlayerProfile(Base):
 	player: Mapped["Player"] = relationship("Player", back_populates="profile")
 	region: Mapped["Region"] = relationship("Region")
 
-# Player platform selections
-# class PlayerPlatform(Base):
-# 	__tablename__ = "player_platforms"
-# 	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
-# 	platform_id: Mapped[int] = mapped_column(Integer, ForeignKey("platforms.id"), primary_key=True)
-# 
-# 	player: Mapped["Player"] = relationship("Player")
-# 	platform: Mapped["Platform"] = relationship("Platform")
-
 # Player game profile data (e.g rank, playtime, etc)
 class PlayerGameProfile(Base):
 	__tablename__ = "player_games"
@@ -138,26 +147,6 @@ class PlayerGameProfile(Base):
 
 	player: Mapped["Player"] = relationship("Player")
 	game: Mapped["Game"] = relationship("Game")
-
-# Player language selections
-#class PlayerLanguage(Base):
-#	__tablename__ = "player_languages"
-#
-#	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
-#	language_id: Mapped[int] = mapped_column(Integer, ForeignKey("languages.id"), primary_key=True)
-#
-#	player: Mapped["Player"] = relationship("Player")
-#	language: Mapped["Language"] = relationship("Language")
-
-# Player playtime selections
-#class PlayerPlaytime(Base):
-#	__tablename__ = "player_playtimes"
-#
-#	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
-#	playtime_id: Mapped[int] = mapped_column(Integer, ForeignKey("playtimes.id"), primary_key=True)
-#
-#	player: Mapped["Player"] = relationship("Player")
-#	playtime: Mapped["Playtime"] = relationship("Playtime")
 
 # Friendship table to represent friend relationships between players.
 class Friendship(Base):

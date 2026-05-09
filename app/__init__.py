@@ -1,12 +1,23 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from app.routers import auth, favorites, games, pages, players, search
+from app.database import init_database
+from app.routers import auth, favorites, pages, search
+from app.routers.api import games, players
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+	"""Lifespan event handler for startup/shutdown tasks."""
+	# Startup tasks
+	init_database()
+	yield
+	# Shutdown tasks (if any) can be added here
 
 def create_app() -> FastAPI:
 	"""Create and configure the FastAPI application."""
-	application = FastAPI(title="GameCrew API", version="0.1.0")
+	application = FastAPI(title="GameCrew API", version="0.1.0", lifespan=lifespan)
 
 	# Mount static files for CSS/JS assets
 	application.mount("/static", StaticFiles(directory="static"), name="static")
@@ -18,7 +29,6 @@ def create_app() -> FastAPI:
 	application.include_router(games.router)
 	application.include_router(search.router)
 	application.include_router(favorites.router)
-
 
 	return application
 

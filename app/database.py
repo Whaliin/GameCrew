@@ -22,6 +22,14 @@ def init_database() -> None:
 	import app.models  # Ensure all models are imported before creating tables
 	Base.metadata.create_all(bind=engine)
 
+	# check if the default data is already seeded (e.g. if there are any games in the database), and if not, seed the default data.
+	with SessionLocal() as db:
+		if db.query(app.models.Game).first() is None:
+			seed_default_data()
+		
+		if db.query(app.models.PlayerProfile).first() is None:
+			seed_player_profiles()
+
 DEFAULT_LANGUAGES = [
 	{"name": "English"},
 	{"name": "Swedish", "localized_name": "Svenska"},
@@ -247,17 +255,17 @@ def seed_player_profiles() -> None:
 		# After adding all the player profiles and related data,
 		# add some random friendships between players.
 		player_ids = [player.id for player in db.query(Player).all()]
+		seen_friendships = set()  # To track existing friendships and prevent duplicates
 		for i in range(2000):  # Add 2000 random friendships
 			sender_id, receiver_id = choice(player_ids), choice(player_ids)
 
 			if sender_id == receiver_id:  
 				continue # Prevent self-friendship (already enforced by the database constraint, but we can avoid the error by checking here)
 
-			if db.query(Friendship).filter(
-				((Friendship.sender_id == sender_id) & (Friendship.receiver_id == receiver_id)) | 
-				((Friendship.sender_id == receiver_id) & (Friendship.receiver_id == sender_id))
-			).first():
+			if (sender_id, receiver_id) in seen_friendships or (receiver_id, sender_id) in seen_friendships:
 				continue # Skip if a friendship already exists between these two players (in either direction)
+
+			seen_friendships.add((sender_id, receiver_id))  # Mark this friendship as seen
 
 			# Add the friendship with a random accepted status (70% accepted, 30% pending) to create varied test data.
 			accept_state = choice([True, True, True, False])  # 70% chance of being True

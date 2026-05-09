@@ -9,7 +9,7 @@ from app.auth.hashing import hash_password, verify_password
 from app.auth.sessions import create_session, delete_session
 from app.auth.validation import validate_birth_year, validate_password, validate_username
 from app.database import get_db
-from app.models import Player, ValidRegions
+from app.models import Player, PlayerProfile, Region
 
 router = APIRouter(prefix="", tags=["auth"])
 templates = Jinja2Templates(directory="templates")
@@ -18,7 +18,7 @@ templates = Jinja2Templates(directory="templates")
 def register_context(db: Session, error: str | None = None, form_data: dict | None = None) -> dict:
 	"""Build consistent template context for register page renders."""
 	context: dict = {
-		"regions": db.query(ValidRegions).order_by(ValidRegions.name).all(),
+		"regions": db.query(Region).order_by(Region.name).all(),
 		"max_birth_year": date.today().year - 18,
 		"form_data": form_data or {},
 	}
@@ -74,7 +74,7 @@ def post_register(
 			context=register_context(db, age_error, form_data),
 		)
 
-	region = db.query(ValidRegions).filter(ValidRegions.id == region_id).first()
+	region = db.query(Region).filter(Region.id == region_id).first()
 	if not region:
 		return templates.TemplateResponse(
 			request=request,
@@ -93,10 +93,10 @@ def post_register(
 	try:
 		new_player = Player(
 			username=username,
-			password_hash=hash_password(password),
-			birth_year=birth_year,
-			region_id=region_id,
+			password_hash=hash_password(password)
 		)
+		new_profile = PlayerProfile(player=new_player, region=region, birth_year=birth_year)
+		db.add(new_profile)
 		db.add(new_player)
 		db.commit()
 		db.refresh(new_player)
@@ -144,7 +144,7 @@ def post_login(
 		)
 
 	session_id = create_session(player.id, player.username)
-	response = RedirectResponse(url=f"/profile/{player.username}", status_code=302)
+	response = RedirectResponse(url="/", status_code=302)
 	response.set_cookie(
 		key="session_id",
 		value=session_id,

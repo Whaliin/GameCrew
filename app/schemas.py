@@ -1,13 +1,15 @@
+from typing import ClassVar
+
 from pydantic import BaseModel
 
 # Pydantic schemas for database game profile models.
 # The base class for all schemas is GameProfileSpec, which can be extended with additional fields.
 class GameProfileSpec(BaseModel):
 	# Default fields that all game profile schemas should have.
-	game_name: str
-	game_slug: str
+	game_name: ClassVar[str]
+	game_slug: ClassVar[str]
 
-	VALIDATION_RULES = {}
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {}
 
 	# Override the __init_subclass__ method to enforce that all subclasses implement
 	# the validate_schema method and have game_slug and game_name fields.
@@ -28,12 +30,12 @@ class GameProfileSpec(BaseModel):
 			"fields": {
 				field_name: {
 					# Get the type annotation for the field (e.g int, str) or default to unknown.
-					"type": cls.__annotations__.get(field_name, "unknown"),
+					"type": getattr(field, "annotation", "unknown"),
 					# Get any validation rules for the field from the VALIDATION_RULES dict.
 					"validation": cls.VALIDATION_RULES.get(field_name, {})
 					#"optional": True
 				}
-				for field_name in cls.__annotations__.keys()
+				for field_name, field in cls.model_fields.items()
 			}
 		}
 	
@@ -100,10 +102,18 @@ class CounterStrikeSpec(GameProfileSpec):
 	game_name = "Counter-Strike 2"
 	game_slug = "cs2"
 
-	VALIDATION_RULES = {
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
 		"premier_rank": {
-			"min": 1,
-			"max": 30000
+			"allowedvalues": [
+				"Unranked",
+				"0-5k",
+				"5k-10k",
+				"10k-15k",
+				"15k-20k",
+				"20k-25k",
+				"25k-30k",
+				"30k+",
+			]
 		},
 		"role": {
 			"allowedvalues": [
@@ -124,7 +134,7 @@ class LeagueOfLegendsSpec(GameProfileSpec):
 	game_name = "League of Legends"
 	game_slug = "league-of-legends"
 
-	VALIDATION_RULES = {
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
 		"rank": {
 			"allowedvalues": ["Iron", "Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master", "Grandmaster", "Challenger"]
 		},
@@ -140,7 +150,7 @@ class ValorantSpec(GameProfileSpec):
 	game_name = "Valorant"
 	game_slug = "valorant"
 
-	VALIDATION_RULES = {
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
 		"rank": {
 			"allowedvalues": ["Iron", "Bronze", "Silver", "Gold", "Platinum", "Diamond", "Immortal", "Radiant"]
 		},
@@ -151,3 +161,291 @@ class ValorantSpec(GameProfileSpec):
 
 	rank: str | None = None
 	main_agent: str | None = None
+
+class ApexLegendsSpec(GameProfileSpec):
+	game_name = "Apex Legends"
+	game_slug = "apex-legends"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"rank": {
+			"allowedvalues": ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master", "Apex Predator"]
+		},
+		"main_legend": {
+			"max_length": 50
+		}
+	}
+
+	rank: str | None = None
+	main_legend: str | None = None
+
+class ArcRaidersSpec(GameProfileSpec):
+	game_name = "Arc Raiders"
+	game_slug = "arc-raiders"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"rank": {
+			"allowedvalues": ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master", "Grandmaster"]
+		},
+		"main_hero": {
+			"max_length": 50
+		}
+	}
+
+	rank: str | None = None
+	main_hero: str | None = None
+
+class MobileLegendsSpec(GameProfileSpec):
+	game_name = "Mobile Legends"
+	game_slug = "mobile-legends"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"rank": {
+			"allowedvalues": ["Warrior", "Elite", "Master", "Grandmaster", "Epic", "Legend", "Mythic", "Mythical Immortal"]
+		},
+		"main_hero": {
+			"max_length": 50
+		}
+	}
+
+	rank: str | None = None
+	main_hero: str | None = None
+
+class MinecraftSpec(GameProfileSpec):
+	game_name = "Minecraft"
+	game_slug = "minecraft"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"preferred_mode": {
+			"allowedvalues": ["Survival", "Creative", "Adventure", "Spectator"]
+		},
+		"favorite_mod": {
+			"max_length": 100
+		}
+	}
+
+	preferred_mode: str | None = None
+	favorite_mod: str | None = None
+
+class PUBGSpec(GameProfileSpec):
+	game_name = "PUBG: Battlegrounds"
+	game_slug = "pubg"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"rank": {
+			"allowedvalues": ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master", "Grandmaster"]
+		},
+		"main_weapon": {
+			"max_length": 50
+		}
+	}
+
+	rank: str | None = None
+	main_weapon: str | None = None
+
+class CallOfDutySpec(GameProfileSpec):
+	game_name = "Call of Duty: Warzone"
+	game_slug = "call-of-duty-warzone"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"main_weapon": {
+			"max_length": 50
+		},
+		"preferred_mode": {
+			"allowedvalues": ["Battle Royale", "Plunder", "Resurgence"]
+		}
+	}
+
+	main_weapon: str | None = None
+	preferred_mode: str | None = None
+
+class RustSpec(GameProfileSpec):
+	game_name = "Rust"
+	game_slug = "rust"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"playstyle": {
+			"allowedvalues": ["Solo", "Duo", "Squad"]
+		},
+		"main_weapon": {
+			"max_length": 50
+		}
+	}
+
+	playstyle: str | None = None
+	main_weapon: str | None = None
+
+class EscapeFromTarkovSpec(GameProfileSpec):
+	game_name = "Escape From Tarkov"
+	game_slug = "escape-from-tarkov"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"faction": {
+			"allowedvalues": ["USEC", "BEAR", "Scav"]
+		},
+		"main_weapon": {
+			"max_length": 50
+		},
+		"playstyle": {
+			"allowedvalues": ["Aggressive", "Stealthy", "Balanced"]
+		}
+	}
+
+	faction: str | None = None
+	main_weapon: str | None = None
+	playstyle: str | None = None
+
+class Dota2Spec(GameProfileSpec):
+	game_name = "Dota 2"
+	game_slug = "dota-2"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"rank": {
+			"allowedvalues": ["Herald", "Guardian", "Crusader", "Archon", "Legend", "Ancient", "Divine", "Immortal"]
+		},
+	}
+
+	rank: str | None = None
+
+class GTAVSpec(GameProfileSpec):
+	game_name = "GTA V"
+	game_slug = "gta-v"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"preferred_mode": {
+			"allowedvalues": ["Story Mode", "Online Freemode", "Online Heists", "Online Races", "Online Other"]
+		},
+		"main_activity": {
+			"max_length": 100
+		}
+	}
+
+	preferred_mode: str | None = None
+	main_activity: str | None = None
+
+class RobloxSpec(GameProfileSpec):
+	game_name = "Roblox"
+	game_slug = "roblox"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"favorite_game": {
+			"max_length": 100
+		},
+		"preferred_genre": {
+			"allowedvalues": ["Adventure", "Roleplay", "Simulator", "Obby", "Tycoon", "FPS", "Horror", "Other"]
+		}
+	}
+
+	favorite_game: str | None = None
+	preferred_genre: str | None = None
+
+class OverwatchSpec(GameProfileSpec):
+	game_name = "Overwatch 2"
+	game_slug = "overwatch-2"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"rank": {
+			"allowedvalues": ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master", "Grandmaster", "Top 500"]
+		},
+		"main_hero": {
+			"max_length": 50
+		}
+	}
+
+	rank: str | None = None
+	main_hero: str | None = None
+
+class WorldOfWarcraftSpec(GameProfileSpec):
+	game_name = "World of Warcraft"
+	game_slug = "world-of-warcraft"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"main_class": {
+			"allowedvalues": ["Warrior", "Paladin", "Hunter", "Rogue", "Priest", "Death Knight", "Shaman", "Mage", "Warlock", "Monk", "Druid", "Demon Hunter"]
+		},
+		"main_role": {
+			"allowedvalues": ["Tank", "Healer", "DPS"]
+		}
+	}
+
+	main_class: str | None = None
+	main_role: str | None = None
+
+class MarvelRivalsSpec(GameProfileSpec):
+	game_name = "Marvel Rivals"
+	game_slug = "marvel-rivals"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		#TODO: Add real validation rules for this game profile. I don't know enough about the game to add this.
+	}
+
+class FIFASpec(GameProfileSpec):
+	game_name = "FIFA"
+	game_slug = "fifa"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		#TODO: Add real validation rules for this game profile. I don't know enough about the game to add this.
+	}
+
+class DiabloSpec(GameProfileSpec):
+	game_name = "Diablo IV"
+	game_slug = "diablo-iv"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"main_class": {
+			"allowedvalues": ["Barbarian", "Druid", "Necromancer", "Rogue", "Sorcerer"]
+		},
+		"playstyle": {
+			"allowedvalues": ["Solo", "Duo", "Squad"]
+		}
+	}
+
+	main_class: str | None = None
+	playstyle: str | None = None
+
+class EldenRingSpec(GameProfileSpec):
+	game_name = "Elden Ring"
+	game_slug = "elden-ring"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"main_class": {
+			"allowedvalues": ["Vagabond", "Warrior", "Hero", "Bandit", "Astrologer", "Prophet", "Samurai", "Prisoner", "Confessor", "Wretch"]
+		},
+		"playstyle": {
+			"allowedvalues": ["Melee", "Ranged", "Magic", "Stealth"]
+		}
+	}
+
+	main_class: str | None = None
+	playstyle: str | None = None
+
+class GenshinImpactSpec(GameProfileSpec):
+	game_name = "Genshin Impact"
+	game_slug = "genshin-impact"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"main_character": {
+			"max_length": 50
+		},
+		"preferred_role": {
+			"allowedvalues": ["DPS", "Support", "Healer", "Sub-DPS"]
+		}
+	}
+
+	main_character: str | None = None
+	preferred_role: str | None = None
+
+class FortniteSpec(GameProfileSpec):
+	game_name = "Fortnite"
+	game_slug = "fortnite"
+
+	VALIDATION_RULES: ClassVar[dict[str, dict[str, object]]] = {
+		"preferred_mode": {
+			"allowedvalues": ["Solo", "Duo", "Squad"]
+		},
+		"main_weapon": {
+			"max_length": 50
+		}
+	}
+
+	preferred_mode: str | None = None
+	main_weapon: str | None = None

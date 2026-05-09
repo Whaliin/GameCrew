@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.sessions import get_optional_user
 from app.database import get_db
-from app.models import Game, PlayerGameFavorites
+from app.models import Game, PlayerGameProfile
 
 router = APIRouter(prefix="/api/me/favorites", tags=["favorites"])
 
@@ -28,8 +28,8 @@ def list_my_favorites(
 
 	rows = (
 		db.query(Game.slug)
-		.join(PlayerGameFavorites, PlayerGameFavorites.game_id == Game.id)
-		.filter(PlayerGameFavorites.player_id == user.player_id)
+		.join(PlayerGameProfile, PlayerGameProfile.game_id == Game.id)
+		.filter(PlayerGameProfile.player_id == user.player_id)
 		.all()
 	)
 	return {"slugs": [row.slug for row in rows]}
@@ -50,15 +50,15 @@ def add_favorite(
 
 	# Already favorited? — no-op, return ok
 	existing = (
-		db.query(PlayerGameFavorites)
+		db.query(PlayerGameProfile)
 		.filter(
-			PlayerGameFavorites.player_id == user.player_id,
-			PlayerGameFavorites.game_id == game.id,
+			PlayerGameProfile.player_id == user.player_id,
+			PlayerGameProfile.game_id == game.id,
 		)
 		.first()
 	)
 	if existing is None:
-		db.add(PlayerGameFavorites(player_id=user.player_id, game_id=game.id))
+		db.add(PlayerGameProfile(player_id=user.player_id, game_id=game.id))
 		db.commit()
 
 	return {"ok": True, "slug": slug}
@@ -77,9 +77,9 @@ def remove_favorite(
 	if game is None:
 		raise HTTPException(status_code=404, detail="Game not found")
 
-	db.query(PlayerGameFavorites).filter(
-		PlayerGameFavorites.player_id == user.player_id,
-		PlayerGameFavorites.game_id == game.id,
+	db.query(PlayerGameProfile).filter(
+		PlayerGameProfile.player_id == user.player_id,
+		PlayerGameProfile.game_id == game.id,
 	).delete()
 	db.commit()
 

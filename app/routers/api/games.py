@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.sessions import get_current_user
 from app.database import get_db
-from app.models import Game, PlayerGameFavorites
+from app.models import Game, PlayerGameProfile
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
@@ -41,8 +41,8 @@ def favorite_game(request: Request, game_slug: str, db: Session = Depends(get_db
 		raise HTTPException(status_code=401, detail="Authentication required")
 	
 	try:
-		# add a new row to the PlayerGameFavorites table
-		db.add(PlayerGameFavorites(player_id=user.player_id, game_id=game.id))
+		# add a new row to the PlayerGameProfile table
+		db.add(PlayerGameProfile(player_id=user.player_id, game_id=game.id))
 		db.commit()
 		return {"message": f"Game '{game.name}' favorited successfully."}
 	except Exception as e:
