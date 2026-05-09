@@ -1,126 +1,147 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
-# SQLAlchemy ORM models map Python classes to DB tables used by the app.
-
-# Player account row with profile metadata and authentication fields.
-class Player(Base):
-	__tablename__ = "players"
-
-	id: Mapped[int] = mapped_column(primary_key=True, index=True)
-	username: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
-	private: Mapped[bool] = mapped_column(default=False) # If True, users need to send a friend request first. Not currently implemented
-	# TODO: email is unused for now, but we may want to add it back in the future for password recovery
-	# email: Mapped[str] = mapped_column(String(120), unique=True, index=True, nullable=False)
-	registered_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now())
-	birth_year: Mapped[int] = mapped_column(Integer, nullable=False)
-	discord_id: Mapped[str] = mapped_column(String(50), nullable=True)
-	steam_id: Mapped[str] = mapped_column(String(50), nullable=True)
-	region_id: Mapped[int] = mapped_column(ForeignKey("valid_regions.id"), nullable=False)
-	avatar_url: Mapped[str] = mapped_column(String(255), nullable=True)
-	bio: Mapped[str] = mapped_column(Text, nullable=True)
-	password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-#	game_profiles: Mapped[list["PlayerGameProfile"]] = relationship(back_populates="player")
-
-	region: Mapped["ValidRegions"] = relationship("ValidRegions")
-	favorite_games: Mapped[list["PlayerGameFavorites"]] = relationship("PlayerGameFavorites", back_populates="player")
-
-# Friend relationships (many-to-many self-referential)
-# We use a single table to track friend requests and their status.
-class FriendRequest(Base):
-	__tablename__ = "friend_requests"
-
-	id: Mapped[int] = mapped_column(primary_key=True, index=True)
-	from_player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False)
-	to_player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False)
-	accepted: Mapped[bool] = mapped_column(default=False, nullable=True) # None = pending, True = accepted, False = rejected
-	sent_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
-	accepted_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-
-	from_player: Mapped["Player"] = relationship("Player", foreign_keys=[from_player_id])
-	to_player: Mapped["Player"] = relationship("Player", foreign_keys=[to_player_id])
-
+# Database classes representing tables used by the app.
+# Each class represents a table, and each attribute represents a column in that table.
 class Game(Base):
 	__tablename__ = "games"
 
 	id: Mapped[int] = mapped_column(primary_key=True, index=True)
-	slug: Mapped[str] = mapped_column(String(80), unique=True, index=True, nullable=False)
-	name: Mapped[str] = mapped_column(String(120), nullable=False)
+	# Name of the game (e.g "Apex Legends", "Fortnite", "Minecraft").
+	name: Mapped[str] = mapped_column(String(255), nullable=False)
+	# Game slug used for URLs and internal references (e.g "apex-legends", "fortnite", "minecraft").
+	slug: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
+	# The typename of the corresponding GameProfileSpec subclass (e.g "CounterStrikeSpec", "LeagueOfLegendsSpec", etc).
+	# This way we can easily determine for each game which fields the player profiles should have, and how to validate them.
+	schema_spec: Mapped[str] = mapped_column(Text, nullable=True)
 
-	# Back-reference to association rows linking players that favorited this game.
-	players_who_favorited: Mapped[list["PlayerGameFavorites"]] = relationship("PlayerGameFavorites", back_populates="game")
+class Language(Base):
+	__tablename__ = "languages"
 
-class PlayerGameFavorites(Base):
-	__tablename__ = "player_game_favorites"
+	id: Mapped[int] = mapped_column(primary_key=True)
+	# English name for the language
+	name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+	# The localized name of the language (e.g "Svenska" for Swedish).
+	localized_name: Mapped[str] = mapped_column(String(255), nullable=True)
 
-	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False, primary_key=True)
-	game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"), nullable=False, primary_key=True)
+class Platform(Base):
+	__tablename__ = "platforms"
 
-	# Association row between one player and one game.
-	player: Mapped["Player"] = relationship("Player", back_populates="favorite_games")
-	game: Mapped["Game"] = relationship("Game", back_populates="players_who_favorited")
+	id: Mapped[int] = mapped_column(primary_key=True)
+	# Name of the platform (e.g "PC", "PlayStation", "Xbox", "Switch", "Mobile").
+	name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
-class ValidRegions(Base):
-	__tablename__ = "valid_regions"
+class Region(Base):
+	__tablename__ = "regions"
 
-	id: Mapped[int] = mapped_column(primary_key=True, index=True)
-	# Region labels used by player profiles.
-	name: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
+	id: Mapped[int] = mapped_column(primary_key=True)
+	# Name of the region (e.g "NA West", "EU Central", "Asia East").
+	name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
-# Contains valid playtime preferences that players can select from
-# Example: "Morgon", "Dag", "Kväll", "Natt"
-class PlaytimePreferences(Base):
-	__tablename__ = "playtime_preferences"
+class Playtime(Base):
+	__tablename__ = "playtimes"
 
-	id: Mapped[int] = mapped_column(primary_key=True, index=True)
-	name: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
+	id: Mapped[int] = mapped_column(primary_key=True)
+	# Name of the playtime (e.g "Morning", "Afternoon", "Evening", "Night", "Weekends only").
+	name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
-# Association table linking players to their selected playtime preferences
-class PlayerPlaytimePreferences(Base):
-	__tablename__ = "player_playtime_preferences"
+# Player related tables
+class Player(Base):
+	__tablename__ = "players"
 
-	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False, primary_key=True)
-	playtime_preference_id: Mapped[int] = mapped_column(Integer, ForeignKey("playtime_preferences.id"), nullable=False, primary_key=True)
+	id: Mapped[int] = mapped_column(primary_key=True)
+	created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now())
+	username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+	password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+
+	profile: Mapped["PlayerProfile"] = relationship("PlayerProfile", uselist=False, back_populates="player")
+
+# Player profile data
+class PlayerProfile(Base):
+	__tablename__ = "player_profiles"
+	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+	region_id: Mapped[int] = mapped_column(Integer, ForeignKey("regions.id"), nullable=False)
+	# Year of birth (e.g 2001, 1995). We don't want to store full birthdates for privacy reasons
+	birth_year: Mapped[int] = mapped_column(Integer)
+	# Whether the player wants their profile information to be private or public.
+	# If private, the external links will not be displayed until the users become friends.
+	private: Mapped[bool] = mapped_column(default=False)
+	# The last time the player's profile was updated.
+	last_update: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now())
+	# A bio or description that the player can write about themselves.
+	bio: Mapped[str] = mapped_column(Text, nullable=True)
+	# TODO: how do we store this? full steampowered url, or just the username/id?
+	steam_url: Mapped[str] = mapped_column(String(255), nullable=True)
+	# TODO: is there a way we can validate discord usernames?
+	discord: Mapped[str] = mapped_column(String(255), nullable=True)
+
+	player: Mapped["Player"] = relationship("Player", back_populates="profile")
+	region: Mapped["Region"] = relationship("Region")
+
+# Player platform selections
+class PlayerPlatform(Base):
+	__tablename__ = "player_platforms"
+	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+	platform_id: Mapped[int] = mapped_column(Integer, ForeignKey("platforms.id"), primary_key=True)
 
 	player: Mapped["Player"] = relationship("Player")
-	playtime_preference: Mapped["PlaytimePreferences"] = relationship("PlaytimePreferences")
+	platform: Mapped["Platform"] = relationship("Platform")
 
-# Contains valid platform preferences that players can select from
-# Example: "PC", "PlayStation", "Xbox", "Switch", "Mobile"
-class PlatformSelections(Base):
-	__tablename__ = "platform_selections"
+# Player game profile data (e.g rank, playtime, etc)
+class PlayerGameProfile(Base):
+	__tablename__ = "player_games"
 
-	id: Mapped[int] = mapped_column(primary_key=True, index=True)
-	name: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
+	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+	game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"), primary_key=True)
 
-# Association table linking players to their selected platform preferences
-class PlayerPlatformSelections(Base):
-	__tablename__ = "player_platform_selections"
-
-	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False, primary_key=True)
-	platform_selection_id: Mapped[int] = mapped_column(Integer, ForeignKey("platform_selections.id"), nullable=False, primary_key=True)
+	# The actual profile data will be stored as a JSON string, since different games can have different fields.
+	# The schema_spec field in the Game table will tell us how to validate and interpret this JSON data for each game.
+	data: Mapped[str] = mapped_column(Text, nullable=True)
 
 	player: Mapped["Player"] = relationship("Player")
-	platform_selection: Mapped["PlatformSelections"] = relationship("PlatformSelections")
+	game: Mapped["Game"] = relationship("Game")
 
-# Contains valid language preferences that players can select from
-# Example: "Svenska", "English", "Español", "Deutsch"
-class LanguagePreferences(Base):
-	__tablename__ = "language_preferences"
+# Player language selections
+class PlayerLanguage(Base):
+	__tablename__ = "player_languages"
 
-	id: Mapped[int] = mapped_column(primary_key=True, index=True)
-	name: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
-
-# Association table linking players to their selected language preferences
-class PlayerLanguagePreferences(Base):
-	__tablename__ = "player_language_preferences"
-
-	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), nullable=False, primary_key=True)
-	language_preference_id: Mapped[int] = mapped_column(Integer, ForeignKey("language_preferences.id"), nullable=False, primary_key=True)
+	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+	language_id: Mapped[int] = mapped_column(Integer, ForeignKey("languages.id"), primary_key=True)
 
 	player: Mapped["Player"] = relationship("Player")
-	language_preference: Mapped["LanguagePreferences"] = relationship("LanguagePreferences")
+	language: Mapped["Language"] = relationship("Language")
+
+# Player playtime selections
+class PlayerPlaytime(Base):
+	__tablename__ = "player_playtimes"
+
+	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+	playtime_id: Mapped[int] = mapped_column(Integer, ForeignKey("playtimes.id"), primary_key=True)
+
+	player: Mapped["Player"] = relationship("Player")
+	playtime: Mapped["Playtime"] = relationship("Playtime")
+
+# Friendship table to represent friend relationships between players.
+class Friendship(Base):
+	__tablename__ = "friendships"
+	__table_args__ = (
+		# Add a constraint to prevent a player from being friends with themselves.
+		# In future implementations, its a good idea to prevent duplicate friendships as well
+		# For example, if a player A sends a friend request to player B, we should prevent player B from sending a friend request back to player A until the first request is accepted or rejected.
+		CheckConstraint("sender_id != receiver_id", name="no_self_friendship"),
+		Index("idx_sender_receiver", "sender_id", "receiver_id"),
+		Index("idx_receiver_sender", "receiver_id", "sender_id")
+	)
+
+	sender_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+	receiver_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+	accepted: Mapped[bool] = mapped_column(default=False, nullable=False)
+	sent_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now())
+	accepted_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+
+	sender: Mapped["Player"] = relationship("Player", foreign_keys=[sender_id])
+	receiver: Mapped["Player"] = relationship("Player", foreign_keys=[receiver_id])
