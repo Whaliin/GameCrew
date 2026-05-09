@@ -144,10 +144,9 @@ def _pick_random_time(days_back: int = 30):
 
 def seed_player_profiles() -> None:
 	"""Seed player profiles with dummy data for testing purposes."""
-	from app.models import Player, PlayerProfile, Region, Platform, Language, Playtime, Game, PlayerPlatform, PlayerLanguage, PlayerPlaytime, PlayerGameProfile, Friendship
+	from app.models import Player, PlayerProfile, Region, Platform, Language, Playtime, Game, PlayerGameProfile, Friendship
 	from app.schemas import GameProfileSpec
 	from random import choice, randint, sample
-	from datetime import datetime
 
 	db = SessionLocal()
 	try:
@@ -200,16 +199,13 @@ def seed_player_profiles() -> None:
 			# Add random selections of platforms, languages, playtimes for each player profile.
 			# Distribution is weighted towards smaller sample size to create more realistic data.
 			platforms_sample = sample(platforms, k=_pick_sample_size(len(platforms)))
-			for platform in platforms_sample:
-				db.add(PlayerPlatform(player_id=player.id, platform_id=platform.id))
+			player.platforms.extend(platforms_sample)
 
 			languages_sample = sample(languages, k=_pick_sample_size(len(languages)))
-			for language in languages_sample:
-				db.add(PlayerLanguage(player_id=player.id, language_id=language.id))
+			player.languages.extend(languages_sample)
 
 			playtimes_sample = sample(playtimes, k=_pick_sample_size(len(playtimes)))
-			for playtime in playtimes_sample:
-				db.add(PlayerPlaytime(player_id=player.id, playtime_id=playtime.id))
+			player.playtimes.extend(playtimes_sample)
 
 			# For the game profiles, we can add some JSON data based on the game's schema_spec.
 			# Pick a random assortment of games for each player profile to create varied test data.

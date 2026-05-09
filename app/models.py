@@ -28,6 +28,12 @@ class Language(Base):
 	# The localized name of the language (e.g "Svenska" for Swedish).
 	localized_name: Mapped[str] = mapped_column(String(255), nullable=True)
 
+	players: Mapped[list["Player"]] = relationship(
+		"Player",
+		secondary="player_languages",
+		back_populates="languages"
+	)
+
 class Platform(Base):
 	__tablename__ = "platforms"
 
@@ -35,18 +41,31 @@ class Platform(Base):
 	# Name of the platform (e.g "PC", "PlayStation", "Xbox", "Switch", "Mobile").
 	name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
-class Region(Base):
-	__tablename__ = "regions"
+	players: Mapped[list["Player"]] = relationship(
+		"Player",
+		secondary="player_platforms",
+		back_populates="platforms"
+	)
 
-	id: Mapped[int] = mapped_column(primary_key=True)
-	# Name of the region (e.g "NA West", "EU Central", "Asia East").
-	name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
 class Playtime(Base):
 	__tablename__ = "playtimes"
 
 	id: Mapped[int] = mapped_column(primary_key=True)
 	# Name of the playtime (e.g "Morning", "Afternoon", "Evening", "Night", "Weekends only").
+	name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+
+	players: Mapped[list["Player"]] = relationship(
+		"Player",
+		secondary="player_playtimes",
+		back_populates="playtimes"
+	)
+
+class Region(Base):
+	__tablename__ = "regions"
+
+	id: Mapped[int] = mapped_column(primary_key=True)
+	# Name of the region (e.g "NA West", "EU Central", "Asia East").
 	name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
 # Player related tables
@@ -59,6 +78,21 @@ class Player(Base):
 	password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
 
 	profile: Mapped["PlayerProfile"] = relationship("PlayerProfile", uselist=False, back_populates="player")
+	platforms: Mapped[list["Platform"]] = relationship(
+		"Platform",
+		secondary="player_platforms",
+		back_populates="players"
+	)
+	playtimes: Mapped[list["Playtime"]] = relationship(
+		"Playtime",
+		secondary="player_playtimes",
+		back_populates="players"
+	)
+	languages: Mapped[list["Language"]] = relationship(
+		"Language",
+		secondary="player_languages",
+		back_populates="players"
+	)
 
 # Player profile data
 class PlayerProfile(Base):
@@ -83,13 +117,13 @@ class PlayerProfile(Base):
 	region: Mapped["Region"] = relationship("Region")
 
 # Player platform selections
-class PlayerPlatform(Base):
-	__tablename__ = "player_platforms"
-	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
-	platform_id: Mapped[int] = mapped_column(Integer, ForeignKey("platforms.id"), primary_key=True)
-
-	player: Mapped["Player"] = relationship("Player")
-	platform: Mapped["Platform"] = relationship("Platform")
+# class PlayerPlatform(Base):
+# 	__tablename__ = "player_platforms"
+# 	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+# 	platform_id: Mapped[int] = mapped_column(Integer, ForeignKey("platforms.id"), primary_key=True)
+# 
+# 	player: Mapped["Player"] = relationship("Player")
+# 	platform: Mapped["Platform"] = relationship("Platform")
 
 # Player game profile data (e.g rank, playtime, etc)
 class PlayerGameProfile(Base):
@@ -106,24 +140,24 @@ class PlayerGameProfile(Base):
 	game: Mapped["Game"] = relationship("Game")
 
 # Player language selections
-class PlayerLanguage(Base):
-	__tablename__ = "player_languages"
-
-	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
-	language_id: Mapped[int] = mapped_column(Integer, ForeignKey("languages.id"), primary_key=True)
-
-	player: Mapped["Player"] = relationship("Player")
-	language: Mapped["Language"] = relationship("Language")
+#class PlayerLanguage(Base):
+#	__tablename__ = "player_languages"
+#
+#	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+#	language_id: Mapped[int] = mapped_column(Integer, ForeignKey("languages.id"), primary_key=True)
+#
+#	player: Mapped["Player"] = relationship("Player")
+#	language: Mapped["Language"] = relationship("Language")
 
 # Player playtime selections
-class PlayerPlaytime(Base):
-	__tablename__ = "player_playtimes"
-
-	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
-	playtime_id: Mapped[int] = mapped_column(Integer, ForeignKey("playtimes.id"), primary_key=True)
-
-	player: Mapped["Player"] = relationship("Player")
-	playtime: Mapped["Playtime"] = relationship("Playtime")
+#class PlayerPlaytime(Base):
+#	__tablename__ = "player_playtimes"
+#
+#	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+#	playtime_id: Mapped[int] = mapped_column(Integer, ForeignKey("playtimes.id"), primary_key=True)
+#
+#	player: Mapped["Player"] = relationship("Player")
+#	playtime: Mapped["Playtime"] = relationship("Playtime")
 
 # Friendship table to represent friend relationships between players.
 class Friendship(Base):
