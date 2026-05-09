@@ -124,48 +124,92 @@
 					<div class="select-wrap">
 						<select id="filter-language" data-filter-group="language" aria-label="Filter by language">
 							<option value="">Any language</option>
-							{% for option in filter_options.language %}
+							{% for option in filter_options.languages %}
 							<option value="{{ option }}">{{ option }}</option>
 							{% endfor %}
 						</select>
 					</div>
 				</div>
 
-				<!-- RANK -->
-				<div class="filter-group">
-					<div class="filter-group-label">Rank</div>
-					<div class="filter-options" id="filter-rank-options" data-filter-group-container="rank">
-						<span class="filter-empty">Select a rank tier</span>
-					</div>
-				</div>
-
 				<!-- TIME -->
+				{% if filter_options.playtimes %}
 				<div class="filter-group">
 					<div class="filter-group-label">Play time</div>
 					<div class="filter-options">
-						{% if filter_options.playtime %}
-							{% for option in filter_options.playtime %}
+							{% for option in filter_options.playtimes %}
 							<button type="button" class="filter-btn" data-filter-group="playtime" data-filter-value="{{ option }}">{{ option }}</button>
 							{% endfor %}
-						{% else %}
-							<span class="filter-empty">No options available</span>
-						{% endif %}
+						</div>
 					</div>
-				</div>
+				{% endif %}
 
 				<!-- PLATFORM -->
+				{% if filter_options.platforms %}
 				<div class="filter-group">
 					<div class="filter-group-label">Platform</div>
 					<div class="filter-options">
-						{% if filter_options.platform %}
-							{% for option in filter_options.platform %}
+							{% for option in filter_options.platforms %}
 							<button type="button" class="filter-btn" data-filter-group="platform" data-filter-value="{{ option }}">{{ option }}</button>
 							{% endfor %}
-						{% else %}
-							<span class="filter-empty">No options available</span>
-						{% endif %}
+						</div>
+					</div>
+				{% endif %}
+
+				{% if filter_options.filter_specs %}
+				{% for field_name, field_rules in filter_options.filter_specs.items() %}
+				
+				<!-- SLIDER (for min/max fields) -->
+				{% if field_rules.get('min') is not none and field_rules.get('max') is not none %}
+				<div class="filter-group">
+					<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
+					<div class="range-values">
+						<span data-range-low>{{ field_rules['min'] }}</span>
+						<span>to</span>
+						<span data-range-high>{{ field_rules['max'] }}</span>
+					</div>
+					<input type="range" 
+						   class="filter-slider" 
+						   data-filter-group="{{ field_name }}"
+						   min="{{ field_rules['min'] }}" 
+						   max="{{ field_rules['max'] }}" 
+						   value="{{ field_rules['min'] }}">
+				</div>
+				
+				<!-- MULTISELECT (for allowedvalues with multi: true) -->
+				{% elif field_rules.get('allowedvalues') %}
+				<div class="filter-group">
+					<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
+					<div class="filter-options" data-filter-group-container="{{ field_name }}">
+						{% for option in field_rules['allowedvalues'] %}
+						<label class="filter-checkbox">
+							<input type="checkbox" 
+								   class="filter-checkbox-input" 
+								   data-filter-group="{{ field_name }}" 
+								   data-filter-value="{{ option }}"
+								   value="{{ option }}">
+							<span>{{ option }}</span>
+						</label>
+						{% endfor %}
 					</div>
 				</div>
+				
+				<!-- COMBOBOX (for allowedvalues without multi) -->
+				{% elif field_rules.get('allowedvalues') %}
+				<div class="filter-group">
+					<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
+					<div class="select-wrap">
+						<select data-filter-group="{{ field_name }}" aria-label="Filter by {{ field_name }}">
+							<option value="">Any</option>
+							{% for option in field_rules['allowedvalues'] %}
+							<option value="{{ option }}">{{ option }}</option>
+							{% endfor %}
+						</select>
+					</div>
+				</div>
+				{% endif %}
+				
+				{% endfor %}
+				{% endif %}
 			</div>
 		</aside>
 	</div>

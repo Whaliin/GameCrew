@@ -37,15 +37,15 @@
 
 			<div class="lp-stats">
 				<div class="lp-stat">
-					<div class="lp-stat-num" data-count="12400" data-suffix="K" data-divisor="1000" data-decimals="1">0</div>
+					<div class="lp-stat-num" data-count="{{ player_count|default(0)|int }}" data-suffix="K" data-divisor="1000" data-decimals="1">0</div>
 					<div class="lp-stat-cap">Online now</div>
 				</div>
 				<div class="lp-stat">
-					<div class="lp-stat-num" data-count="847">0</div>
+					<div class="lp-stat-num" data-count="{{ squad_count|default(0)|int }}" data-suffix="+">0</div>
 					<div class="lp-stat-cap">Active squads</div>
 				</div>
 				<div class="lp-stat">
-					<div class="lp-stat-num" data-count="8" data-suffix="+">0</div>
+					<div class="lp-stat-num" data-count="{{ game_count|default(0)|int }}" data-suffix="+">0</div>
 					<div class="lp-stat-cap">Supported games</div>
 				</div>
 			</div>
@@ -109,41 +109,13 @@
 		</header>
 
 		<div class="lp-games-grid">
-			<a class="lp-game-tile" href="/game/cs2" aria-label="Counter-Strike 2">
-				<span class="lp-game-online">3.2K online</span>
-				<img src="/static/img/games/cs2.jpg" alt="Counter-Strike 2">
-				<div class="lp-game-tile-name">CS2</div>
+			{% for game in trending_games %}
+			<a class="lp-game-tile" href="/game/{{ game.slug }}" aria-label="{{ game.name }}">
+				<span class="lp-game-online">{{ game.player_count }} online</span>
+				<img src="{{ game.image_url }}" alt="{{ game.name }}">
+				<div class="lp-game-tile-name">{{ game.name }}</div>
 			</a>
-			<a class="lp-game-tile" href="/game/valorant" aria-label="Valorant">
-				<span class="lp-game-online">2.8K online</span>
-				<img src="/static/img/games/valorant.jpg" alt="Valorant">
-				<div class="lp-game-tile-name">Valorant</div>
-			</a>
-			<a class="lp-game-tile" href="/game/lol" aria-label="League of Legends">
-				<span class="lp-game-online">2.1K online</span>
-				<img src="/static/img/games/lol.jpg" alt="League of Legends">
-				<div class="lp-game-tile-name">League</div>
-			</a>
-			<a class="lp-game-tile" href="/game/apex" aria-label="Apex Legends">
-				<span class="lp-game-online">1.4K online</span>
-				<img src="/static/img/games/apexlegends.jpg" alt="Apex Legends">
-				<div class="lp-game-tile-name">Apex</div>
-			</a>
-			<a class="lp-game-tile" href="/game/arcraiders" aria-label="ARC Raiders">
-				<span class="lp-game-online">980 online</span>
-				<img src="/static/img/games/arcraiders.jpg" alt="ARC Raiders">
-				<div class="lp-game-tile-name">ARC Raiders</div>
-			</a>
-			<a class="lp-game-tile" href="/game/mobilelegends" aria-label="Mobile Legends">
-				<span class="lp-game-online">1.1K online</span>
-				<img src="/static/img/games/mobilelegends.jpg" alt="Mobile Legends">
-				<div class="lp-game-tile-name">Mobile Legends</div>
-			</a>
-			<a class="lp-game-tile" href="/game/minecraft" aria-label="Minecraft">
-				<span class="lp-game-online">820 online</span>
-				<img src="/static/img/games/minecraft.jpg" alt="Minecraft">
-				<div class="lp-game-tile-name">Minecraft</div>
-			</a>
+			{% endfor %}
 		</div>
 	</section>
 

@@ -14,11 +14,11 @@
 		</div>
 		<div class="hero-stats">
 			<div class="hero-stat">
-				<div class="hero-stat-value">12.4k</div>
+				<div class="hero-stat-value">{{ player_count|default(0)|int }}</div>
 				<div class="hero-stat-label">Online</div>
 			</div>
 			<div class="hero-stat">
-				<div class="hero-stat-value">847</div>
+				<div class="hero-stat-value">{{ squad_count|default(0)|int }}</div>
 				<div class="hero-stat-label">Squads</div>
 			</div>
 		</div>
@@ -31,7 +31,10 @@
 			<div class="hud-count">{{ played_games|length }} titles</div>
 		</div>
 		<div class="game-row">
-			{% for game in played_games %}
+			{% if not played_games %}
+			<p>You don't have any favorites!</p>
+			{% else %}
+			{% for game in favorite_games %}
 			<div class="game-card">
 				<span class="game-btn-wrap">
 					<span class="corner-tr"></span>
@@ -41,12 +44,9 @@
 					</button>
 				</span>
 				<div class="game-label">{{ game.name }}</div>
-				<div>
-					<div class="game-stat">{{ game.hours_played }}h</div>
-					<div class="game-stat-label">Played</div>
-				</div>
 			</div>
 			{% endfor %}
+			{% endif %}
 		</div>
 	</section>
 
