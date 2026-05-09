@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Settings - GameCrew{% endblock %}
+{% block title %}Settings — GameCrew{% endblock %}
 
 {% block content %}
 {% include "partials/navbar.html" %}
@@ -34,10 +34,6 @@
 				<a href="#visibility" class="settings-nav-link" data-settings-link="visibility">
 					<span class="settings-nav-icon">◎</span>
 					<span>Visibility</span>
-				</a>
-				<a href="#appearance" class="settings-nav-link" data-settings-link="appearance">
-					<span class="settings-nav-icon">◐</span>
-					<span>Appearance</span>
 				</a>
 			</nav>
 		</aside>
@@ -125,20 +121,109 @@
 					<p>What other players see when they open your card.</p>
 				</header>
 
+				<!-- Avatar upload -->
+				<form class="settings-form settings-avatar-form" method="post" action="/settings/avatar" enctype="multipart/form-data">
+					<div class="settings-avatar-row">
+						<div class="settings-avatar-preview">
+							<img id="avatar-preview-img" src="{{ current_user.avatar_url|default('/static/img/profiles/default.jpg') }}" alt="Current avatar">
+						</div>
+						<div class="settings-avatar-controls">
+							<label for="set-avatar-file" class="settings-avatar-label">Profile picture</label>
+							<small class="settings-help">JPG, PNG or WebP. Max 2 MB.</small>
+							<div class="settings-avatar-buttons">
+								<label class="btn-primary settings-avatar-btn">
+									<input type="file" id="set-avatar-file" name="avatar" accept="image/jpeg,image/png,image/webp" hidden onchange="previewAvatar(this)">
+									<span>Choose image</span>
+								</label>
+							</div>
+							<div id="avatar-filename" class="settings-avatar-filename"></div>
+						</div>
+					</div>
+				</form>
+
+				<div class="settings-divider"></div>
+
 				<form class="settings-form" method="post" action="/settings/profile">
 					<div class="settings-field">
 						<label for="set-bio">Bio</label>
 						<textarea id="set-bio" name="bio" rows="3" placeholder="Tell other players about yourself…">{{ profile.bio|default('') }}</textarea>
 					</div>
 
-					<div class="settings-field-row">
+					<div class="settings-field-row three-cols">
 						<div class="settings-field">
 							<label for="set-birth-year">Birth year</label>
 							<input type="number" id="set-birth-year" name="birth_year" min="1900" max="2026" value="{{ profile.birth_year|default('') }}" placeholder="2000">
 						</div>
 						<div class="settings-field">
-							<label for="set-rank">Default rank</label>
-							<input type="text" id="set-rank" name="rank" value="{{ profile.rank|default('') }}" placeholder="e.g. Gold Nova">
+							<label for="set-region">Matchmaking region</label>
+							<div class="select-wrap">
+								<select id="set-region" name="region">
+									<option value="">Choose region…</option>
+									
+									<!-- North America -->
+									<option value="na-west" {% if profile.region == 'na-west' %}selected{% endif %}>NA West</option>
+									<option value="na-central" {% if profile.region == 'na-central' %}selected{% endif %}>NA Central</option>
+									<option value="na-east" {% if profile.region == 'na-east' %}selected{% endif %}>NA East</option>
+									
+									<!-- Americas -->
+									<option value="central-america" {% if profile.region == 'central-america' %}selected{% endif %}>Central America</option>
+									<option value="south-america" {% if profile.region == 'south-america' %}selected{% endif %}>South America</option>
+									
+									<!-- Europe -->
+									<option value="eu-north" {% if profile.region == 'eu-north' %}selected{% endif %}>EU North</option>
+									<option value="eu-central" {% if profile.region == 'eu-central' %}selected{% endif %}>EU Central</option>
+									<option value="eu-south" {% if profile.region == 'eu-south' %}selected{% endif %}>EU South</option>
+									<option value="eu-east" {% if profile.region == 'eu-east' %}selected{% endif %}>EU East</option>
+									<option value="eu-west" {% if profile.region == 'eu-west' %}selected{% endif %}>EU West</option>
+									
+									<!-- Middle East & Africa -->
+									<option value="middle-east" {% if profile.region == 'middle-east' %}selected{% endif %}>Middle East</option>
+									<option value="north-africa" {% if profile.region == 'north-africa' %}selected{% endif %}>North Africa</option>
+									<option value="sub-saharan-africa" {% if profile.region == 'sub-saharan-africa' %}selected{% endif %}>Sub-Saharan Africa</option>
+									
+									<!-- Asia -->
+									<option value="asia-west" {% if profile.region == 'asia-west' %}selected{% endif %}>Asia West</option>
+									<option value="asia-north" {% if profile.region == 'asia-north' %}selected{% endif %}>Asia North</option>
+									<option value="asia-south" {% if profile.region == 'asia-south' %}selected{% endif %}>Asia South</option>
+									<option value="asia-east" {% if profile.region == 'asia-east' %}selected{% endif %}>Asia East</option>
+									
+									<!-- Oceania -->
+									<option value="oceania" {% if profile.region == 'oceania' %}selected{% endif %}>Oceania</option>
+								</select>
+							</div>
+						</div>
+						<div class="settings-field">
+							<label>Languages</label>
+							<div class="multi-select" data-multi-select>
+								<button type="button" class="multi-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+									<div class="multi-select-tags" data-tags>
+										<span class="multi-select-placeholder">Select…</span>
+									</div>
+									<span class="multi-select-arrow" aria-hidden="true">▾</span>
+								</button>
+								<div class="multi-select-dropdown" hidden>
+									<input type="search" class="multi-select-search" placeholder="Search…" autocomplete="off">
+									<div class="multi-select-options" role="listbox">
+										{% set lang_options = filter_options.language|default([
+											'English', 'Swedish', 'Norwegian', 'Danish', 'Finnish',
+											'German', 'French', 'Spanish', 'Portuguese', 'Italian',
+											'Dutch', 'Polish', 'Russian', 'Ukrainian', 'Turkish',
+											'Arabic', 'Hebrew', 'Mandarin', 'Cantonese', 'Japanese',
+											'Korean', 'Vietnamese', 'Thai', 'Indonesian', 'Hindi',
+											'Greek', 'Czech', 'Hungarian', 'Romanian'
+										]) %}
+										{% for option in lang_options %}
+										<label class="multi-select-option" data-value="{{ option }}">
+											<input type="checkbox" name="languages" value="{{ option }}"
+												{% if profile.languages and option in profile.languages %}checked{% endif %}>
+											<span class="multi-select-checkmark" aria-hidden="true"></span>
+											<span class="multi-select-label">{{ option }}</span>
+										</label>
+										{% endfor %}
+									</div>
+									<div class="multi-select-empty" hidden>No languages match your search.</div>
+								</div>
+							</div>
 						</div>
 					</div>
 
@@ -150,21 +235,6 @@
 							<label class="settings-checkbox">
 								<input type="checkbox" name="platforms" value="{{ option }}"
 									{% if profile.platforms and option in profile.platforms %}checked{% endif %}>
-								<span>{{ option }}</span>
-							</label>
-							{% endfor %}
-						</div>
-					</div>
-					{% endif %}
-
-					{% if filter_options and filter_options.language %}
-					<div class="settings-field">
-						<label>Languages</label>
-						<div class="settings-checkbox-grid">
-							{% for option in filter_options.language %}
-							<label class="settings-checkbox">
-								<input type="checkbox" name="languages" value="{{ option }}"
-									{% if profile.languages and option in profile.languages %}checked{% endif %}>
 								<span>{{ option }}</span>
 							</label>
 							{% endfor %}
@@ -201,7 +271,7 @@
 							<input type="text" id="set-discord" name="discord" value="{{ profile.discord|default('') }}" placeholder="username#0000 or @handle">
 						</div>
 					</div>
-					<small class="settings-help">These are only shown if your profile visibility is set to Public - change it under Visibility.</small>
+					<small class="settings-help">These are only shown if your profile visibility is set to Public — change it under Visibility.</small>
 
 					<div class="settings-actions">
 						<button type="submit" class="btn-primary">Save profile</button>
@@ -243,81 +313,6 @@
 				</form>
 			</section>
 
-			<!-- APPEARANCE -->
-			<section id="appearance" class="settings-panel" data-settings-panel="appearance" hidden>
-				<header class="settings-panel-header">
-					<div class="settings-panel-eyebrow">// Appearance</div>
-					<h2>Look and feel</h2>
-					<p>Customize how GameCrew looks. Changes apply instantly and save on this device.</p>
-				</header>
-
-				<div class="settings-form">
-					<div class="settings-field">
-						<label>Theme accent</label>
-						<div class="settings-theme-grid">
-							<label class="settings-theme-tile">
-								<input type="radio" name="accent" value="cyan" data-theme-control="accent">
-								<span class="settings-theme-swatch" style="--swatch: #00F0FF;"></span>
-								<span class="settings-theme-name">Cyan</span>
-							</label>
-							<label class="settings-theme-tile">
-								<input type="radio" name="accent" value="purple" data-theme-control="accent">
-								<span class="settings-theme-swatch" style="--swatch: #9D00FF;"></span>
-								<span class="settings-theme-name">Purple</span>
-							</label>
-							<label class="settings-theme-tile">
-								<input type="radio" name="accent" value="pink" data-theme-control="accent">
-								<span class="settings-theme-swatch" style="--swatch: #FF0090;"></span>
-								<span class="settings-theme-name">Pink</span>
-							</label>
-							<label class="settings-theme-tile">
-								<input type="radio" name="accent" value="green" data-theme-control="accent">
-								<span class="settings-theme-swatch" style="--swatch: #00FF88;"></span>
-								<span class="settings-theme-name">Green</span>
-							</label>
-							<label class="settings-theme-tile">
-								<input type="radio" name="accent" value="orange" data-theme-control="accent">
-								<span class="settings-theme-swatch" style="--swatch: #FF8C00;"></span>
-								<span class="settings-theme-name">Orange</span>
-							</label>
-						</div>
-					</div>
-
-					<div class="settings-divider"></div>
-
-					<label class="settings-toggle">
-						<input type="checkbox" data-theme-control="reduce-motion">
-						<span class="settings-toggle-track"></span>
-						<div>
-							<div class="settings-radio-title">Reduce motion</div>
-							<div class="settings-radio-sub">Disable animations, hover effects, and background glows.</div>
-						</div>
-					</label>
-
-					<label class="settings-toggle">
-						<input type="checkbox" data-theme-control="high-contrast">
-						<span class="settings-toggle-track"></span>
-						<div>
-							<div class="settings-radio-title">High contrast</div>
-							<div class="settings-radio-sub">Brighter text and stronger borders for better readability.</div>
-						</div>
-					</label>
-
-					<label class="settings-toggle">
-						<input type="checkbox" data-theme-control="hide-grid">
-						<span class="settings-toggle-track"></span>
-						<div>
-							<div class="settings-radio-title">Hide background grid</div>
-							<div class="settings-radio-sub">Remove the subtle grid pattern in the page background.</div>
-						</div>
-					</label>
-
-					<div class="settings-actions">
-						<button type="button" class="btn-ghost" id="reset-appearance">Reset to defaults</button>
-					</div>
-				</div>
-			</section>
-
 		</div>
 	</div>
 </main>
@@ -355,54 +350,100 @@
 			showPanel(initial);
 		}
 
-		// ── Appearance: theme accent + language + toggles ──
-		if (window.GameCrewTheme) {
-			const state = window.GameCrewTheme.get();
+		// ── Multi-select dropdown (used for languages) ──
+		document.querySelectorAll('[data-multi-select]').forEach(setupMultiSelect);
 
-			// Theme accent
-			document.querySelectorAll('[data-theme-control="accent"]').forEach(function (input) {
-				input.checked = (input.value === state.accent);
-				input.addEventListener('change', function () {
-					if (input.checked) window.GameCrewTheme.set('accent', input.value);
-				});
-			});
+		function setupMultiSelect(root) {
+			const trigger = root.querySelector('.multi-select-trigger');
+			const dropdown = root.querySelector('.multi-select-dropdown');
+			const tagsEl = root.querySelector('[data-tags]');
+			const search = root.querySelector('.multi-select-search');
+			const options = Array.from(root.querySelectorAll('.multi-select-option'));
+			const empty = root.querySelector('.multi-select-empty');
+			const placeholder = '<span class="multi-select-placeholder">Select languages…</span>';
 
-			// Language dropdown
-			const langSelect = document.querySelector('[data-theme-control="language"]');
-			if (langSelect) {
-				langSelect.value = state.language || 'en';
-				langSelect.addEventListener('change', function () {
-					window.GameCrewTheme.set('language', langSelect.value);
+			function escapeText(str) {
+				const div = document.createElement('div');
+				div.textContent = String(str);
+				return div.innerHTML;
+			}
+
+			function renderTags() {
+				const checked = options.filter(o => o.querySelector('input').checked);
+				if (!checked.length) {
+					tagsEl.innerHTML = placeholder;
+					return;
+				}
+				tagsEl.innerHTML = '';
+				checked.forEach(opt => {
+					const value = opt.dataset.value;
+					const chip = document.createElement('span');
+					chip.className = 'multi-select-chip';
+					chip.innerHTML = '<span>' + escapeText(value) + '</span><button type="button" class="multi-select-chip-x" aria-label="Remove ' + escapeText(value) + '">×</button>';
+					chip.querySelector('button').addEventListener('click', e => {
+						e.stopPropagation();
+						opt.querySelector('input').checked = false;
+						renderTags();
+					});
+					tagsEl.appendChild(chip);
 				});
 			}
 
-			// Toggle checkboxes
-			['reduce-motion', 'high-contrast', 'hide-grid'].forEach(function (key) {
-				const cb = document.querySelector('[data-theme-control="' + key + '"]');
-				if (!cb) return;
-				cb.checked = !!state[key];
-				cb.addEventListener('change', function () {
-					window.GameCrewTheme.set(key, cb.checked);
+			function openDropdown() {
+				dropdown.hidden = false;
+				trigger.setAttribute('aria-expanded', 'true');
+				root.classList.add('is-open');
+				if (search) {
+					search.value = '';
+					filterOptions('');
+					setTimeout(() => search.focus(), 50);
+				}
+			}
+
+			function closeDropdown() {
+				dropdown.hidden = true;
+				trigger.setAttribute('aria-expanded', 'false');
+				root.classList.remove('is-open');
+			}
+
+			function filterOptions(query) {
+				const q = (query || '').toLowerCase().trim();
+				let visibleCount = 0;
+				options.forEach(opt => {
+					const value = (opt.dataset.value || '').toLowerCase();
+					const match = !q || value.includes(q);
+					opt.style.display = match ? '' : 'none';
+					if (match) visibleCount++;
 				});
+				if (empty) empty.hidden = visibleCount > 0;
+			}
+
+			trigger.addEventListener('click', e => {
+				e.stopPropagation();
+				if (dropdown.hidden) openDropdown();
+				else closeDropdown();
 			});
 
-			// Reset
-			const resetBtn = document.getElementById('reset-appearance');
-			if (resetBtn) {
-				resetBtn.addEventListener('click', function () {
-					window.GameCrewTheme.reset();
-					document.querySelectorAll('[data-theme-control="accent"]').forEach(function (i) {
-						i.checked = (i.value === 'cyan');
-					});
-					if (langSelect) langSelect.value = 'en';
-					['reduce-motion', 'high-contrast', 'hide-grid'].forEach(function (key) {
-						const cb = document.querySelector('[data-theme-control="' + key + '"]');
-						if (cb) cb.checked = false;
-					});
+			options.forEach(opt => {
+				opt.querySelector('input').addEventListener('change', renderTags);
+			});
+
+			if (search) {
+				search.addEventListener('input', () => filterOptions(search.value));
+				search.addEventListener('click', e => e.stopPropagation());
+				search.addEventListener('keydown', e => {
+					if (e.key === 'Escape') closeDropdown();
 				});
 			}
-		}
-	})();
+
+			// Close on outside click
+			document.addEventListener('click', e => {
+				if (!root.contains(e.target)) closeDropdown();
+			});
+
+			// Initial render
+			renderTags();
+		}})();
 
 	function confirmDeleteAccount() {
 		const confirmation = prompt('This will permanently delete your account.\nType DELETE to confirm:');
@@ -410,6 +451,31 @@
 			// TODO: call backend endpoint when available
 			alert('Account deletion not implemented yet');
 		}
+	}
+
+	function previewAvatar(input) {
+		const file = input.files && input.files[0];
+		const filenameEl = document.getElementById('avatar-filename');
+		const previewImg = document.getElementById('avatar-preview-img');
+		if (!file) return;
+
+		// Validate size (2 MB)
+		if (file.size > 2 * 1024 * 1024) {
+			alert('Image is too large. Max 2 MB.');
+			input.value = '';
+			return;
+		}
+
+		filenameEl.textContent = file.name;
+
+		// Show preview, then auto-upload
+		const reader = new FileReader();
+		reader.onload = e => {
+			previewImg.src = e.target.result;
+			// Auto-submit form once preview is loaded
+			input.form.submit();
+		};
+		reader.readAsDataURL(file);
 	}
 </script>
 {% endblock %}
