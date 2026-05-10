@@ -6,7 +6,7 @@
 			<button type="button" class="nav-scroll-btn nav-scroll-left" onclick="scrollNavGames(-1)" aria-label="Scroll games left">‹</button>
 
 			<div class="nav-games-track" id="nav-games-track" aria-label="Game shortcuts">
-				{% for game in nav_games %}
+				{% for game in profile.favorite_games %}
 				<a href="/game/{{ game.slug }}" class="nav-game-link" aria-label="{{ game.name }}">
 					<img src="{{ game.image_url }}" alt="{{ game.name }}">
 				</a>
@@ -17,20 +17,20 @@
 		</div>
 
 		<div class="user-area">
-			{% if current_user %}
-			<a href="/profile/{{ current_user.username }}" class="user-profile-link" aria-label="Open your profile">
+			{% if profile %}
+			<a href="/profile/{{ profile.username }}" class="user-profile-link" aria-label="Open your profile">
 				<div>
-					<div class="user-name">{{ current_user.username }}</div>
-					<div class="user-tag">{{ current_user.user_tag }}</div>
+					<div class="user-name">{{ profile.username }}</div>
+					<div class="user-tag">{{ profile.user_tag }}</div>
 				</div>
 				<div class="user-avatar">
-					<img src="{{ current_user.avatar_url }}" alt="{{ current_user.username }} avatar">
+					<img src="{{ profile.avatar_url }}" alt="{{ profile.username }} avatar">
 				</div>
 			</a>
 			<a href="/friends" class="nav-friends-btn" aria-label="Friends" title="Friends">
 				<span class="nav-friends-icon" aria-hidden="true"></span>
-				{% if pending_count and pending_count > 0 %}
-				<span class="nav-friends-badge" aria-label="{{ pending_count }} pending requests">{{ pending_count }}</span>
+				{% if profile.pending_requests and profile.pending_requests > 0 %}
+				<span class="nav-friends-badge" aria-label="{{ profile.pending_requests }} pending requests">{{ profile.pending_requests }}</span>
 				{% endif %}
 			</a>
 			<a href="/settings" class="nav-cog-btn" aria-label="Open settings" title="Settings">⚙</a>
