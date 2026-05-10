@@ -1,16 +1,21 @@
 import datetime
 import json
 from random import random
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
+from app.auth.sessions import get_user
 from app.database import get_db
-from app.models import Game, Player, PlayerProfile, PlayerGameProfile
+from app.models import Friendship, Game, Player, PlayerProfile, PlayerGameProfile
 from app.routers.pages import get_game_image_url
 
 router = APIRouter(prefix="/api/players", tags=["players"])
 
 def map_age_range(birth_year: int) -> str:
-	"""Map birth year to a coarse age range used in templates."""
+	"""Map birth year to a coarse age range used in templates.
+	
+	:param birth_year: The birth year to map.
+	:return: A string representing the age range category.
+	"""
 	age = datetime.datetime.now().year - birth_year
 	if age < 18:
 		return "Under 18" # This case should be prevented by validation
@@ -23,7 +28,13 @@ def map_age_range(birth_year: int) -> str:
 	return "45+"
 
 def create_profile_object(db: Session, username: str) -> dict | None:
-	"""Create a profile object for a given username, or return None if user not found."""
+	"""
+	Create a profile object for a given username, or return None if user not found.
+	
+	:param db: Database session for querying user and profile data.
+	:param username: The username of the player whose profile to create.
+	:return: A dictionary containing the player's profile information, or None if the player is not found.
+	"""
 	# find the player by username
 	player = db.query(Player).filter(Player.username == username).first()
 	if not player:
@@ -31,8 +42,6 @@ def create_profile_object(db: Session, username: str) -> dict | None:
 	
 	# TODO: Add the avatar stuff
 	# Check if the player has an avatar (check file path based on player_id)
-
-	
 
 	# build the profile object
 	profile = {
@@ -50,8 +59,18 @@ def create_profile_object(db: Session, username: str) -> dict | None:
 
 	return profile
 
+# ===============================================
+# 					Player Profiles
+# ===============================================
 @router.get("/{username}")
 def get_player_profile(username: str, db: Session = Depends(get_db)):
+	"""
+	Get a player's profile by username, including their game profiles.
+
+	:param username: The username of the player whose profile to retrieve.
+	:raises HTTPException: 404 if the player is not found.
+	:return: A JSON object containing the player's profile information and their game profiles.
+	"""
 	profile = create_profile_object(db, username)
 	if not profile:
 		raise HTTPException(status_code=404, detail="Player not found")
@@ -67,8 +86,7 @@ def get_player_profile(username: str, db: Session = Depends(get_db)):
 
 	profile["games"] = []
 	for pgp in player_game_profiles:
-		game = pgp.player  # This should be the game, but PlayerGameProfile doesn't have direct game relationship in the schema
-		# Let me query the game properly
+		# For each game profile, get the game info and include any relevant profile data.
 		game = db.query(Game).filter(Game.id == pgp.game_id).first()
 		if game:
 			game_data = {
@@ -78,6 +96,8 @@ def get_player_profile(username: str, db: Session = Depends(get_db)):
 			}
 			# Add game-specific profile data if it exists
 			if pgp.data:
+				# TODO: is it up to the frontend to know what value to display as the primary value?
+				# schema returns DISPLAY_VALUE for the primary value but this is not displayed here. so it assumes the frontend already knows what to display.
 				try:
 					game_data["profile_data"] = json.loads(pgp.data)
 				except json.JSONDecodeError:
@@ -85,3 +105,117 @@ def get_player_profile(username: str, db: Session = Depends(get_db)):
 			profile["games"].append(game_data)
 
 	return profile
+
+# ===============================================
+# 					Friendships
+# ===============================================
+@router.post("/{username}/friend")
+def add_friend(request: Request, username: str, db: Session = Depends(get_db)):
+	"""
+	Add a user as a friend.
+
+	:param username: The username of the user to add as a friend. This user must exist and not already be your friend.
+	:raises HTTPException: 404 if the user is not found, 400 if already friends or if trying to friend yourself.
+	:return: 204 No Content on success.
+	"""
+
+	sender = get_user(request, db)
+	if not sender:
+		raise HTTPException(status_code=401, detail="Not authenticated")
+
+	user = db.query(Player).filter(Player.username == username).first()
+	if not user:
+		raise HTTPException(status_code=404, detail="User not found")
+	
+	# Check if the user already has this friend
+	existing = db.query(Friendship).filter(
+		((Friendship.sender_id == sender.id) & (Friendship.receiver_id == user.id)) |
+		((Friendship.sender_id == user.id) & (Friendship.receiver_id == sender.id))
+	).first()
+
+	if existing:
+		if existing.accepted:
+			raise HTTPException(status_code=400, detail="Already friends")
+		else:
+			raise HTTPException(status_code=400, detail="Friend request already pending")
+		
+	if sender.id == user.id:
+		raise HTTPException(status_code=400, detail="Cannot friend yourself")
+		
+	# Create a new friend request
+	friend_request = Friendship(sender_id=sender.id, receiver_id=user.id, accepted=False)
+	db.add(friend_request)
+	db.commit()
+
+	return Response(status_code=204)
+
+@router.delete("/{username}/friend")
+def remove_friend(request: Request, username: str, db: Session = Depends(get_db)):
+	"""
+	Remove a user from friends.
+
+	:param username: The username of the friend to remove. This user must already be a friend.
+	:raises HTTPException: 404 if the user is not found, 400 if the user is not currently a friend.
+	:return: 204 No Content on success.
+	"""
+
+	sender = get_user(request, db)
+	if not sender:
+		raise HTTPException(status_code=401, detail="Not authenticated")
+
+	user = db.query(Player).filter(Player.username == username).first()
+	if not user:
+		raise HTTPException(status_code=404, detail="User not found")
+	
+	# Check if the user already has this friend
+	existing = db.query(Friendship).filter(
+		((Friendship.sender_id == sender.id) & (Friendship.receiver_id == user.id)) |
+		((Friendship.sender_id == user.id) & (Friendship.receiver_id == sender.id))
+	).first()
+
+	# If no existing friendship or friend request, return an error
+	if not existing or not existing.accepted:
+		raise HTTPException(status_code=400, detail="Not friends")
+		
+	db.delete(existing)
+	db.commit()
+
+	return Response(status_code=204)
+
+@router.patch("/{username}/friend")
+def handle_friend_request(request: Request, username: str, accept: bool, db: Session = Depends(get_db)):
+	"""
+	Handle a friend request by accepting or rejecting it.
+
+	:param accept: True to accept the friend request, False to reject it.
+	:param username: The username of the user who you want to accept/reject a friend request from. This user must have sent you a friend request.
+	:raises HTTPException: 404 if the user is not found, 400 if there is no pending friend request from this user.
+	:return: 204 No Content on success.
+	"""
+
+	sender = get_user(request, db)
+	if not sender:
+		raise HTTPException(status_code=401, detail="Not authenticated")
+
+	user = db.query(Player).filter(Player.username == username).first()
+	if not user:
+		raise HTTPException(status_code=404, detail="User not found")
+	
+	# Check if there is a pending friend request from this user
+	existing = db.query(Friendship).filter(
+		Friendship.sender_id == user.id,
+		Friendship.receiver_id == sender.id,
+		Friendship.accepted == False
+	).first()
+
+	if not existing:
+		raise HTTPException(status_code=400, detail="No pending friend request from this user")
+	
+	if accept:
+		existing.accepted = True
+	else:
+		db.delete(existing) # TODO: Is this intended behavior?
+	
+	db.commit()
+
+	return Response(status_code=204)

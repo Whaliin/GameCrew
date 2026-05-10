@@ -100,7 +100,7 @@ def set_game_profile_info(
 	if not game_schema:
 		raise HTTPException(status_code=400, detail="Profile updates not supported for this game")
 
-	# Validate and coerce using the Pydantic schema
+	# Validate using the Pydantic schema
 	try:
 		schema_obj = game_schema(**profile_data)
 	except ValidationError as e:
