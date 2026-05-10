@@ -1,6 +1,5 @@
 import secrets
 from fastapi import Request
-from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.models import Player
@@ -13,6 +12,7 @@ class UserSession:
 		self.player_id = player_id
 		self.username = username
 
+# The session store is a simple in-memory dictionary mapping session IDs to UserSession objects.
 _sessions: dict[str, UserSession] = {}
 
 # Begin a session
@@ -32,19 +32,7 @@ def delete_session(session_id: str) -> None:
 	"""Remove a session from the store."""
 	_sessions.pop(session_id, None)
 
-# Couple session with user
-#TODO: Remove this
-def get_current_user(request: Request) -> UserSession | None:
-	"""FastAPI dependency - reads session_id cookie, looks up session.
-	Raises RedirectResponse to /login if unauthenticated."""
-	session_id = request.cookies.get("session_id")
-	if session_id:
-		session = get_session(session_id)
-		if session:
-			return session
-	raise RedirectResponse("/login")
-
-#TODO: remove this as well
+# Get the current user session, or None if not authenticated.
 def get_optional_user(request: Request) -> UserSession | None:
 	"""FastAPI dependency - returns session data or None (no redirect)."""
 	session_id = request.cookies.get("session_id")

@@ -4,8 +4,8 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.database import init_database
-from app.routers import auth, favorites, pages, search
-from app.routers.api import games, players
+from app.routers import auth, pages, search
+from app.routers.api import favorites, players
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,7 +26,6 @@ def create_app() -> FastAPI:
 	application.include_router(pages.router)
 	application.include_router(auth.router)
 	application.include_router(players.router)
-	application.include_router(games.router)
 	application.include_router(search.router)
 	application.include_router(favorites.router)
 
