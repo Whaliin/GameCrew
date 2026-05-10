@@ -1,77 +1,197 @@
 {% extends "base.html" %}
 
-{% block title %}{{ profile.username }} - GameCrew{% endblock %}
+{% block title %}{{ profile.username }} — GameCrew{% endblock %}
 
 {% block content %}
 {% include "partials/navbar.html" %}
 
-<main>
-	<div class="profile-wrapper">
-		<div class="back-row">
-			<button class="back-btn" onclick="goHome()">← Back</button>
-		</div>
+{% set is_self = is_own_profile or (current_user and current_user.username == profile.username) %}
+{% set has_languages = profile.languages is iterable and profile.languages is not string and profile.languages|length > 0 %}
+{% set has_platforms = profile.platforms is iterable and profile.platforms is not string and profile.platforms|length > 0 %}
 
-		<div class="profile-card">
-			<div class="games-panel" aria-label="Favorite games">
-				{% for game in profile.games %}
-				<a class="game-tile" href="/game/{{ game.slug }}" aria-label="{{ game.name }}">
-					<img src="{{ game.image_url }}" alt="{{ game.name }}">
-				</a>
-				{% endfor %}
-			</div>
 
-			<div class="profile-panel">
-				<div class="profile-avatar">
-					<img src="{{ profile.avatar_url|default('/static/img/profiles/default.jpg') }}" alt="{{ profile.username }} avatar">
-				</div>
-
-				<div class="info-box">
-					<div class="info-box-title">Player Info</div>
-
-					<div class="info-row">
-						<span class="lbl">Username</span>
-						<span class="val">{{ profile.username }}</span>
-					</div>
-					<div class="info-row">
-						<span class="lbl">Tag</span>
-						<span class="val">{{ profile.user_tag|default('N/A') }}</span>
-					</div>
-					<div class="info-row">
-						<span class="lbl">Rank</span>
-						<span class="val">{{ profile.rank|default('N/A') }}</span>
-					</div>
-					<div class="info-row">
-						<span class="lbl">Age Range</span>
-						<span class="val">{{ profile.age_range|default('N/A') }}</span>
-					</div>
-					<div class="info-row">
-						<span class="lbl">Platform</span>
-						<span class="val">{{ profile.platform|default('N/A') }}</span>
-					</div>
-					<div class="info-row">
-						<span class="lbl">Playtime</span>
-						<span class="val">{{ profile.playtime|default('N/A') }}</span>
-					</div>
-					<div class="info-row">
-						<span class="lbl">Languages</span>
-						<span class="val">{{ profile.languages|default('N/A') }}</span>
-					</div>
-
-					{% if profile.bio %}
-					<div class="bio-text">{{ profile.bio }}</div>
-					{% endif %}
-				</div>
-
-				<div class="profile-buttons">
-					{% if current_user and current_user.username != profile.username %}
-					<button class="action-button" onclick="addFriend('{{ profile.username }}')">Add as friend</button>
-					{% endif %}
-					{% if current_user and current_user.username == profile.username %}
-					<button class="action-button" onclick="window.location.href='/profile/{{ profile.username }}/edit'">Edit profile</button>
-					{% endif %}
-				</div>
-			</div>
-		</div>
+<main class="profile-page">
+	<div class="back-row">
+		<button type="button" class="back-btn" onclick="history.back()">← Back</button>
 	</div>
+
+	<!-- HERO -->
+	<section class="profile-hero">
+		<div class="profile-hero-bg"></div>
+
+		<div class="profile-hero-inner">
+			<div class="profile-hero-avatar">
+				<img src="{{ profile.avatar_url|default('/static/img/profiles/default.jpg') }}" alt="{{ profile.username }} avatar">
+				<span class="profile-hero-status {{ profile.status|default('offline') }}" aria-label="{{ profile.status|default('Offline')|title }}"></span>
+			</div>
+
+			<div class="profile-hero-meta">
+				<div class="profile-hero-eyebrow">// Player profile</div>
+				<h1 class="profile-hero-name">{{ profile.username }}</h1>
+
+				<div class="profile-hero-stats">
+					<span class="profile-hero-stat">
+						<span class="dot {{ profile.status|default('offline') }}"></span>
+						{% if profile.status == 'online' %}Online{% elif profile.status == 'away' %}Away{% else %}Offline{% endif %}
+					</span>
+					{% if profile.region %}
+					<span class="profile-hero-divider">·</span>
+					<span class="profile-hero-stat region">{{ profile.region|replace('-', ' ')|upper }}</span>
+					{% endif %}
+					{% if profile.age %}
+					<span class="profile-hero-divider">·</span>
+					<span class="profile-hero-stat age">{{ profile.age }} yrs</span>
+					{% elif profile.birth_year %}
+					<span class="profile-hero-divider">·</span>
+					<span class="profile-hero-stat age">{{ 2026 - profile.birth_year }} yrs</span>
+					{% endif %}
+				</div>
+			</div>
+
+			<div class="profile-hero-actions">
+				{% if is_self %}
+				<a href="/settings#profile" class="profile-edit-link">Edit profile</a>
+				{% else %}
+				<button type="button" class="btn-primary" onclick="addFriend('{{ profile.username }}')">Add friend</button>
+				{% if profile.discord %}
+				<button type="button" class="btn-secondary"
+					data-discord="{{ profile.discord }}"
+					data-username="{{ profile.username }}"
+					onclick="showDiscord(event, this)">Discord</button>
+				{% endif %}
+				{% if profile.platform %}
+				<button type="button" class="btn-secondary"
+					data-platform="{{ profile.platform }}"
+					data-username="{{ profile.username }}"
+					onclick="showPlatform(event, this)">Platform</button>
+				{% endif %}
+				{% endif %}
+			</div>
+		</div>
+	</section>
+
+	<!-- ABOUT -->
+	<section class="profile-section">
+		<div class="hud-header">
+			<h2>About</h2>
+			<div class="hud-line"></div>
+		</div>
+
+		<div class="profile-about">
+			{% if profile.bio %}
+			<p class="profile-bio">{{ profile.bio }}</p>
+			{% else %}
+			<p class="profile-bio profile-bio-empty">{% if is_self %}You haven't added a bio yet — <a href="/settings#profile">add one</a>.{% else %}This player hasn't added a bio yet.{% endif %}</p>
+			{% endif %}
+
+			<div class="profile-info-grid">
+				<div class="profile-info-item">
+					<div class="profile-info-label">Region</div>
+					<div class="profile-info-value">
+						{% if profile.region %}{{ profile.region|replace('-', ' ')|title }}{% else %}<span class="profile-info-empty">Not set</span>{% endif %}
+					</div>
+				</div>
+
+				<div class="profile-info-item">
+					<div class="profile-info-label">Age</div>
+					<div class="profile-info-value">
+						{% if profile.age %}{{ profile.age }} years
+						{% elif profile.birth_year %}{{ 2026 - profile.birth_year }} years
+						{% else %}<span class="profile-info-empty">Not set</span>{% endif %}
+					</div>
+				</div>
+
+				<div class="profile-info-item">
+					<div class="profile-info-label">Playtime</div>
+					<div class="profile-info-value">
+						{% if profile.playtime is iterable and profile.playtime is not string and profile.playtime|length > 0 %}
+							{{ profile.playtime|join(', ') }}
+						{% elif profile.playtime is string and profile.playtime %}
+							{{ profile.playtime }}
+						{% else %}
+							<span class="profile-info-empty">Not set</span>
+						{% endif %}
+					</div>
+				</div>
+
+				{% if profile.discord %}
+				<div class="profile-info-item">
+					<div class="profile-info-label">Discord</div>
+					<div class="profile-info-value">{{ profile.discord }}</div>
+				</div>
+				{% endif %}
+
+				{% if profile.steam %}
+				<div class="profile-info-item">
+					<div class="profile-info-label">Steam</div>
+					<div class="profile-info-value">{{ profile.steam }}</div>
+				</div>
+				{% endif %}
+			</div>
+
+			<div class="profile-tags-row">
+				<span class="profile-tags-label">Languages</span>
+				<div class="profile-tags">
+					{% if has_languages %}
+						{% for lang in profile.languages %}
+						<span class="profile-tag">{{ lang }}</span>
+						{% endfor %}
+					{% else %}
+						<span class="profile-info-empty">Not set</span>
+					{% endif %}
+				</div>
+			</div>
+
+			<div class="profile-tags-row">
+				<span class="profile-tags-label">Platforms</span>
+				<div class="profile-tags">
+					{% if has_platforms %}
+						{% for plat in profile.platforms %}
+						<span class="profile-tag">{{ plat }}</span>
+						{% endfor %}
+					{% else %}
+						<span class="profile-info-empty">Not set</span>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- FAVORITE GAMES -->
+	<section class="profile-section">
+		<div class="hud-header">
+			<h2>Favorite games</h2>
+			<div class="hud-line"></div>
+			{% if profile.favorite_games and profile.favorite_games|length > 0 %}
+			<div class="hud-count">{{ profile.favorite_games|length }} titles</div>
+			{% endif %}
+		</div>
+
+		{% if profile.favorite_games and profile.favorite_games|length > 0 %}
+		<div class="profile-fav-row">
+			{% for g in profile.favorite_games %}
+			<a href="/game/{{ g.game_slug }}" class="profile-fav-tile" aria-label="{{ g.game_name }}">
+				<img class="profile-fav-tile-img" src="{{ g.image_url|default('/static/img/games/default.jpg') }}" alt="{{ g.game_name }}">
+				<div class="profile-fav-tile-body">
+					<div class="profile-fav-tile-name">{{ g.game_name }}</div>
+					{% if g.rank %}
+					<div class="profile-fav-tile-rank">{{ g.rank }}</div>
+					{% else %}
+					<div class="profile-fav-tile-rank unranked">Unranked</div>
+					{% endif %}
+				</div>
+			</a>
+			{% endfor %}
+		</div>
+		{% else %}
+		<div class="profile-empty">
+			{% if is_self %}
+			You haven't added any favorites yet. Browse a game and click the star to add it.
+			{% else %}
+			This player hasn't favorited any games yet.
+			{% endif %}
+		</div>
+		{% endif %}
+	</section>
 </main>
 {% endblock %}

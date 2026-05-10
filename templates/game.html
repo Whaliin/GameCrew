@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ game.name }} - GameCrew{% endblock %}
+{% block title %}{{ game.name }} — GameCrew{% endblock %}
 
 {% block content %}
 {% include "partials/navbar.html" %}
@@ -20,6 +20,29 @@
 					<span class="fav-icon">☆</span>
 					<span class="fav-label">Add to favorites</span>
 				</button>
+
+				{% if current_user %}
+					{% if user_rank and user_rank_locked %}
+					<!-- Rank set + still on cooldown: show as static pill, no button -->
+					<div class="rank-display rank-locked" title="You can update your rank again in {{ user_rank_remaining_hours }}h">
+						<span class="rank-display-label">My rank</span>
+						<span class="rank-display-value">{{ user_rank }}</span>
+						<span class="rank-display-cooldown">🔒 {{ user_rank_remaining_hours }}h</span>
+					</div>
+					{% elif user_rank %}
+					<!-- Rank set, cooldown expired: show clickable button -->
+					<button class="rank-btn rank-btn-update" type="button" onclick="openRankPopup('{{ game.game_slug }}', '{{ user_rank }}')">
+						<span class="rank-btn-label">Update rank</span>
+						<span class="rank-btn-current">{{ user_rank }}</span>
+					</button>
+					{% else %}
+					<!-- No rank set yet -->
+					<button class="rank-btn rank-btn-set" type="button" onclick="openRankPopup('{{ game.game_slug }}', null)">
+						<span class="rank-icon">◆</span>
+						<span>Set my rank</span>
+					</button>
+					{% endif %}
+				{% endif %}
 			</div>
 
 			<div class="hud-header">
@@ -80,7 +103,7 @@
 					</div>
 				</div>
 				{% else %}
-				<p>No players found yet - try adjusting your filters.</p>
+				<p>No players found yet — try adjusting your filters.</p>
 				{% endfor %}
 			</div>
 		</div>
@@ -92,6 +115,14 @@
 			</header>
 
 			<div class="filter-body">
+				<!-- TAG SEARCH -->
+				<div class="filter-group">
+					<div class="filter-group-label">Search by tag</div>
+					<div class="filter-search-wrap">
+						<input type="text" id="filter-tag-search" class="filter-search-input" placeholder="@username" autocomplete="off" aria-label="Search players by tag">
+					</div>
+				</div>
+
 				<!-- AGE -->
 				<div class="filter-group age-range-filter" data-age-range-filter>
 					<div class="filter-group-label">Age range</div>
@@ -189,4 +220,21 @@
 		</div>
 	</div>
 </main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+	(function () {
+		'use strict';
+		const input = document.getElementById('filter-tag-search');
+		if (!input) return;
+		input.addEventListener('input', () => {
+			const q = input.value.toLowerCase().trim().replace(/^@/, '');
+			document.querySelectorAll('.player-card').forEach(card => {
+				const name = (card.querySelector('.p-name')?.textContent || '').toLowerCase();
+				card.style.display = (!q || name.includes(q)) ? '' : 'none';
+			});
+		});
+	})();
+</script>
 {% endblock %}
