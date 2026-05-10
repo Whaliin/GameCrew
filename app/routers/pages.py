@@ -276,6 +276,9 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 def settings(request: Request):
 	"""Get the settings page."""
 	context = {}
+
+	# TODO: eren, vad för information behöver läggas till här från backend?
+
 	return templates.TemplateResponse(request=request, name="settings.html", context=context)
 
 
