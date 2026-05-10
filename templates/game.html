@@ -194,7 +194,7 @@
 				</div>
 				
 				<!-- COMBOBOX (for allowedvalues without multi) -->
-				{% elif field_rules.get('allowedvalues') %}
+				{% elif field_rules.get('allowedvalues') and field_rules.get('single_filter') %}
 				<div class="filter-group">
 					<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
 					<div class="select-wrap">
