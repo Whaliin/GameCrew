@@ -68,7 +68,7 @@
 				</span>
 				<div class="game-label">{{ game.name }}</div>
 				<div>
-					<div class="game-stat">{{ game.players }}</div>
+					<div class="game-stat">{{ game.player_count }}</div>
 					<div class="game-stat-label">Players</div>
 				</div>
 			</div>
@@ -96,6 +96,10 @@
 					</span>
 				</span>
 				<div class="game-label">{{ game.name }}</div>
+				<div>
+					<div class="game-stat">{{ game.player_count }}</div>
+					<div class="game-stat-label">Players</div>
+				</div>
 			</div>
 			{% endfor %}
 		</div>
