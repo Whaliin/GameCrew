@@ -1,4 +1,5 @@
 from collections.abc import Generator
+import json
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
@@ -220,7 +221,7 @@ def seed_player_profiles() -> None:
 			games_sample = sample(games, k=randint(1, len(games)))
 			for game in games_sample:
 				# Get the schema class for the game based on the schema_spec field
-				# and generate some random valid data based on the field types and validation rules defined in the schema.
+				# and generate some random valid data based on the field annotations defined in the schema.
 				schema_class = GameProfileSpec.get_schema(game.schema_spec)
 				if schema_class is None:
 					continue  # Skip if no valid schema class is found
@@ -231,7 +232,9 @@ def seed_player_profiles() -> None:
 					continue  # Skip adding game profile data for this player and game, leaving it empty.
 
 				profile_data = {}
-				for field_name, rules in schema_class.VALIDATION_RULES.items():
+				field_specs = schema_class.to_form_schema()["fields"]
+				for field_name, field_spec in field_specs.items():
+					rules = field_spec.get("validation", {})
 					allowed_values = rules.get("allowedvalues", None)
 					if allowed_values:
 						# If there are allowed values, pick a random one (or multiple if multi is True)
@@ -240,17 +243,17 @@ def seed_player_profiles() -> None:
 						else:
 							profile_data[field_name] = choice(allowed_values)
 					else:
-						# If there are no allowed values, generate a random value based on the type of validation rules (e.g min/max for numbers, min_length/max_length for strings)
+						# If there are no allowed values, generate a random value based on the derived validation metadata.
 						if "min" in rules and "max" in rules:
-							profile_data[field_name] = randint(rules["min"], rules["max"])
+							profile_data[field_name] = randint(int(rules["min"]), int(rules["max"]))
 						elif "min_length" in rules and "max_length" in rules:
-							length = randint(rules["min_length"], rules["max_length"])
-							profile_data[field_name] = f"{field_name}_{i}"[:length]  # Generate a string value based on the field name and player index, truncated to the max length
+							length = randint(int(rules["min_length"]), int(rules["max_length"]))
+							profile_data[field_name] = f"{field_name}_{i}"[:length]
 						else:
-							profile_data[field_name] = f"{field_name}_{i}"  # Just generate a string value based on the field name and player index
+							profile_data[field_name] = f"{field_name}_{i}"
 					
 				# Add the game profile data as a JSON string in the PlayerGameProfile table
-				db.add(PlayerGameProfile(player_id=player.id, game_id=game.id, data=str(profile_data)))
+				db.add(PlayerGameProfile(player_id=player.id, game_id=game.id, data=json.dumps(profile_data)))
 
 		# After adding all the player profiles and related data,
 		# add some random friendships between players.

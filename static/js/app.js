@@ -117,6 +117,9 @@ function setupFavoriteButton() {
 	paintFavoriteButton(button, isFavorite(slug));
 
 	button.addEventListener('click', () => {
+		/*
+		TODO: use fetch
+		*/
 		const nowActive = toggleFavorite(slug);
 		paintFavoriteButton(button, nowActive);
 
@@ -124,42 +127,6 @@ function setupFavoriteButton() {
 		button.classList.remove('is-pulsing');
 		void button.offsetWidth; // force reflow to restart animation
 		button.classList.add('is-pulsing');
-	});
-}
-
-/* --- RANK CATALOG (per game) --- */
-const RANKS_BY_GAME = {
-	cs2:           ['Silver', 'Gold Nova', 'Master Guardian', 'Legendary Eagle', 'Supreme', 'Global Elite'],
-	counterstrike: ['Silver', 'Gold Nova', 'Master Guardian', 'Legendary Eagle', 'Supreme', 'Global Elite'],
-	lol:           ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'],
-	valorant:      ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'],
-	arcraiders:    ['Rookie', 'Raider', 'Veteran', 'Elite', 'Legend'],
-	mobilelegends: ['Warrior', 'Elite', 'Master', 'Grandmaster', 'Epic', 'Legend', 'Mythic', 'Mythical Glory'],
-	apex:          ['Rookie', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Apex Predator'],
-	minecraft:     ['Casual', 'Builder', 'Survivalist', 'Veteran', 'Master Crafter'],
-};
-
-function populateRankFilter(gameSlug) {
-	const container = document.getElementById('filter-rank-options');
-	if (!container) {
-		return;
-	}
-	const ranks = RANKS_BY_GAME[gameSlug] || [];
-
-	if (ranks.length === 0) {
-		container.innerHTML = '<span class="filter-empty">No rank tiers for this game</span>';
-		return;
-	}
-
-	container.innerHTML = '';
-	ranks.forEach(rank => {
-		const btn = document.createElement('button');
-		btn.type = 'button';
-		btn.className = 'filter-btn';
-		btn.dataset.filterGroup = 'rank';
-		btn.dataset.filterValue = rank;
-		btn.textContent = rank;
-		container.appendChild(btn);
 	});
 }
 
@@ -887,8 +854,6 @@ function setupGameFiltersSearch() {
 		return;
 	}
 
-	populateRankFilter(gameSlug);
-
 	let latestRequestId = 0;
 
 	function getSelectedFilterValue(group) {
@@ -898,7 +863,7 @@ function setupGameFiltersSearch() {
 
 	function collectSchemaFilters() {
 		const schemaFilters = {};
-		const standardGroups = new Set(['playtime', 'platform', 'language', 'rank']);
+		const standardGroups = new Set(['playtime', 'platform', 'language']);
 
 		document.querySelectorAll('#page-spel [data-filter-group]').forEach(control => {
 			const group = control.dataset.filterGroup;
@@ -945,17 +910,16 @@ function setupGameFiltersSearch() {
 	const triggerSearch = debounce(async () => {
 		const requestId = ++latestRequestId;
 		playersGrid.innerHTML = '<p>Searching players…</p>';
-
+	
 		const ageBounds = ageFilterController?.getAgeBounds() ?? { ageLo: null, ageHi: null };
 		const languageSelect = document.getElementById('filter-language');
-
+	
 		const filters = {
-			ageLo:    ageBounds.ageLo,
-			ageHi:    ageBounds.ageHi,
+			age_lo:   ageBounds.ageLo,
+			age_hi:   ageBounds.ageHi,
 			playtime: getSelectedFilterValue('playtime') ? [getSelectedFilterValue('playtime')] : [],
 			platform: getSelectedFilterValue('platform') ? [getSelectedFilterValue('platform')] : [],
 			language: languageSelect?.value ? [languageSelect.value] : [],
-			rank:     getSelectedFilterValue('rank') ? [getSelectedFilterValue('rank')] : [],
 			schema_filters: collectSchemaFilters(),
 		};
 
@@ -973,7 +937,6 @@ function setupGameFiltersSearch() {
 			console.error('Player search failed:', error);
 		}
 	}, 180);
-
 	const ageFilterController = setupAgeRangeFilter(triggerSearch);
 
 	document.addEventListener('click', event => {
@@ -985,16 +948,11 @@ function setupGameFiltersSearch() {
 		const group = button.dataset.filterGroup;
 		const isOn  = button.classList.contains('on');
 
-		// Multi-select for rank, single-select for everything else
-		if (group === 'rank') {
-			button.classList.toggle('on');
-		} else {
-			document.querySelectorAll(`.filter-btn[data-filter-group="${group}"]`).forEach(groupBtn => {
-				groupBtn.classList.remove('on');
-			});
-			if (!isOn) {
-				button.classList.add('on');
-			}
+		document.querySelectorAll(`.filter-btn[data-filter-group="${group}"]`).forEach(groupBtn => {
+			groupBtn.classList.remove('on');
+		});
+		if (!isOn) {
+			button.classList.add('on');
 		}
 
 		triggerSearch();
@@ -1035,6 +993,9 @@ function setupGameFiltersSearch() {
 			triggerSearch();
 		});
 	}
+
+	// Load initial player list on page load
+	triggerSearch();
 }
 
 setupGameFiltersSearch();

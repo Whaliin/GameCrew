@@ -5,7 +5,7 @@
 {% block content %}
 {% include "partials/navbar.html" %}
 
-<main id="page-spel" class="wrapper" data-game-slug="{{ game.game_slug }}">
+<main id="page-spel" class="wrapper" data-game-slug="{{ game.slug }}">
 	<div class="spel-layout">
 		<div>
 			<button class="back-btn" onclick="goHome()">← Back</button>
@@ -13,12 +13,17 @@
 			<div class="spel-title">
 				<img src="{{ game.image_url }}" alt="{{ game.name }}">
 				<div class="spel-title-text">
-					<div class="spel-title-eyebrow">// Game · {{ game.game_slug }}</div>
+					<div class="spel-title-eyebrow">// Game · {{ game.slug }}</div>
 					<span class="spel-name">{{ game.name }}</span>
 				</div>
-				<button id="fav-btn" class="fav-btn" data-fav-slug="{{ game.game_slug }}" type="button" aria-pressed="false">
+				<button id="fav-btn" class="fav-btn" data-fav-slug="{{ game.slug }}" type="button" aria-pressed="false" onclick="toggleFavorite(this)">
+					{% if game.is_favorite %}
+					<span class="fav-icon">★</span>
+					<span class="fav-label">Remove from favorites</span>
+					{% else %}
 					<span class="fav-icon">☆</span>
 					<span class="fav-label">Add to favorites</span>
+					{% endif %}
 				</button>
 
 				{% if current_user %}
@@ -31,13 +36,13 @@
 					</div>
 					{% elif user_rank %}
 					<!-- Rank set, cooldown expired: show clickable button -->
-					<button class="rank-btn rank-btn-update" type="button" onclick="openRankPopup('{{ game.game_slug }}', '{{ user_rank }}')">
+					<button class="rank-btn rank-btn-update" type="button" onclick="openRankPopup('{{ game.slug }}', '{{ user_rank }}')"> 
 						<span class="rank-btn-label">Update rank</span>
 						<span class="rank-btn-current">{{ user_rank }}</span>
 					</button>
 					{% else %}
 					<!-- No rank set yet -->
-					<button class="rank-btn rank-btn-set" type="button" onclick="openRankPopup('{{ game.game_slug }}', null)">
+					<button class="rank-btn rank-btn-set" type="button" onclick="openRankPopup('{{ game.slug }}', null)">
 						<span class="rank-icon">◆</span>
 						<span>Set my rank</span>
 					</button>
@@ -189,7 +194,6 @@
 				{% if filter_options.filter_specs %}
 				{% for field_name, field_rules in filter_options.filter_specs.items() %}
 				
-				<!-- SLIDER (for min/max fields) -->
 				{% if field_rules.get('min') is not none and field_rules.get('max') is not none %}
 				<div class="filter-group">
 					<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
@@ -206,8 +210,7 @@
 						   value="{{ field_rules['min'] }}">
 				</div>
 				
-				<!-- MULTISELECT (for allowedvalues with multi: true) -->
-				{% elif field_rules.get('allowedvalues') %}
+				{% elif field_rules.get('allowedvalues') and field_rules.get('multi') %}
 				<div class="filter-group">
 					<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
 					<div class="filter-options" data-filter-group-container="{{ field_name }}">
@@ -224,8 +227,7 @@
 					</div>
 				</div>
 				
-				<!-- COMBOBOX (for allowedvalues without multi) -->
-				{% elif field_rules.get('allowedvalues') and field_rules.get('single_filter') %}
+				{% elif field_rules.get('allowedvalues') %}
 				<div class="filter-group">
 					<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
 					<div class="select-wrap">
@@ -244,26 +246,8 @@
 			</div>
 		</aside>
 	</div>
-
-	<!-- Profile modal -->
-	<div id="profile-card" class="profile-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
-		<div class="profile-card profile-card-modal">
-			<button class="close-btn" onclick="closeProfile()" aria-label="Close profile">×</button>
-			<div id="profile-loading" class="profile-loading">Loading profile…</div>
-			<div class="games-panel" aria-label="Favorite games"></div>
-			<div class="profile-panel">
-				<div class="profile-avatar">
-					<img src="/static/img/profiles/default.jpg" alt="Profile avatar">
-				</div>
-				<div class="info-box">
-					<div class="info-box-title">Player Info</div>
-					<div class="bio-text"></div>
-				</div>
-				<div class="profile-buttons"></div>
-			</div>
-		</div>
-	</div>
 </main>
+{% include "partials/profile-modal.html" %}
 {% endblock %}
 
 {% block extra_scripts %}

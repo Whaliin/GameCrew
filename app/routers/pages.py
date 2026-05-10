@@ -3,6 +3,8 @@
 # Includes logic for gathering necessary data and context for rendering templates.
 # ==================================
 
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -199,8 +201,13 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 		"playtimes": [pt.name for pt in db.query(Playtime).distinct()],
 		"platforms": [pf.name for pf in db.query(Platform).distinct()],
 		"languages": [lang.name for lang in db.query(Language).distinct()],
-		"filter_specs": game_schema.VALIDATION_RULES if game_schema else None
+		"filter_specs": {
+			field_name: field_spec["validation"]
+			for field_name, field_spec in game_schema.to_form_schema()["fields"].items()
+		} if game_schema else {}
 	}
+
+	context["profile"] = create_profile_context(db, request)
 
 	return templates.TemplateResponse(request=request, name="game.html", context=context)
 
@@ -209,7 +216,59 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 def profile_page(request: Request, username: str, db: Session = Depends(get_db)):
 	"""Get a user profile page."""
 	context = {}
-	context["profile"] = create_profile_context(db, request)
+	
+	current_user = get_user(request, db)
+	
+	# Fetch the requested player
+	player = db.query(Player).filter(Player.username == username).first()
+	if not player:
+		raise HTTPException(status_code=404, detail="Player not found")
+	
+	# Check if viewing own profile
+	is_own_profile = current_user and current_user.id == player.id
+	
+	# Build profile context
+	profile = {
+		"username": player.username,
+		"avatar_url": "/static/img/profiles/default.jpg",  # TODO: Replace with actual avatar
+		"status": "offline",  # TODO: Implement online status tracking
+		"region": player.profile.region.name if player.profile.region else None,
+		"birth_year": player.profile.birth_year,
+		"bio": player.profile.bio or "",
+		"playtime": " / ".join([pt.name for pt in player.playtimes]) if player.playtimes else None,
+		"platforms": [pf.name for pf in player.platforms] if player.platforms else [],
+		"languages": [lang.name for lang in player.languages] if player.languages else [],
+		"discord": player.profile.discord,
+		"steam": player.profile.steam_url,
+	}
+	
+	# Fetch favorite games with ranks
+	game_profiles = db.query(Game, PlayerGameProfile).join(
+		PlayerGameProfile, PlayerGameProfile.game_id == Game.id
+	).filter(PlayerGameProfile.player_id == player.id).all()
+	
+	profile["favorite_games"] = []
+	for game, game_profile in game_profiles:
+		# Parse rank from game profile data if it exists
+		rank = None
+		if game_profile.data:
+			try:
+				data = json.loads(game_profile.data)
+				rank = data.get("rank") or data.get("premier_rank")
+			except (ValueError, TypeError):
+				pass
+		
+		profile["favorite_games"].append({
+			"game_slug": game.slug,
+			"game_name": game.name,
+			"image_url": get_game_image_url(game.slug),
+			"rank": rank,
+		})
+	
+	context["profile"] = profile
+	context["is_own_profile"] = is_own_profile
+	context["current_user"] = current_user
+	
 	return templates.TemplateResponse(request=request, name="profile.html", context=context)
 
 

@@ -1,4 +1,4 @@
-import ast
+import json
 from datetime import datetime
 from typing import Any
 
@@ -21,7 +21,6 @@ class PlayerSearchRequest(BaseModel):
 	playtime: list[str] = Field(default_factory=list)
 	platform: list[str] = Field(default_factory=list)
 	language: list[str] = Field(default_factory=list)
-	rank: list[str] = Field(default_factory=list)
 	schema_filters: dict[str, Any] = Field(default_factory=dict)
 
 # TODO: Add response_model for search results list payload once endpoint is implemented.
@@ -29,8 +28,16 @@ class PlayerSearchRequest(BaseModel):
 def search_players_for_game(
 	game_slug: str,
 	search_request: PlayerSearchRequest,
+	limit: int = 50,
 	db: Session = Depends(get_db),
 ):
+	# Clamp the limit to a reasonable number to prevent abuse.
+	limit = max(1, min(limit, 50))
+
+	# Log the schema filters
+	if search_request.schema_filters:
+		print(f"Received schema filters for game '{game_slug}': {search_request.schema_filters}")
+
 	"""Search for player profiles based on the specified criteria for a given game."""
 	current_year = datetime.now().year
 
@@ -40,12 +47,7 @@ def search_players_for_game(
 		raise HTTPException(status_code=404, detail="Game not found")
 
 	schema_class = GameProfileSpec.get_schema(game.schema_spec) if game.schema_spec else None
-	validation_rules = schema_class.VALIDATION_RULES if schema_class else {}
-	rank_field_name = (
-		"rank"
-		if "rank" in validation_rules
-		else next((field_name for field_name in validation_rules if "rank" in field_name), None)
-	)
+	schema_fields = schema_class.to_form_schema()["fields"] if schema_class else {}
 
 	def _normalize_values(value: Any) -> list[str]:
 		if value is None:
@@ -82,13 +84,13 @@ def search_players_for_game(
 		if not raw_data:
 			return {}
 		try:
-			parsed = ast.literal_eval(raw_data)
-		except (ValueError, SyntaxError):
+			parsed = json.loads(raw_data)
+		except (ValueError, TypeError):
 			return {}
 		return parsed if isinstance(parsed, dict) else {}
 
 	def _matches_schema_field(profile_data: dict[str, object], field_name: str) -> bool:
-		rules = validation_rules.get(field_name, {})
+		rules = schema_fields.get(field_name, {}).get("validation", {})
 		if field_name not in search_request.schema_filters:
 			return True
 		return _matches_rule_value(profile_data.get(field_name), search_request.schema_filters.get(field_name), rules)
@@ -118,12 +120,7 @@ def search_players_for_game(
 		if search_request.language and not _matches_rule_value([item.name for item in player.languages], search_request.language, {}):
 			continue
 
-		if search_request.rank and rank_field_name:
-			stored_rank = profile_data.get(rank_field_name)
-			if not _matches_rule_value(stored_rank, search_request.rank, validation_rules.get(rank_field_name, {})):
-				continue
-
-		if not all(_matches_schema_field(profile_data, field_name) for field_name in validation_rules.keys()):
+		if not all(_matches_schema_field(profile_data, field_name) for field_name in schema_fields.keys()):
 			continue
 
 		results.append(
@@ -142,9 +139,9 @@ def search_players_for_game(
 
 	return {
 		"game_slug": game_slug,
-		"results": results,
+		"results": results[:limit],
 		"meta": {
-			"schema_fields": list(validation_rules.keys()),
+			"schema_fields": list(schema_fields.keys()),
 		},
 	}
 
