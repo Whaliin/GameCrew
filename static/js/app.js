@@ -463,7 +463,7 @@ function createPlayerCard(player) {
 	meta.appendChild(name);
 
 	// Stats row — rank · age (only show what we have)
-	const hasRank = !!player.rank;
+	const hasRank = !!player.display_value;
 	const hasAge = !!player.age;
 
 	if (hasRank || hasAge) {
@@ -473,7 +473,7 @@ function createPlayerCard(player) {
 		if (hasRank) {
 			const rank = document.createElement('span');
 			rank.className = 'p-rank';
-			rank.textContent = player.rank;
+			rank.textContent = player.display_value;
 			stats.appendChild(rank);
 		}
 
