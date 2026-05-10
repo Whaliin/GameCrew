@@ -1,6 +1,10 @@
-from typing import Any
+# ==================================
+# Page rendering routes for the main site, including homepage, game pages, profile pages, etc.
+# Includes logic for gathering necessary data and context for rendering templates.
+# ==================================
+
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import desc
 from sqlalchemy import func
@@ -50,6 +54,7 @@ def home(request: Request, db: Session = Depends(get_db)):
 	current_user = get_user(request, db)
 	context = {}
 
+	# Get the most popular games among all players to show on both landing and dashboard pages.
 	most_popular_games = (
 		db.query(Game, func.count(PlayerGameProfile.player_id).label("player_count"))
 		.join(PlayerGameProfile, PlayerGameProfile.game_id == Game.id)
@@ -87,11 +92,15 @@ def home(request: Request, db: Session = Depends(get_db)):
 		"pending_requests": get_friend_requests_count(db, request, current_user),
 	}
 
+	# Grab the birth year of the user to find popular games among similar age groups.
+	birth_year_low = current_user.profile.birth_year - 5
+	birth_year_high = current_user.profile.birth_year + 5
+
 	agegroup_games = (
 		db.query(Game, func.count(PlayerGameProfile.player_id).label("player_count"))
 		.join(PlayerGameProfile, PlayerGameProfile.game_id == Game.id)
 		.join(PlayerProfile, PlayerProfile.player_id == PlayerGameProfile.player_id)
-		.filter(PlayerProfile.birth_year.between(1990, 2005))  # TODO: replace with actual user age group
+		.filter(PlayerProfile.birth_year.between(birth_year_low, birth_year_high))
 		.group_by(Game.id)
 		.order_by(desc("player_count"))
 		.limit(10)
