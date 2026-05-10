@@ -4,6 +4,8 @@ GameCrew GitHub page
 
 ## Project Structure
 
+### OBS: Outdated
+
 ```text
 GameCrew/
 |-- app/
@@ -33,6 +35,8 @@ GameCrew/
 
 ### What Goes Where
 
+### OBS: Outdated
+
 - `main.py`: Entry point only. Keep this minimal and avoid feature logic here.
 - `app/__init__.py`: App factory and global app wiring (router registration, middleware setup, startup wiring).
 - `app/database.py`: Database engine/session setup and database-related bootstrapping.
@@ -49,6 +53,8 @@ GameCrew/
 
 ### Feature Placement Guide
 
+### OBS: Outdated
+
 When adding a new feature, follow this sequence:
 
 1. Define or update request/response schemas in `app/schemas.py`.
@@ -59,6 +65,8 @@ When adding a new feature, follow this sequence:
 6. Add tests in `tests/`.
 
 ### Domain Routing Conventions
+
+### OBS: Outdated
 
 - API endpoints should stay under `/api/...`.
 - Page routes should remain non-API routes (for example `/` and `/game/{game_slug}`).
@@ -103,9 +111,3 @@ uvicorn main:app --reload
 - Home page: `http://127.0.0.1:8000/`
 - Example game page: `http://127.0.0.1:8000/game/counterstrike`
 - API docs: `http://127.0.0.1:8000/docs`
-
-## Run Tests
-
-```powershell
-python -m pytest -q
-```
