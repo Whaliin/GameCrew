@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ status_code }} | GameCrew{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<main class="wrapper">
+	<section>
+		<div class="hud-header">
+			<h2>{{ status_code }} Error</h2>
+			<div class="hud-line"></div>
+			<div class="hud-count">System message</div>
+		</div>
+
+		<div class="profile-card">
+			<div class="profile-panel">
+				<div class="info-box">
+					<div class="info-box-title">What happened</div>
+					<div class="bio-text">
+						<p>{{ message }}</p>
+						{% if status_code == 404 %}
+						<p>The page you were looking for could not be found.</p>
+						{% elif status_code == 500 %}
+						<p>The server hit an unexpected problem. Please try again in a moment.</p>
+						{% endif %}
+					</div>
+				</div>
+
+				<div class="profile-buttons">
+					<button class="back-btn" type="button" onclick="history.back()">← Back</button>
+					<a href="/" class="btn-secondary">Return to homepage</a>
+				</div>
+			</div>
+		</div>
+	</section>
+</main>
+{% endblock %}
