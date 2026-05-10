@@ -125,7 +125,7 @@
 				<form class="settings-form settings-avatar-form" method="post" action="/settings/avatar" enctype="multipart/form-data">
 					<div class="settings-avatar-row">
 						<div class="settings-avatar-preview">
-							<img id="avatar-preview-img" src="{{ current_user.avatar_url|default('/static/img/profiles/default.jpg') }}" alt="Current avatar">
+							<img id="avatar-preview-img" src="{{ profile.avatar_url|default('/static/img/profiles/default.jpg') }}" alt="Current avatar">
 						</div>
 						<div class="settings-avatar-controls">
 							<label for="set-avatar-file" class="settings-avatar-label">Profile picture</label>
@@ -159,36 +159,10 @@
 							<div class="select-wrap">
 								<select id="set-region" name="region">
 									<option value="">Choose region…</option>
-									
-									<!-- North America -->
-									<option value="na-west" {% if profile.region == 'na-west' %}selected{% endif %}>NA West</option>
-									<option value="na-central" {% if profile.region == 'na-central' %}selected{% endif %}>NA Central</option>
-									<option value="na-east" {% if profile.region == 'na-east' %}selected{% endif %}>NA East</option>
-									
-									<!-- Americas -->
-									<option value="central-america" {% if profile.region == 'central-america' %}selected{% endif %}>Central America</option>
-									<option value="south-america" {% if profile.region == 'south-america' %}selected{% endif %}>South America</option>
-									
-									<!-- Europe -->
-									<option value="eu-north" {% if profile.region == 'eu-north' %}selected{% endif %}>EU North</option>
-									<option value="eu-central" {% if profile.region == 'eu-central' %}selected{% endif %}>EU Central</option>
-									<option value="eu-south" {% if profile.region == 'eu-south' %}selected{% endif %}>EU South</option>
-									<option value="eu-east" {% if profile.region == 'eu-east' %}selected{% endif %}>EU East</option>
-									<option value="eu-west" {% if profile.region == 'eu-west' %}selected{% endif %}>EU West</option>
-									
-									<!-- Middle East & Africa -->
-									<option value="middle-east" {% if profile.region == 'middle-east' %}selected{% endif %}>Middle East</option>
-									<option value="north-africa" {% if profile.region == 'north-africa' %}selected{% endif %}>North Africa</option>
-									<option value="sub-saharan-africa" {% if profile.region == 'sub-saharan-africa' %}selected{% endif %}>Sub-Saharan Africa</option>
-									
-									<!-- Asia -->
-									<option value="asia-west" {% if profile.region == 'asia-west' %}selected{% endif %}>Asia West</option>
-									<option value="asia-north" {% if profile.region == 'asia-north' %}selected{% endif %}>Asia North</option>
-									<option value="asia-south" {% if profile.region == 'asia-south' %}selected{% endif %}>Asia South</option>
-									<option value="asia-east" {% if profile.region == 'asia-east' %}selected{% endif %}>Asia East</option>
-									
-									<!-- Oceania -->
-									<option value="oceania" {% if profile.region == 'oceania' %}selected{% endif %}>Oceania</option>
+
+									{% for region in regions %}
+									<option value="{{ region.value }}" {% if profile.region == region.value %}selected{% endif %}>{{ region.label }}</option>
+									{% endfor %}
 								</select>
 							</div>
 						</div>
@@ -204,20 +178,12 @@
 								<div class="multi-select-dropdown" hidden>
 									<input type="search" class="multi-select-search" placeholder="Search…" autocomplete="off">
 									<div class="multi-select-options" role="listbox">
-										{% set lang_options = filter_options.language|default([
-											'English', 'Swedish', 'Norwegian', 'Danish', 'Finnish',
-											'German', 'French', 'Spanish', 'Portuguese', 'Italian',
-											'Dutch', 'Polish', 'Russian', 'Ukrainian', 'Turkish',
-											'Arabic', 'Hebrew', 'Mandarin', 'Cantonese', 'Japanese',
-											'Korean', 'Vietnamese', 'Thai', 'Indonesian', 'Hindi',
-											'Greek', 'Czech', 'Hungarian', 'Romanian'
-										]) %}
-										{% for option in lang_options %}
-										<label class="multi-select-option" data-value="{{ option }}">
-											<input type="checkbox" name="languages" value="{{ option }}"
-												{% if profile.languages and option in profile.languages %}checked{% endif %}>
+										{% for language in languages %}
+										<label class="multi-select-option" data-value="{{ language }}">
+											<input type="checkbox" name="languages" value="{{ language }}"
+												{% if language in profile.languages %}checked{% endif %}>
 											<span class="multi-select-checkmark" aria-hidden="true"></span>
-											<span class="multi-select-label">{{ option }}</span>
+											<span class="multi-select-label">{{ language }}</span>
 										</label>
 										{% endfor %}
 									</div>
@@ -227,20 +193,18 @@
 						</div>
 					</div>
 
-					{% if filter_options and filter_options.platform %}
 					<div class="settings-field">
 						<label>Platforms</label>
 						<div class="settings-checkbox-grid">
-							{% for option in filter_options.platform %}
+							{% for platform in platforms %}
 							<label class="settings-checkbox">
-								<input type="checkbox" name="platforms" value="{{ option }}"
-									{% if profile.platforms and option in profile.platforms %}checked{% endif %}>
-								<span>{{ option }}</span>
+								<input type="checkbox" name="platforms" value="{{ platform }}"
+									{% if platform in profile.platforms %}checked{% endif %}>
+								<span>{{ platform }}</span>
 							</label>
 							{% endfor %}
 						</div>
 					</div>
-					{% endif %}
 
 					{% if filter_options and filter_options.playtime %}
 					<div class="settings-field">

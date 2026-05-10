@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.sessions import get_user
 from app.database import get_db
-from app.models import Friendship, Game, Language, Platform, Player, PlayerGameProfile, PlayerProfile, Playtime
+from app.models import Friendship, Game, Language, Platform, Player, PlayerGameProfile, PlayerProfile, Playtime, Region
 from app.schemas import GameProfileSpec
 
 router = APIRouter(tags=["pages"])
@@ -39,6 +39,10 @@ def create_profile_context(db: Session, request: Request, user_session: Player |
 			"avatar_url": "/static/img/profiles/default.jpg",  # TODO: Replace
 			"pending_requests": get_friend_requests_count(db, user_session),
 			"favorite_games": user_favorite_games,
+			"platforms": [pf.name for pf in user_session.platforms] if user_session.platforms else [],
+			"playtimes": [pt.name for pt in user_session.playtimes] if user_session.playtimes else [],
+			"languages": [lang.name for lang in user_session.languages] if user_session.languages else [],
+			"region": user_session.profile.region.name if user_session.profile.region else None,
 		}
 
 		return profile_context
@@ -141,11 +145,11 @@ def home(request: Request, db: Session = Depends(get_db)):
 	
 	# Logged in -> show dashboard with personalized game and player recommendations
 
-	favorite_games = db.query(Game).join(PlayerGameProfile, PlayerGameProfile.player_id == current_user.id).all()
-
-	context["favorite_games"] = favorite_games
+	# favorite_games = db.query(Game).join(PlayerGameProfile, PlayerGameProfile.player_id == current_user.id).all()
 
 	context["profile"] = create_profile_context(db, request, current_user)
+
+	context["favorite_games"] = context["profile"]["favorite_games"] if context["profile"] else []
 
 	# Grab the birth year of the user to find popular games among similar age groups.
 	birth_year_low = current_user.profile.birth_year - 5
@@ -273,11 +277,21 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 
 
 @router.get("/settings", response_class=HTMLResponse)
-def settings(request: Request):
+def settings(request: Request, db: Session = Depends(get_db)):
 	"""Get the settings page."""
 	context = {}
 
-	# TODO: eren, vad för information behöver läggas till här från backend?
+	current_user = get_user(request, db)
+	if not current_user:
+		# If somehow we got here without a user, redirect to login.
+		return RedirectResponse(url="/login", status_code=302)
+	
+	context["profile"] 		= create_profile_context(db, request, current_user)
+
+	context["regions"]   = [r[0] for r in db.query(Region.name).distinct().all()]
+	context["platforms"] = [r[0] for r in db.query(Platform.name).distinct().all()]
+	context["playtimes"] = [r[0] for r in db.query(Playtime.name).distinct().all()]
+	context["languages"] = [r[0] for r in db.query(Language.name).distinct().all()]
 
 	return templates.TemplateResponse(request=request, name="settings.html", context=context)
 
