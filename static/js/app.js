@@ -717,16 +717,13 @@ function renderPlayersGrid(gridElement, players) {
 }
 
 async function fetchFilteredPlayers(gameSlug, filters) {
-	const params = new URLSearchParams();
-
-	if (filters.ageLo !== null)  { params.set('age_lo', String(filters.ageLo)); }
-	if (filters.ageHi !== null)  { params.set('age_hi', String(filters.ageHi)); }
-	if (filters.playtime)        { params.set('playtime', filters.playtime); }
-	if (filters.platform)        { params.set('platform', filters.platform); }
-	if (filters.language)        { params.set('language', filters.language); }
-	if (filters.rank)            { params.set('rank',     filters.rank); }
-
-	const response = await fetch(`/api/search/games/${encodeURIComponent(gameSlug)}/players?${params.toString()}`);
+	const response = await fetch(`/api/search/games/${encodeURIComponent(gameSlug)}/players`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(filters),
+	});
 	if (!response.ok) {
 		throw new Error(`Search request failed with status ${response.status}`);
 	}
@@ -753,6 +750,47 @@ function setupGameFiltersSearch() {
 		return selected?.dataset.filterValue || '';
 	}
 
+	function collectSchemaFilters() {
+		const schemaFilters = {};
+		const standardGroups = new Set(['playtime', 'platform', 'language', 'rank']);
+
+		document.querySelectorAll('#page-spel [data-filter-group]').forEach(control => {
+			const group = control.dataset.filterGroup;
+			if (!group || standardGroups.has(group)) {
+				return;
+			}
+
+			if (control.tagName === 'SELECT') {
+				if (control.value) {
+					schemaFilters[group] = control.value;
+				}
+				return;
+			}
+
+			if (control.type === 'checkbox') {
+				if (!schemaFilters[group]) {
+					schemaFilters[group] = [];
+				}
+				if (control.checked) {
+					schemaFilters[group].push(control.value);
+				}
+				return;
+			}
+
+			if (control.type === 'range') {
+				schemaFilters[group] = control.value;
+			}
+		});
+
+		Object.keys(schemaFilters).forEach(key => {
+			if (Array.isArray(schemaFilters[key]) && schemaFilters[key].length === 0) {
+				delete schemaFilters[key];
+			}
+		});
+
+		return schemaFilters;
+	}
+
 	const triggerSearch = debounce(async () => {
 		const requestId = ++latestRequestId;
 		playersGrid.innerHTML = '<p>Searching players…</p>';
@@ -763,10 +801,11 @@ function setupGameFiltersSearch() {
 		const filters = {
 			ageLo:    ageBounds.ageLo,
 			ageHi:    ageBounds.ageHi,
-			playtime: getSelectedFilterValue('playtime'),
-			platform: getSelectedFilterValue('platform'),
-			language: languageSelect?.value || '',
-			rank:     getSelectedFilterValue('rank'),
+			playtime: getSelectedFilterValue('playtime') ? [getSelectedFilterValue('playtime')] : [],
+			platform: getSelectedFilterValue('platform') ? [getSelectedFilterValue('platform')] : [],
+			language: languageSelect?.value ? [languageSelect.value] : [],
+			rank:     getSelectedFilterValue('rank') ? [getSelectedFilterValue('rank')] : [],
+			schema_filters: collectSchemaFilters(),
 		};
 
 		try {
@@ -810,6 +849,18 @@ function setupGameFiltersSearch() {
 	if (languageSelect) {
 		languageSelect.addEventListener('change', triggerSearch);
 	}
+
+	gamePage.addEventListener('change', event => {
+		if (event.target.closest('[data-filter-group]')) {
+			triggerSearch();
+		}
+	});
+
+	gamePage.addEventListener('input', event => {
+		if (event.target.matches('[data-filter-group]') && event.target.type === 'range') {
+			triggerSearch();
+		}
+	});
 
 	const resetBtn = document.getElementById('filter-reset');
 	if (resetBtn) {
