@@ -1,13 +1,15 @@
 import re
 from datetime import date
 
+from sqlalchemy.orm import Session
+
+from app.models import Language, Platform, Region
+
 # regular expression for allowed usernames:
 # - only letters, numbers, underscores
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_]+$')
 
-VALID_REGIONS = {"EU", "NA", "SA", "AS", "OC", "AF", "ME"}
-VALID_LANGUAGES = {"en", "sv", "es", "fr", "de", "pt", "ar", "zh", "ja", "ko", "ru", "tr"}
-VALID_HARDWARE = {"PC", "PlayStation", "Xbox", "Nintendo Switch", "Mobile"}
+# These should be fetched from the database, and we may have to remove this entire validation.
 
 # Check that username is valid according to guidelines
 def validate_username(username: str) -> str | None:
@@ -47,22 +49,30 @@ def validate_birth_year(birth_year: int) -> str | None:
 	return None
 
 # Check User's region is valid from the choices
-def validate_region(region: str) -> str | None:
-	if region not in VALID_REGIONS:
-		return f"Invalid region. Choose from: {', '.join(sorted(VALID_REGIONS))}"
+def validate_region(db: Session, region: str) -> str | None:
+	# Fetch valid regions from the database
+	# For each region, get the name but since the query returns a list of tuples we need to loop again
+	valid_regions = [r[0] for r in db.query(Region.name).all()]
+	if region not in valid_regions:
+		return f"Invalid region. Choose from: {', '.join(sorted(valid_regions))}"
 	return None
 
 # Check User's language is valid and less or equal to 3
-def validate_languages(languages: list[str]) -> str | None:
+def validate_languages(db: Session, languages: list[str]) -> str | None:
 	if len(languages) > 3:
 		return "You may only select up to 3 languages."
-	invalid = [l for l in languages if l not in VALID_LANGUAGES]
+	
+	# Fetch valid languages from the database
+	valid_languages = [l[0] for l in db.query(Language.name).all()]
+
+	invalid = [l for l in languages if l not in valid_languages]
 	if invalid:
 		return f"Invalid language(s): {', '.join(invalid)}"
 	return None
 
 # Checks if the platform is valid 
-def validate_hardware(hardware: str) -> str | None:
-	if hardware not in VALID_HARDWARE:
-		return f"Invalid platform. Choose from: {', '.join(sorted(VALID_HARDWARE))}"
+def validate_hardware(db: Session, hardware: str) -> str | None:
+	valid_platforms = [p[0] for p in db.query(Platform.name).all()]
+	if hardware not in valid_platforms:
+		return f"Invalid platform. Choose from: {', '.join(sorted(valid_platforms))}"
 	return None
