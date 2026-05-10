@@ -49,12 +49,12 @@ def validate_birth_year(birth_year: int) -> str | None:
 	return None
 
 # Check User's region is valid from the choices
-def validate_region(db: Session, region: str) -> str | None:
+def validate_region(db: Session, region_id: int) -> str | None:
 	# Fetch valid regions from the database
 	# For each region, get the name but since the query returns a list of tuples we need to loop again
-	valid_regions = [r[0] for r in db.query(Region.name).all()]
-	if region not in valid_regions:
-		return f"Invalid region. Choose from: {', '.join(sorted(valid_regions))}"
+	valid_regions = [r[0] for r in db.query(Region.id).all()]
+	if region_id not in valid_regions:
+		return f"Invalid region. Choose a valid region ID from the dropdown."
 	return None
 
 # Check User's language is valid and less or equal to 3

@@ -1,3 +1,7 @@
+# ==================================
+# Authentication and registration routes.
+# ==================================
+
 from datetime import date
 
 from fastapi import APIRouter, Depends, Form, Request
@@ -7,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.hashing import hash_password, verify_password
 from app.auth.sessions import create_session, delete_session
-from app.auth.validation import validate_birth_year, validate_password, validate_username
+from app.auth.validation import validate_birth_year, validate_password, validate_region, validate_username
 from app.database import get_db
 from app.models import Player, PlayerProfile, Region
 
@@ -18,10 +22,14 @@ templates = Jinja2Templates(directory="templates")
 def register_context(db: Session, error: str | None = None, form_data: dict | None = None) -> dict:
 	"""Build consistent template context for register page renders."""
 	context: dict = {
+		# Get regions from the database to populate the region dropdown in the form.
+		# We order by name, but ideally we would want to group them by continent.
 		"regions": db.query(Region).order_by(Region.name).all(),
 		"max_birth_year": date.today().year - 18,
 		"form_data": form_data or {},
 	}
+
+	# Attach the error message to context if provided so it can be displayed in the template.
 	if error:
 		context["error"] = error
 	return context
@@ -29,6 +37,7 @@ def register_context(db: Session, error: str | None = None, form_data: dict | No
 # Registration page router
 @router.get("/register", response_class=HTMLResponse)
 def get_register(request: Request, db: Session = Depends(get_db)):
+	"""Registrations page first load router. Shows the form with no error message"""
 	return templates.TemplateResponse(
 		request=request,
 		name="auth/register.html",
@@ -44,12 +53,17 @@ def post_register(
 	region_id: int = Form(...),
 	db: Session = Depends(get_db),
 ):
+	"""Handle user registration form submission.
+	This route only accepts the birth year and region ID as these are considered basic/core profile information."""
+	
+	# Create a form data dict to pre-fill the next form render with the user's previous input if validation fails.
 	form_data = {
 		"username": username,
 		"birth_year": birth_year,
 		"region_id": region_id,
 	}
 
+	# Validate username
 	username_error = validate_username(username)
 	if username_error:
 		return templates.TemplateResponse(
@@ -58,6 +72,7 @@ def post_register(
 			context=register_context(db, username_error, form_data),
 		)
 
+	# Validate password
 	password_error = validate_password(password)
 	if password_error:
 		return templates.TemplateResponse(
@@ -66,6 +81,7 @@ def post_register(
 			context=register_context(db, password_error, form_data),
 		)
 
+	# Validate birth year
 	age_error = validate_birth_year(birth_year)
 	if age_error:
 		return templates.TemplateResponse(
@@ -74,14 +90,16 @@ def post_register(
 			context=register_context(db, age_error, form_data),
 		)
 
-	region = db.query(Region).filter(Region.id == region_id).first()
-	if not region:
+	# Validate region ID
+	region_error = validate_region(db, region_id)
+	if region_error:
 		return templates.TemplateResponse(
 			request=request,
 			name="auth/register.html",
-			context=register_context(db, "Please choose a valid region.", form_data),
+			context=register_context(db, region_error, form_data),
 		)
 
+	# Check if the username is already taken
 	existing = db.query(Player).filter(Player.username == username).first()
 	if existing:
 		return templates.TemplateResponse(
@@ -91,16 +109,26 @@ def post_register(
 		)
 
 	try:
+		# First add the player object to get an ID
 		new_player = Player(
 			username=username,
 			password_hash=hash_password(password)
 		)
-		new_profile = PlayerProfile(player=new_player, region=region, birth_year=birth_year)
-		db.add(new_profile)
 		db.add(new_player)
+		db.flush()  # Flush to assign an ID to new_player
+
+		# Add the profile with the player ID and the region FK
+		new_profile = PlayerProfile(
+			player_id=new_player.id, 
+			region_id=region_id, 
+			birth_year=birth_year
+		)
+		db.add(new_profile)
+		
 		db.commit()
 		db.refresh(new_player)
 	except Exception as e:
+		# On any exception, rollback the transaction
 		db.rollback()
 		print("Error creating user:")
 		print(e)
@@ -125,8 +153,8 @@ def post_register(
 # Login page router
 @router.get("/login", response_class=HTMLResponse)
 def get_login(request: Request):
+	"""Login page router with no special context."""
 	return templates.TemplateResponse(request=request, name="auth/login.html")
-
 
 @router.post("/login", response_class=HTMLResponse)
 def post_login(
@@ -135,16 +163,21 @@ def post_login(
 	password: str = Form(...),
 	db: Session = Depends(get_db),
 ):
-	_generic_error = "Username or password is incorrect."
+	"""Handle user login form submission."""
 
 	player = db.query(Player).filter(Player.username == username).first()
 	if not player or not verify_password(password, player.password_hash):
+		# Invalid credentials - re-render the login page with an error message. 
+		# We don't specify which field is wrong for security reasons.
 		return templates.TemplateResponse(
-			request=request, name="auth/login.html", context={"error": _generic_error}
+			request=request, name="auth/login.html", context={"error": "Username or password is incorrect."}
 		)
 
+	# Create a session in memory
 	session_id = create_session(player.id, player.username)
+	# Redirect to the index page
 	response = RedirectResponse(url="/", status_code=302)
+	# Set the session cookie with appropriate flags for security and expiration
 	response.set_cookie(
 		key="session_id",
 		value=session_id,
@@ -155,9 +188,9 @@ def post_login(
 	)
 	return response
 
-# Logout router
 @router.post("/logout")
 def post_logout(request: Request):
+	"""Handle user logout by deleting the session and clearing the cookie."""
 	session_id = request.cookies.get("session_id")
 	if session_id:
 		delete_session(session_id)
@@ -165,7 +198,3 @@ def post_logout(request: Request):
 	response = RedirectResponse(url="/login", status_code=302)
 	response.delete_cookie(key="session_id")
 	return response
-
-# def register_stub():
-# raise HTTPException(status_code=501, detail="TODO: implement registration flow")
-
