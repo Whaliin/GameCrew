@@ -10,10 +10,10 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.auth.hashing import hash_password, verify_password
-from app.auth.sessions import create_session, delete_session
+from app.auth.sessions import create_session, delete_session, get_user
 from app.auth.validation import validate_birth_year, validate_password, validate_region, validate_username
 from app.database import get_db
-from app.models import Player, PlayerProfile, Region
+from app.models import Player, PlayerGameProfile, PlayerProfile, Region
 
 router = APIRouter(prefix="", tags=["auth"])
 templates = Jinja2Templates(directory="templates")
@@ -198,3 +198,49 @@ def post_logout(request: Request):
 	response = RedirectResponse(url="/login", status_code=302)
 	response.delete_cookie(key="session_id")
 	return response
+
+@router.delete("/delete-account")
+def delete_account(request: Request, db: Session = Depends(get_db)):
+	"""Handle account deletion by removing the user from the database and clearing their session. 
+	We assume in this route that the user has already confirmed their intention to delete their account."""
+	session = get_user(request, db)
+	if session is None:
+		return RedirectResponse(url="/login", status_code=302)
+
+	try:
+		player = db.query(Player).filter(Player.id == session.player_id).first()
+		
+		# This should never happen since the user is authenticated, but we check just in case to avoid errors or unintended behavior.
+		if not player:
+			return RedirectResponse(url="/login", status_code=302)
+		
+		# Delete the player's game profiles first due to foreign key constraints
+		db.query(PlayerGameProfile).filter(PlayerGameProfile.player_id == player.id).delete()
+
+		# Delete the players profile
+		db.query(PlayerProfile).filter(PlayerProfile.player_id == player.id).delete()
+
+		# Finally, delete the player
+		db.delete(player)
+
+		# TODO: Do we need to delete junction table entries as well?
+		# Ideally cascade delete would solve this. But I am not sure if SQLAlchemy does it automatically.
+
+		db.commit()
+
+		# Delete the users session and clear the cookie to log them out after deleting their account.
+		delete_session(session.session_id)
+		response = RedirectResponse(url="/", status_code=302)
+		response.delete_cookie(key="session_id")
+		return response
+	except Exception as e:
+		print("Error deleting account:")
+		print(e)
+		db.rollback()
+		return templates.TemplateResponse(
+			request=request,
+			name="profile.html",
+			context={"error": "Something went wrong while deleting your account. Please try again."},
+		)
+	
+	
