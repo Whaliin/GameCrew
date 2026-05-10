@@ -4,19 +4,43 @@
 # ==================================
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import desc
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.auth.sessions import UserSession, get_user
+from app.auth.sessions import get_user
 from app.database import get_db
-from app.models import Friendship, Game, Language, Platform, PlayerGameProfile, PlayerProfile, Playtime
+from app.models import Friendship, Game, Language, Platform, Player, PlayerGameProfile, PlayerProfile, Playtime
 from app.schemas import GameProfileSpec
 
 router = APIRouter(tags=["pages"])
 templates = Jinja2Templates(directory="templates")
+
+def create_profile_context(db: Session, request: Request, user_session: Player | None = None) -> dict | None:
+	"""Create a consistent context for rendering the navbar across different pages."""
+	# If user_session is not provided, attempt to get it from the request. This allows us to reuse this function in contexts where we may already have the session data available, such as within the auth router after login.
+	if not user_session:
+		user_session = get_user(request, db)
+	
+	if user_session:
+		# Get the users favorite games
+		user_favorite_games = db.query(Game).join(PlayerGameProfile, PlayerGameProfile.game_id == Game.id).filter(PlayerGameProfile.player_id == user_session.id).all()
+		
+		# Append image URLs to the favorite games
+		for game in user_favorite_games:
+			game.image_url = get_game_image_url(game.slug)
+
+		profile_context = {
+			"username": user_session.username,
+			"avatar_url": "/static/img/profiles/default.jpg",  # TODO: Replace
+			"pending_requests": get_friend_requests_count(db, user_session),
+			"favorite_games": user_favorite_games,
+		}
+
+		return profile_context
+	return None
 
 IMG_EXTENSIONS = ("jpg", "png", "webp", "jpeg")
 
@@ -37,7 +61,7 @@ def get_game_image_url(game_slug: str) -> str:
 
 AGE_MARK_LABELS: list[str] = ["18", "25", "35", "45", "45+"]
 
-def get_friend_requests_count(db: Session, request: Request, user: PlayerProfile) -> int:
+def get_friend_requests_count(db: Session, user: PlayerProfile) -> int:
 	"""Return the count of pending friend requests for the current user."""
 	if not user:
 		return 0
@@ -46,6 +70,39 @@ def get_friend_requests_count(db: Session, request: Request, user: PlayerProfile
 		Friendship.receiver_id == user.id,
 		Friendship.accepted == False
 	).count()
+
+def get_pending_friend_requests(db: Session, user: Player) -> list[Friendship]:
+	"""Return a list of pending friend requests for the current user."""
+	if not user:
+		return []
+	
+	return db.query(Friendship).filter(
+		Friendship.receiver_id == user.id,
+		Friendship.accepted == False
+	).all()
+
+def get_sent_requests(db: Session, user: Player) -> list[Friendship]:
+	"""Return a list of friend requests sent by the current user that are still pending."""
+	if not user:
+		return []
+	
+	return db.query(Friendship).filter(
+		Friendship.sender_id == user.id,
+		Friendship.accepted == False
+	).all()
+
+def get_friends(db: Session, user: Player) -> list[Player]:
+	"""Return a list of friends for the current user."""
+	if not user:
+		return []
+	
+	# query for players
+	# join on friendships where (sender_id or receiver_id is the user) and accepted is true
+	# distinct to deduplicate
+	return db.query(Player).join(Friendship, ((Friendship.receiver_id == Player.id) | (Friendship.sender_id == Player.id))).filter(
+		((Friendship.sender_id == user.id) | (Friendship.receiver_id == user.id)),
+		Friendship.accepted == True
+	).distinct().all()
 
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db)):
@@ -85,12 +142,7 @@ def home(request: Request, db: Session = Depends(get_db)):
 
 	context["favorite_games"] = favorite_games
 
-	context["profile"] = {
-		"username": current_user.username,
-		# TODO: Replace with actual filepath check to check if player_id has avatar set
-		"avatar_url": "/static/img/profiles/default.jpg",
-		"pending_requests": get_friend_requests_count(db, request, current_user),
-	}
+	context["profile"] = create_profile_context(db, request, current_user)
 
 	# Grab the birth year of the user to find popular games among similar age groups.
 	birth_year_low = current_user.profile.birth_year - 5
@@ -155,6 +207,7 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 def profile_page(request: Request, username: str, db: Session = Depends(get_db)):
 	"""Get a user profile page."""
 	context = {}
+	context["profile"] = create_profile_context(db, request)
 	return templates.TemplateResponse(request=request, name="profile.html", context=context)
 
 @router.get("/settings", response_class=HTMLResponse)
@@ -164,7 +217,34 @@ def settings(request: Request):
 	return templates.TemplateResponse(request=request, name="settings.html", context=context)
 
 @router.get("/friends", response_class=HTMLResponse)
-def friends_page(request: Request):
+def friends_page(request: Request, db: Session = Depends(get_db)):
 	"""Get the friends page."""
 	context = {}
+
+	current_user = get_user(request, db)
+
+	if not current_user:
+		# If somehow we got here without a user, redirect to login.
+		return RedirectResponse(url="/login", status_code=302)
+
+	context["profile"] = create_profile_context(db, request, current_user)
+
+	# Get the users friends and pending friend requests
+	friends = get_friends(db, current_user)
+	friendships_pending = get_pending_friend_requests(db, current_user)
+
+	pending_requests = []
+	for friendship in friendships_pending:
+		# get the player profile of each sender of the pending requests (Friendship)
+		sender_profile = db.query(PlayerProfile).filter(PlayerProfile.player_id == friendship.sender_id).first()
+		if sender_profile:
+			pending_requests.append({
+				"username": sender_profile.player.username,
+				"avatar_url": "/static/img/profiles/default.jpg",
+				"platform": ", ".join([pf.name for pf in sender_profile.player.platforms]) if sender_profile.player.platforms else "N/A",
+			})
+
+	context["friends"] = friends
+	context["pending_requests"] = pending_requests
+
 	return templates.TemplateResponse(request=request, name="friends.html", context=context)
