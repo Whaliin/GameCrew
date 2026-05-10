@@ -144,7 +144,7 @@ class CounterStrikeSpec(GameProfileSpec):
 		"25k-30k",
 		"30k+",
 	] | None = None
-	role: List[Literal["Entry Fragger", "Support", "AWPer", "In-Game Leader", "Lurker"]] | None = None
+	role: Literal["Entry Fragger", "Support", "AWPer", "In-Game Leader", "Lurker"] | None = None
 	
 class LeagueOfLegendsSpec(GameProfileSpec):
 	game_name = "League of Legends"
