@@ -1,3 +1,7 @@
+# ============================================================================= 
+# Database models for the app. These classes represent the tables in the DB and are used by SQLAlchemy.
+# =============================================================================
+
 from datetime import datetime
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text, Table, Column
@@ -23,8 +27,6 @@ player_playtimes = Table(
     Column("playtime_id", Integer, ForeignKey("playtimes.id"), primary_key=True),
 )
 
-# Database classes representing tables used by the app.
-# Each class represents a table, and each attribute represents a column in that table.
 class Game(Base):
 	__tablename__ = "games"
 
