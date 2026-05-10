@@ -198,7 +198,7 @@ def post_logout(request: Request):
 	if session_id:
 		delete_session(session_id)
 
-	response = RedirectResponse(url="/login", status_code=302)
+	response = RedirectResponse(url="/", status_code=302)
 	response.delete_cookie(key="session_id")
 	return response
 

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}GameCrew - Find your crew{% endblock %}
+{% block title %}GameCrew — Find your crew{% endblock %}
 
 {% block content %}
 {% include "partials/navbar.html" %}
 
 <main class="wrapper">
-	<!-- Hero strip - gives the home page a heartbeat -->
+	<!-- Hero strip — gives the home page a heartbeat -->
 	<section class="hero-strip">
 		<div>
 			<div class="hero-tag">System online · Matchmaking active</div>
@@ -24,9 +24,10 @@
 		</div>
 	</section>
 
+	<!-- Your favorites — replaces "Your most played", no playtime shown -->
 	<section>
 		<div class="hud-header">
-			<h2>Most played</h2>
+			<h2>Your favorites</h2>
 			<div class="hud-line"></div>
 			<div class="hud-count">{{ played_games|length }} titles</div>
 		</div>
@@ -76,28 +77,26 @@
 		</div>
 	</section>
 
+	<!-- Most played — replaces "Trending now", shows global player counts, no badge -->
 	<section>
 		<div class="hud-header">
-			<h2>Trending now</h2>
+			<h2>Most played</h2>
 			<div class="hud-line"></div>
 			<div class="hud-count">{{ trending_games|length }} titles</div>
 		</div>
 		<div class="game-row">
 			{% for game in trending_games %}
 			<div class="game-card">
-				<span class="badge-wrap">
-					<span class="badge">TRENDING</span>
-					<span class="game-btn-wrap">
-						<span class="corner-tr"></span>
-						<span class="corner-bl"></span>
-						<button class="game-btn" onclick="goGame('{{ game.slug }}')" aria-label="Open {{ game.name }}">
-							<img src="{{ game.image_url }}" alt="{{ game.name }}">
-						</button>
-					</span>
+				<span class="game-btn-wrap">
+					<span class="corner-tr"></span>
+					<span class="corner-bl"></span>
+					<button class="game-btn" onclick="goGame('{{ game.slug }}')" aria-label="Open {{ game.name }}">
+						<img src="{{ game.image_url }}" alt="{{ game.name }}">
+					</button>
 				</span>
 				<div class="game-label">{{ game.name }}</div>
 				<div>
-					<div class="game-stat">{{ game.player_count }}</div>
+					<div class="game-stat">{{ game.player_count|default(game.hours_played) }}</div>
 					<div class="game-stat-label">Players</div>
 				</div>
 			</div>

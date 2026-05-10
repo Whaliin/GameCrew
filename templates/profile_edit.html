@@ -50,11 +50,18 @@
 			</div>
 			{% endif %}
 
-			{% if filter_options and filter_options.language %}
 			<div class="field">
 				<label>Languages</label>
 				<div class="checkbox-grid">
-					{% for option in filter_options.language %}
+					{% set lang_options = filter_options.language|default([
+						'English', 'Swedish', 'Norwegian', 'Danish', 'Finnish',
+						'German', 'French', 'Spanish', 'Portuguese', 'Italian',
+						'Dutch', 'Polish', 'Russian', 'Ukrainian', 'Turkish',
+						'Arabic', 'Hebrew', 'Mandarin', 'Cantonese', 'Japanese',
+						'Korean', 'Vietnamese', 'Thai', 'Indonesian', 'Hindi',
+						'Greek', 'Czech', 'Hungarian', 'Romanian'
+					]) %}
+					{% for option in lang_options %}
 					<label>
 						<input type="checkbox" name="languages" value="{{ option }}"
 							{% if profile.languages and option in profile.languages %}checked{% endif %}>
@@ -63,7 +70,6 @@
 					{% endfor %}
 				</div>
 			</div>
-			{% endif %}
 
 			{% if filter_options and filter_options.playtime %}
 			<div class="field">

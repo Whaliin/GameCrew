@@ -104,6 +104,7 @@ def get_friends(db: Session, user: Player) -> list[Player]:
 		Friendship.accepted == True
 	).distinct().all()
 
+
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db)):
 	"""Get the homepage. Shows landing page for guests, dashboard for users."""
@@ -203,6 +204,7 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 
 	return templates.TemplateResponse(request=request, name="game.html", context=context)
 
+
 @router.get("/profile/{username}", response_class=HTMLResponse)
 def profile_page(request: Request, username: str, db: Session = Depends(get_db)):
 	"""Get a user profile page."""
@@ -210,11 +212,13 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 	context["profile"] = create_profile_context(db, request)
 	return templates.TemplateResponse(request=request, name="profile.html", context=context)
 
+
 @router.get("/settings", response_class=HTMLResponse)
 def settings(request: Request):
 	"""Get the settings page."""
 	context = {}
 	return templates.TemplateResponse(request=request, name="settings.html", context=context)
+
 
 @router.get("/friends", response_class=HTMLResponse)
 def friends_page(request: Request, db: Session = Depends(get_db)):

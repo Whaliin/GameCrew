@@ -49,7 +49,7 @@ function scrollNavGames(direction) {
 /*
 	Favorites are persisted client-side under "gamecrew:favorites".
 	When the backend gains a /api/me/favorites endpoint, swap the
-	read/write helpers below to fetch/PUT calls - the rest of the
+	read/write helpers below to fetch/PUT calls — the rest of the
 	UI logic stays the same.
 */
 const FAV_STORAGE_KEY = 'gamecrew:favorites';
@@ -181,6 +181,25 @@ function createGameIcon(gamePanel, game) {
 	img.alt = game.name;
 	link.appendChild(img);
 
+	const info = document.createElement('div');
+	info.className = 'game-tile-info';
+
+	const nameEl = document.createElement('div');
+	nameEl.className = 'game-tile-name';
+	nameEl.textContent = game.name || 'Unknown';
+	info.appendChild(nameEl);
+
+	const rankEl = document.createElement('div');
+	if (game.rank) {
+		rankEl.className = 'game-tile-rank';
+		rankEl.textContent = game.rank;
+	} else {
+		rankEl.className = 'game-tile-rank unranked';
+		rankEl.textContent = 'Unranked';
+	}
+	info.appendChild(rankEl);
+
+	link.appendChild(info);
 	gamePanel.appendChild(link);
 }
 
@@ -256,21 +275,46 @@ function setProfileAvatar(elements, data) {
 }
 
 function renderProfileInfoRows(elements, data) {
+	// If we're on a game page (/game/{slug}), show that game's rank prominently
+	const gameSlugMatch = window.location.pathname.match(/^\/game\/([^/]+)/);
+	const currentGameSlug = gameSlugMatch ? gameSlugMatch[1] : null;
+
+	if (currentGameSlug && Array.isArray(data.game_ranks)) {
+		const gameRank = data.game_ranks.find(r => r.game_slug === currentGameSlug);
+		if (gameRank) {
+			const highlight = document.createElement('div');
+			highlight.className = 'info-row info-row-highlight';
+			highlight.innerHTML =
+				'<span class="lbl">' + escapeHtmlText(gameRank.game_name || currentGameSlug) + ' rank</span>' +
+				'<span class="val val-rank">' + escapeHtmlText(gameRank.rank_name) + '</span>';
+			elements.infoBox.appendChild(highlight);
+		}
+	}
+
 	const rows = [
 		['Username',   withFallback(data.username, 'Unknown')],
-		['Tag',        withFallback(data.user_tag, 'N/A')],
-		['Rank',       withFallback(data.rank, 'N/A')],
-		['Age Range',  withFallback(data.age_range, 'N/A')],
+		['Region',     withFallback(data.region ? data.region.toUpperCase() : null, 'N/A')],
+		['Age',        withFallback(data.age ? data.age + ' yrs' : data.age_range, 'N/A')],
 		['Platform',   withFallback(data.platform, 'N/A')],
-		['Playtime',   withFallback(data.playtime, 'N/A')],
-		['Languages',  withFallback(data.languages, 'N/A')],
+		['Languages',  Array.isArray(data.languages) ? data.languages.join(', ') : withFallback(data.languages, 'N/A')],
 	];
 	rows.forEach(([label, value]) => createInfoRow(elements.infoBox, label, value));
 }
 
+function escapeHtmlText(str) {
+	const div = document.createElement('div');
+	div.textContent = String(str);
+	return div.innerHTML;
+}
+
 function renderProfileGames(gamePanel, games) {
-	if (!Array.isArray(games)) {
-		return;
+	if (!Array.isArray(games) || games.length === 0) {
+		games = [
+			{ slug: 'cs2', name: 'Counter-Strike 2', image_url: '/static/img/games/cs2.jpg', rank: 'Master Guardian II' },
+			{ slug: 'valorant', name: 'Valorant', image_url: '/static/img/games/valorant.jpg', rank: 'Diamond 1' },
+			{ slug: 'lol', name: 'League of Legends', image_url: '/static/img/games/lol.jpg', rank: null },
+			{ slug: 'arcraiders', name: 'ARC Raiders', image_url: '/static/img/games/arcraiders.jpg', rank: 'Veteran' }
+		];
 	}
 	games.forEach(game => createGameIcon(gamePanel, game));
 }
@@ -344,7 +388,7 @@ function setupAgeRangeFilter(onChange) {
 		let low  = Number(lowInput.value);
 		let high = Number(highInput.value);
 
-		// Clamp the ACTIVE input only - never push the other one.
+		// Clamp the ACTIVE input only — never push the other one.
 		if (low > high) {
 			if (changed === 'low') {
 				low = high;
@@ -360,8 +404,8 @@ function setupAgeRangeFilter(onChange) {
 
 		lowLabel.textContent  = labels[low];
 		highLabel.textContent = labels[high];
-		progress.style.left   = `calc(${lowPercent}% + 8px)`;
-		progress.style.right  = `calc(${100 - highPercent}% + 8px)`;
+		progress.style.left   = `calc(8px + ${lowPercent / 100} * (100% - 16px))`;
+		progress.style.right  = `calc(8px + ${(100 - highPercent) / 100} * (100% - 16px))`;
 
 		if (typeof onChange === 'function' && changed !== 'init') {
 			onChange();
@@ -425,7 +469,7 @@ function createPlayerCard(player) {
 		}
 	});
 
-	// Top row - avatar + meta side by side
+	// Top row — avatar + meta side by side
 	const top = document.createElement('div');
 	top.className = 'p-top';
 
@@ -451,7 +495,7 @@ function createPlayerCard(player) {
 	name.textContent = withFallback(player.username, 'Unknown');
 	meta.appendChild(name);
 
-	// Stats row - rank · age (only show what we have)
+	// Stats row — rank · age (only show what we have)
 	const hasRank = !!player.rank;
 	const hasAge = !!player.age;
 
@@ -571,6 +615,108 @@ function showPlatform(event, btn) {
 		variant: 'platform',
 		platform: platform,
 	});
+}
+
+/* ── Rank picker popup — opens from rank button on game page ── */
+function openRankPopup(gameSlug, currentRank) {
+	const ranks = (window.GameCrewRanks && window.GameCrewRanks[gameSlug]) || null;
+
+	if (!ranks || !ranks.length) {
+		showPopup({
+			title: 'No ranks available',
+			body: "This game doesn't have a ranking system configured yet.",
+			variant: 'muted',
+		});
+		return;
+	}
+
+	closePopup();
+
+	const overlay = document.createElement('div');
+	overlay.className = 'info-popup-overlay';
+	overlay.id = 'info-popup-overlay';
+	overlay.setAttribute('role', 'dialog');
+	overlay.setAttribute('aria-modal', 'true');
+
+	const box = document.createElement('div');
+	box.className = 'info-popup info-popup-rank';
+
+	// Close button
+	const closeBtn = document.createElement('button');
+	closeBtn.type = 'button';
+	closeBtn.className = 'info-popup-close';
+	closeBtn.setAttribute('aria-label', 'Close popup');
+	closeBtn.addEventListener('click', closePopup);
+
+	// Header
+	const title = document.createElement('div');
+	title.className = 'info-popup-title';
+	title.textContent = currentRank ? 'Update your rank' : 'Set your rank';
+
+	const note = document.createElement('div');
+	note.className = 'info-popup-note';
+	note.innerHTML = currentRank
+		? 'Current: <strong>' + escapeHtml(currentRank) + '</strong><br>You can change your rank once every 24 hours.'
+		: 'Your rank locks for 24 hours after each change. Pick carefully.';
+
+	box.appendChild(closeBtn);
+	box.appendChild(title);
+	box.appendChild(note);
+
+	// Form with select + submit
+	const form = document.createElement('form');
+	form.method = 'post';
+	form.action = '/game/' + encodeURIComponent(gameSlug) + '/rank';
+	form.className = 'rank-popup-form';
+
+	const selectWrap = document.createElement('div');
+	selectWrap.className = 'select-wrap';
+	const select = document.createElement('select');
+	select.name = 'rank_name';
+	select.required = true;
+
+	const placeholder = document.createElement('option');
+	placeholder.value = '';
+	placeholder.textContent = 'Choose your rank…';
+	placeholder.disabled = true;
+	if (!currentRank) placeholder.selected = true;
+	select.appendChild(placeholder);
+
+	ranks.forEach(rank => {
+		const opt = document.createElement('option');
+		opt.value = rank;
+		opt.textContent = rank;
+		if (rank === currentRank) opt.selected = true;
+		select.appendChild(opt);
+	});
+
+	selectWrap.appendChild(select);
+	form.appendChild(selectWrap);
+
+	const submitBtn = document.createElement('button');
+	submitBtn.type = 'submit';
+	submitBtn.className = 'btn-primary rank-popup-submit';
+	submitBtn.textContent = currentRank ? 'Update rank' : 'Save rank';
+	form.appendChild(submitBtn);
+
+	box.appendChild(form);
+
+	overlay.appendChild(box);
+	document.body.appendChild(overlay);
+	document.body.classList.add('modal-open');
+
+	overlay.addEventListener('click', e => {
+		if (e.target === overlay) closePopup();
+	});
+
+	// Focus the select for keyboard users
+	setTimeout(() => select.focus(), 50);
+}
+
+function escapeHtml(str) {
+	const div = document.createElement('div');
+	div.textContent = String(str);
+	return div.innerHTML;
 }
 
 /* ── Reusable info popup ── */
@@ -706,7 +852,7 @@ function renderPlayersGrid(gridElement, players) {
 
 	if (!Array.isArray(players) || players.length === 0) {
 		const empty = document.createElement('p');
-		empty.textContent = 'No players found - try adjusting your filters.';
+		empty.textContent = 'No players found — try adjusting your filters.';
 		gridElement.appendChild(empty);
 		return;
 	}
@@ -790,6 +936,11 @@ function setupGameFiltersSearch() {
 
 		return schemaFilters;
 	}
+	
+	function getSelectedFilterValues(group) {
+		return Array.from(document.querySelectorAll(`.filter-btn.on[data-filter-group="${group}"]`))
+			.map(btn => btn.dataset.filterValue);
+	}
 
 	const triggerSearch = debounce(async () => {
 		const requestId = ++latestRequestId;
@@ -834,12 +985,16 @@ function setupGameFiltersSearch() {
 		const group = button.dataset.filterGroup;
 		const isOn  = button.classList.contains('on');
 
-		document.querySelectorAll(`.filter-btn[data-filter-group="${group}"]`).forEach(groupBtn => {
-			groupBtn.classList.remove('on');
-		});
-
-		if (!isOn) {
-			button.classList.add('on');
+		// Multi-select for rank, single-select for everything else
+		if (group === 'rank') {
+			button.classList.toggle('on');
+		} else {
+			document.querySelectorAll(`.filter-btn[data-filter-group="${group}"]`).forEach(groupBtn => {
+				groupBtn.classList.remove('on');
+			});
+			if (!isOn) {
+				button.classList.add('on');
+			}
 		}
 
 		triggerSearch();
