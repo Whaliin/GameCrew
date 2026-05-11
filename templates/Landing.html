@@ -9,8 +9,8 @@
 		<div class="lp-nav-inner">
 			<a href="/" class="logo">GAMECREW</a>
 			<div class="lp-nav-actions">
-				<a href="/login" class="lp-link-btn lp-link-btn-secondary">Sign in</a>
-				<a href="/register" class="lp-link-btn lp-link-btn-primary">Sign up</a>
+				<a href="/login" class="lp-link-btn lp-link-btn-primary">Sign in</a>
+				<a href="/register" class="lp-link-btn lp-link-btn-secondary">Sign up</a>
 			</div>
 		</div>
 	</header>
@@ -33,21 +33,6 @@
 			<div class="lp-cta-row">
 				<a href="/register" class="lp-link-btn lp-link-btn-primary lp-link-btn-large">Create free account</a>
 				<a href="/login" class="lp-link-btn lp-link-btn-secondary lp-link-btn-large">I already have one</a>
-			</div>
-
-			<div class="lp-stats">
-				<div class="lp-stat">
-					<div class="lp-stat-num" data-count="{{ player_count|default(0)|int }}" data-suffix="K" data-divisor="1000" data-decimals="1">0</div>
-					<div class="lp-stat-cap">Online now</div>
-				</div>
-				<div class="lp-stat">
-					<div class="lp-stat-num" data-count="{{ squad_count|default(0)|int }}" data-suffix="+">0</div>
-					<div class="lp-stat-cap">Active squads</div>
-				</div>
-				<div class="lp-stat">
-					<div class="lp-stat-num" data-count="{{ game_count|default(0)|int }}" data-suffix="+">0</div>
-					<div class="lp-stat-cap">Supported games</div>
-				</div>
 			</div>
 		</div>
 	</section>
