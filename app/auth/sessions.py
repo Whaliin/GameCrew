@@ -27,6 +27,11 @@ def get_session(session_id: str) -> UserSession | None:
 	"""Return session data or None if not found."""
 	return _sessions.get(session_id)
 
+# Identify session (request based)
+def get_session_id(request: Request) -> str | None:
+	"""FastAPI dependency - returns session data or None (no redirect)."""
+	return request.cookies.get("session_id")
+
 # Remove session
 def delete_session(session_id: str) -> None:
 	"""Remove a session from the store."""

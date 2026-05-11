@@ -2,7 +2,8 @@ import datetime
 import json
 from random import random
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, Form
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.auth.hashing import hash_password, verify_password
@@ -110,160 +111,10 @@ def get_player_profile(username: str, db: Session = Depends(get_db)):
 
 	return profile
 
-class PlayerAccountUpdate(BaseModel):
-	"""
-	Schema for updating player account information. All fields are optional.
-	"""
-	username: Optional[str] = None
-	current_password: Optional[str] = None
-	password: Optional[str] = None
-
-@router.patch("/update/account")
-def update_player_account(
-	account_data: PlayerAccountUpdate,
-	request: Request,
-	db: Session = Depends(get_db)
-):
-	"""
-	Update the current player's account information.
-
-	:param account_data: The updated account information.
-	:param request: The incoming request containing the updated account data in JSON format.
-	:raises HTTPException: 401 if not authenticated, 400 if the input data is invalid.
-	:return: A JSON object containing the updated account information.
-	"""
-	user = get_user(request, db)
-	if not user:
-		raise HTTPException(status_code=401, detail="Not authenticated")
-
-	update_data = account_data.model_dump(exclude_unset=True)
-
-	if update_data.get("username"):
-		if not validate_username(update_data["username"]):
-			raise HTTPException(status_code=400, detail="Invalid username")
-
-		# Check if the new username is already taken by another user
-		existing_user = db.query(Player).filter(Player.username == update_data["username"]).first()
-		if existing_user and existing_user.id != user.id:
-			raise HTTPException(status_code=400, detail="Username already taken")
-		user.username = update_data["username"]
-
-	if update_data.get("password"):
-		# check if current_password is correct
-		if not verify_password(update_data["current_password"], user.password_hash):
-			raise HTTPException(status_code=400, detail="Current password is incorrect")
-		
-		user.password_hash = hash_password(update_data["password"])
-
-	return Response(status_code=204)
-
-class PlayerProfileUpdate(BaseModel):
-	"""
-	Schema for updating player profile information. All fields are optional.
-	"""
-	# image
-	bio: Optional[str] = None
-	birth_year: Optional[int] = None
-	region_id: Optional[int] = None
-	languages: Optional[List[str]] = None
-	platforms: Optional[List[str]] = None
-	playtimes: Optional[List[str]] = None
-	steam_url: Optional[str] = None
-	discord: Optional[str] = None
-
-@router.patch("/update/profile")
-def update_player_profile(
-	profile_data: PlayerProfileUpdate,
-	request: Request, 
-	db: Session = Depends(get_db)):
-	"""
-	Update the current player's profile information.
-
-	:param request: The incoming request containing the updated profile data in JSON format.
-	:raises HTTPException: 401 if not authenticated, 400 if the input data is invalid.
-	:return: A JSON object containing the updated profile information.
-	"""
-	user = get_user(request, db)
-	if not user:
-		raise HTTPException(status_code=401, detail="Not authenticated")
-	
-	update_data = profile_data.model_dump(exclude_unset=True)
-
-	try:
-		if update_data.get("bio") is not None:
-			user.profile.bio = update_data["bio"]
-
-		if update_data.get("birth_year") is not None:
-			birth_year_error = validate_birth_year(update_data["birth_year"])
-			if birth_year_error:
-				raise HTTPException(status_code=400, detail=birth_year_error)
-			user.profile.birth_year = update_data["birth_year"]
-
-		if update_data.get("region_id") is not None:
-			user.profile.region_id = update_data["region_id"]
-
-		if update_data.get("languages") is not None:
-			user.languages = []
-			for language_name in update_data["languages"]:
-				language = db.query(Language).filter(Language.name == language_name).first()
-				if language:
-					user.languages.append(language)
-		
-		if update_data.get("platforms") is not None:
-			user.platforms = []
-			for platform_name in update_data["platforms"]:
-				platform = db.query(Platform).filter(Platform.name == platform_name).first()
-				if platform:
-					user.platforms.append(platform)
-
-		if update_data.get("playtimes") is not None:
-			user.playtimes = []
-			for playtime_name in update_data["playtimes"]:
-				playtime = db.query(Playtime).filter(Playtime.name == playtime_name).first()
-				if playtime:
-					user.playtimes.append(playtime)
-
-		if update_data.get("steam_url") is not None:
-			# TODO: steam url validation
-			user.profile.steam_url = update_data["steam_url"]
-
-		if update_data.get("discord") is not None:
-			user.profile.discord = update_data["discord"]
-		
-		db.commit()
-	except Exception as e:
-		db.rollback()
-		raise e
-
-	return Response(status_code=204)
-
-@router.patch("/update/privacy")
-def update_player_privacy(
-	private: bool,
-	request: Request, 
-	db: Session = Depends(get_db)
-):
-	"""
-	Update the current player's profile privacy setting.
-
-	:param private: A boolean indicating whether the profile should be private (true) or public (false).
-	:param request: The incoming request containing the updated privacy setting.
-	:raises HTTPException: 401 if not authenticated.
-	:return: A JSON object containing the updated privacy setting.
-	"""
-	user = get_user(request, db)
-	if not user:
-		raise HTTPException(status_code=401, detail="Not authenticated")
-	
-	user.profile.private = private
-	db.commit()
-
-	return Response(status_code=204)
-	
-
 # ===============================================
 # 					Player Game Profiles
 # ================================================
+# TODO
 
 # ===============================================
 # 					Friendships
