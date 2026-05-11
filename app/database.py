@@ -1,10 +1,9 @@
 from collections.abc import Generator
 import json
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
-from app.models import Game
 from app.schemas import GameProfileSpec
 
 DATABASE_URL = "sqlite:///./gamecrew.db"
@@ -23,12 +22,12 @@ def get_db() -> Generator[Session, None, None]:
 
 def init_database() -> None:
 	"""Initialize database tables."""
-	import app.models  # Ensure all models are imported before creating tables
+	import app.models as models  # Ensure all models are imported before creating tables
 	Base.metadata.create_all(bind=engine)
 
 	# check if the default data is already seeded (e.g. if there are any games in the database), and if not, seed the default data.
 	with SessionLocal() as db:
-		if db.query(app.models.Game).first() is None:
+		if db.query(models.Game).first() is None:
 			seed_default_data()
 		else:
 			# create a schema map (slugs -> schema class)
@@ -37,7 +36,7 @@ def init_database() -> None:
 			code_slugs = set(schema_map.keys())
 
 			# get existing games from the database
-			existing_games = {row.slug: row for row in db.query(Game).all()}
+			existing_games = {row.slug: row for row in db.query(models.Game).all()}
 			# get the set (unique values) of slugs from the database (realistically this does nothing)
 			db_slugs = set(existing_games.keys())
 
@@ -48,7 +47,7 @@ def init_database() -> None:
 			# create new games
 			for slug in to_create:
 				schema = schema_map[slug]
-				db.add(Game(
+				db.add(models.Game(
 					slug=slug, 
 					name=schema.game_name, 
 					schema_spec=schema.__name__
@@ -56,12 +55,12 @@ def init_database() -> None:
 
 			# remove games in db but not in code
 			if to_delete:
-				db.query(Game).filter(Game.slug.in_(to_delete)).delete()
+				db.query(models.Game).filter(models.Game.slug.in_(to_delete)).delete()
 
 			# commit changes
 			db.commit()
 		
-		if db.query(app.models.PlayerProfile).first() is None:
+		if db.query(models.PlayerProfile).first() is None:
 			seed_player_profiles()
 
 DEFAULT_LANGUAGES = [
