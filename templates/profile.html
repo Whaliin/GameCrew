@@ -169,10 +169,10 @@
 				<img class="profile-fav-tile-img" src="{{ g.image_url|default('/static/img/games/default.jpg') }}" alt="{{ g.game_name }}">
 				<div class="profile-fav-tile-body">
 					<div class="profile-fav-tile-name">{{ g.game_name }}</div>
-					{% if g.rank %}
-					<div class="profile-fav-tile-rank">{{ g.rank }}</div>
+					{% if g.display_value %}
+					<div class="profile-fav-tile-rank">{{ g.display_value }}</div>
 					{% else %}
-					<div class="profile-fav-tile-rank unranked">Unranked</div>
+					<div class="profile-fav-tile-rank unranked"></div>
 					{% endif %}
 				</div>
 			</a>

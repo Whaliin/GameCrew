@@ -252,12 +252,19 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 	
 	profile["favorite_games"] = []
 	for game, game_profile in game_profiles:
-		# Parse rank from game profile data if it exists
-		rank = None
+		# Parse display value from game profile data if it exists
+		display_value = None
 		if game_profile.data:
 			try:
-				data = json.loads(game_profile.data)
-				rank = data.get("rank") or data.get("premier_rank")
+				# get the game schema for this game
+				game_schema = GameProfileSpec.get_schema(game.schema_spec)
+
+				if game_schema:
+					# load data (only if schema exists)
+					data = json.loads(game_profile.data)
+					# get the display value from the schema
+					display_value = game_schema.get_display_value(data)
+				
 			except (ValueError, TypeError):
 				pass
 		
@@ -265,7 +272,7 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 			"game_slug": game.slug,
 			"game_name": game.name,
 			"image_url": get_game_image_url(game.slug),
-			"rank": rank,
+			"display_value": display_value,
 		})
 	
 	context["profile"] = create_profile_context(db, request, current_user)

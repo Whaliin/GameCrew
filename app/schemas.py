@@ -126,8 +126,8 @@ class GameProfileSpec(BaseModel):
 		display_field = cls.get_display_field()
 		if display_field and display_field in profile_data:
 			return profile_data.get(display_field)
-		# Keep the legacy fallback so games without a configured display field still show something useful.
-		return profile_data.get("rank") or profile_data.get("premier_rank")
+		
+		return None
 	
 class CounterStrikeSpec(GameProfileSpec):
 	game_name = "Counter-Strike 2"
