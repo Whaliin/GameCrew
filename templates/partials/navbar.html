@@ -6,11 +6,13 @@
 			<button type="button" class="nav-scroll-btn nav-scroll-left" onclick="scrollNavGames(-1)" aria-label="Scroll games left">‹</button>
 
 			<div class="nav-games-track" id="nav-games-track" aria-label="Game shortcuts">
+				{% if profile and profile.favorite_games %}
 				{% for game in profile.favorite_games %}
 				<a href="/game/{{ game.slug }}" class="nav-game-link" aria-label="{{ game.name }}">
 					<img src="{{ game.image_url }}" alt="{{ game.name }}">
 				</a>
 				{% endfor %}
+				{% endif %}
 			</div>
 
 			<button type="button" class="nav-scroll-btn nav-scroll-right" onclick="scrollNavGames(1)" aria-label="Scroll games right">›</button>

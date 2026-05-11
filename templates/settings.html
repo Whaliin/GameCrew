@@ -49,7 +49,7 @@
 					<p>Your sign-in identity. Username is what other players see.</p>
 				</header>
 
-				<form class="settings-form" method="post" action="/settings/account">
+				<form class="settings-form" method="post" action="/api/profile/settings/account">
 					<div class="settings-field">
 						<label for="set-username">Username</label>
 						<input type="text" id="set-username" name="username" value="{{ profile.username|default('') }}" autocomplete="username" required>
@@ -122,7 +122,7 @@
 				</header>
 
 				<!-- Avatar upload -->
-				<form class="settings-form settings-avatar-form" method="post" action="/settings/avatar" enctype="multipart/form-data">
+				<form class="settings-form settings-avatar-form" method="post" action="/api/profile/settings/avatar" enctype="multipart/form-data">
 					<div class="settings-avatar-row">
 						<div class="settings-avatar-preview">
 							<img id="avatar-preview-img" src="{{ profile.avatar_url|default('/static/img/profiles/default.jpg') }}" alt="Current avatar">
@@ -143,16 +143,16 @@
 
 				<div class="settings-divider"></div>
 
-				<form class="settings-form" method="post" action="/settings/profile">
+				<form class="settings-form" method="post" action="/api/profile/settings/profile">
 					<div class="settings-field">
 						<label for="set-bio">Bio</label>
-						<textarea id="set-bio" name="bio" rows="3" placeholder="Tell other players about yourself…">{{ profile.bio|default('') }}</textarea>
+						<textarea id="set-bio" name="bio" rows="3" placeholder="Tell other players about yourself…">{{ current.bio|default('') }}</textarea>
 					</div>
 
 					<div class="settings-field-row three-cols">
 						<div class="settings-field">
 							<label for="set-birth-year">Birth year</label>
-							<input type="number" id="set-birth-year" name="birth_year" min="1900" max="2026" value="{{ profile.birth_year|default('') }}" placeholder="2000">
+							<input type="number" id="set-birth-year" name="birth_year" min="1900" max="2026" value="{{ current.birth_year|default('') }}" placeholder="2000">
 						</div>
 						<div class="settings-field">
 							<label for="set-region">Matchmaking region</label>
@@ -161,7 +161,7 @@
 									<option value="">Choose region…</option>
 
 									{% for region in regions %}
-									<option value="{{ region.value }}" {% if profile.region == region.value %}selected{% endif %}>{{ region.label }}</option>
+									<option value="{{ region }}" {% if current.region == region %}selected{% endif %}>{{ region }}</option>
 									{% endfor %}
 								</select>
 							</div>
@@ -181,7 +181,7 @@
 										{% for language in languages %}
 										<label class="multi-select-option" data-value="{{ language }}">
 											<input type="checkbox" name="languages" value="{{ language }}"
-												{% if language in profile.languages %}checked{% endif %}>
+												{% if language in current.languages %}checked{% endif %}>
 											<span class="multi-select-checkmark" aria-hidden="true"></span>
 											<span class="multi-select-label">{{ language }}</span>
 										</label>
@@ -199,21 +199,21 @@
 							{% for platform in platforms %}
 							<label class="settings-checkbox">
 								<input type="checkbox" name="platforms" value="{{ platform }}"
-									{% if platform in profile.platforms %}checked{% endif %}>
+									{% if platform in current.platforms %}checked{% endif %}>
 								<span>{{ platform }}</span>
 							</label>
 							{% endfor %}
 						</div>
 					</div>
 
-					{% if filter_options and filter_options.playtime %}
+					{% if playtimes %}
 					<div class="settings-field">
 						<label>Play time</label>
 						<div class="settings-checkbox-grid">
-							{% for option in filter_options.playtime %}
+							{% for option in playtimes %}
 							<label class="settings-checkbox">
 								<input type="checkbox" name="playtime" value="{{ option }}"
-									{% if profile.playtime and option in profile.playtime %}checked{% endif %}>
+									{% if current.playtime and option in current.playtime %}checked{% endif %}>
 								<span>{{ option }}</span>
 							</label>
 							{% endfor %}
@@ -228,11 +228,11 @@
 					<div class="settings-field-row">
 						<div class="settings-field">
 							<label for="set-steam">Steam ID or profile URL</label>
-							<input type="text" id="set-steam" name="steam" value="{{ profile.steam|default('') }}" placeholder="steamcommunity.com/id/your-name">
+							<input type="text" id="set-steam" name="steam" value="{{ current.steam|default('') }}" placeholder="steamcommunity.com/id/your-name">
 						</div>
 						<div class="settings-field">
 							<label for="set-discord">Discord username</label>
-							<input type="text" id="set-discord" name="discord" value="{{ profile.discord|default('') }}" placeholder="username#0000 or @handle">
+							<input type="text" id="set-discord" name="discord" value="{{ current.discord|default('') }}" placeholder="username#0000 or @handle">
 						</div>
 					</div>
 					<small class="settings-help">These are only shown if your profile visibility is set to Public — change it under Visibility.</small>
@@ -251,18 +251,18 @@
 					<p>Choose who can see your linked Steam and Discord accounts.</p>
 				</header>
 
-				<form class="settings-form" method="post" action="/settings/visibility">
+				<form class="settings-form" method="post" action="/api/profile/settings/visibility">
 					<div class="settings-field">
 						<div class="settings-radio-stack">
 							<label class="settings-radio">
-								<input type="radio" name="visibility" value="public" {% if profile.visibility == 'public' or not profile.visibility %}checked{% endif %}>
+								<input type="radio" name="visibility" value="public" {% if not current.private %}checked{% endif %}>
 								<div>
 									<div class="settings-radio-title">Public</div>
 									<div class="settings-radio-sub">Anyone visiting your profile can see your Steam and Discord.</div>
 								</div>
 							</label>
 							<label class="settings-radio">
-								<input type="radio" name="visibility" value="friends" {% if profile.visibility == 'friends' %}checked{% endif %}>
+								<input type="radio" name="visibility" value="friends" {% if current.private %}checked{% endif %}>
 								<div>
 									<div class="settings-radio-title">Friends only</div>
 									<div class="settings-radio-sub">Only players you've added as friends can see your Steam and Discord. Everyone else sees just your in-game profile.</div>
