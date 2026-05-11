@@ -115,7 +115,7 @@ def get_friends(db: Session, user: Player) -> list[Player]:
 # ==================================
 # Page Routes
 # ==================================
-def http_exception_handler(request: Request, exc: HTTPException, db: Session = Depends(get_db)):
+def http_exception_handler(request: Request, exc: Exception):
 	"""Custom handler for HTTP exceptions to render a user-friendly error page."""
 
 	profile = None
@@ -125,17 +125,18 @@ def http_exception_handler(request: Request, exc: HTTPException, db: Session = D
 	except:
 		profile = None
 
+	context = {
+		"request": request,
+		"status_code": getattr(exc, "status_code", 500),
+		"message": getattr(exc, "detail", "An unexpected error occurred."),
+		"profile": profile
+	}
+
 	return templates.TemplateResponse(
 		request=request,
 		name="error.html",
-		context={
-			"request": request, 
-			"status_code": 
-			exc.status_code, 
-			"message": exc.detail,
-			"profile": profile
-		},
-		status_code=exc.status_code,
+		context=context,
+		status_code=getattr(exc, "status_code", 500)
 	)
 
 @router.get("/", response_class=HTMLResponse)
