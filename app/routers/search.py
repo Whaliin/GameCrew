@@ -17,6 +17,7 @@ router = APIRouter(prefix="/api/search", tags=["search"])
 class PlayerSearchRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
+	name_contains: str | None = None
 	age_lo: int | None = None
 	age_hi: int | None = None
 	playtime: list[str] = Field(default_factory=list)
@@ -144,8 +145,15 @@ def search_players_for_game(
 		.join(PlayerProfile, PlayerProfile.player_id == Player.id)
 		.join(PlayerGameProfile, PlayerGameProfile.player_id == Player.id)
 		.filter(PlayerGameProfile.game_id == game.id)
-		.all()
 	)
+
+	# filter player rows by name_contains if specified
+	if search_request.name_contains:
+		player_rows = player_rows.filter(Player.username.ilike(f"%{search_request.name_contains}%"))
+
+	# convert player rows to a list
+	player_rows = player_rows.all()
+
 
 	results: list[dict[str, object]] = []
 	for player, profile, game_profile in player_rows:
