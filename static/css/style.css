@@ -349,7 +349,12 @@ nav::before,
 	outline-offset: 3px;
 }
 
-.user-area { display: flex; align-items: center; gap: 12px; }
+.user-area { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px;
+    margin: 0 32px 0 32px;
+}
 
 .user-profile-link {
 	display: flex;

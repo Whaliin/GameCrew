@@ -3,7 +3,7 @@
 		<a href="/" class="logo" aria-label="GameCrew home">GAMECREW</a>
 
 		<div class="nav-games-shell">
-			<button type="button" class="nav-scroll-btn nav-scroll-left" onclick="scrollNavGames(-1)" aria-label="Scroll games left">‹</button>
+			<button type="button" class="nav-scroll-btn nav-scroll-left" onclick="scrollNavGames(-1.1)" aria-label="Scroll games left">‹</button>
 
 			<div class="nav-games-track" id="nav-games-track" aria-label="Game shortcuts">
 				{% if profile and profile.favorite_games %}
@@ -15,7 +15,7 @@
 				{% endif %}
 			</div>
 
-			<button type="button" class="nav-scroll-btn nav-scroll-right" onclick="scrollNavGames(1)" aria-label="Scroll games right">›</button>
+			<button type="button" class="nav-scroll-btn nav-scroll-right" onclick="scrollNavGames(1.1)" aria-label="Scroll games right">›</button>
 		</div>
 
 		<div class="user-area">
