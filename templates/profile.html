@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}{{ profile.username }} — GameCrew{% endblock %}
+{% block title %}{{ viewing.username }} — GameCrew{% endblock %}
 
 {% block content %}
 {% include "partials/navbar.html" %}
 
-{% set is_self = is_own_profile or (current_user and current_user.username == profile.username) %}
-{% set has_languages = profile.languages is iterable and profile.languages is not string and profile.languages|length > 0 %}
-{% set has_platforms = profile.platforms is iterable and profile.platforms is not string and profile.platforms|length > 0 %}
+{% set is_self = is_own_profile or (current_user and current_user.username == viewing.username) %}
+{% set has_languages = viewing.languages is iterable and viewing.languages is not string and viewing.languages|length > 0 %}
+{% set has_platforms = viewing.platforms is iterable and viewing.platforms is not string and viewing.platforms|length > 0 %}
 
 
 <main class="profile-page">
@@ -21,29 +21,24 @@
 
 		<div class="profile-hero-inner">
 			<div class="profile-hero-avatar">
-				<img src="{{ profile.avatar_url|default('/static/img/profiles/default.jpg') }}" alt="{{ profile.username }} avatar">
-				<span class="profile-hero-status {{ profile.status|default('offline') }}" aria-label="{{ profile.status|default('Offline')|title }}"></span>
+				<img src="{{ viewing.avatar_url|default('/static/img/profiles/default.jpg') }}" alt="{{ viewing.username }} avatar">
 			</div>
 
 			<div class="profile-hero-meta">
 				<div class="profile-hero-eyebrow">// Player profile</div>
-				<h1 class="profile-hero-name">{{ profile.username }}</h1>
+				<h1 class="profile-hero-name">{{ viewing.username }}</h1>
 
 				<div class="profile-hero-stats">
-					<span class="profile-hero-stat">
-						<span class="dot {{ profile.status|default('offline') }}"></span>
-						{% if profile.status == 'online' %}Online{% elif profile.status == 'away' %}Away{% else %}Offline{% endif %}
-					</span>
-					{% if profile.region %}
+					{% if viewing.region %}
 					<span class="profile-hero-divider">·</span>
-					<span class="profile-hero-stat region">{{ profile.region|replace('-', ' ')|upper }}</span>
+					<span class="profile-hero-stat region">{{ viewing.region|replace('-', ' ')|upper }}</span>
 					{% endif %}
-					{% if profile.age %}
+					{% if viewing.age %}
 					<span class="profile-hero-divider">·</span>
-					<span class="profile-hero-stat age">{{ profile.age }} yrs</span>
-					{% elif profile.birth_year %}
+					<span class="profile-hero-stat age">{{ viewing.age }} yrs</span>
+					{% elif viewing.birth_year %}
 					<span class="profile-hero-divider">·</span>
-					<span class="profile-hero-stat age">{{ 2026 - profile.birth_year }} yrs</span>
+					<span class="profile-hero-stat age">{{ 2026 - viewing.birth_year }} yrs</span>
 					{% endif %}
 				</div>
 			</div>
@@ -52,17 +47,17 @@
 				{% if is_self %}
 				<a href="/settings#profile" class="profile-edit-link">Edit profile</a>
 				{% else %}
-				<button type="button" class="btn-primary" onclick="addFriend('{{ profile.username }}')">Add friend</button>
-				{% if profile.discord %}
+				<button type="button" class="btn-primary" onclick="addFriend('{{ viewing.username }}')">Add friend</button>
+				{% if viewing.discord %}
 				<button type="button" class="btn-secondary"
-					data-discord="{{ profile.discord }}"
-					data-username="{{ profile.username }}"
+					data-discord="{{ viewing.discord }}"
+					data-username="{{ viewing.username }}"
 					onclick="showDiscord(event, this)">Discord</button>
 				{% endif %}
-				{% if profile.platform %}
+				{% if viewing.platform %}
 				<button type="button" class="btn-secondary"
-					data-platform="{{ profile.platform }}"
-					data-username="{{ profile.username }}"
+					data-platform="{{ viewing.platform }}"
+					data-username="{{ viewing.username }}"
 					onclick="showPlatform(event, this)">Platform</button>
 				{% endif %}
 				{% endif %}
@@ -78,8 +73,8 @@
 		</div>
 
 		<div class="profile-about">
-			{% if profile.bio %}
-			<p class="profile-bio">{{ profile.bio }}</p>
+			{% if viewing.bio %}
+			<p class="profile-bio">{{ viewing.bio }}</p>
 			{% else %}
 			<p class="profile-bio profile-bio-empty">{% if is_self %}You haven't added a bio yet — <a href="/settings#profile">add one</a>.{% else %}This player hasn't added a bio yet.{% endif %}</p>
 			{% endif %}
@@ -88,15 +83,15 @@
 				<div class="profile-info-item">
 					<div class="profile-info-label">Region</div>
 					<div class="profile-info-value">
-						{% if profile.region %}{{ profile.region|replace('-', ' ')|title }}{% else %}<span class="profile-info-empty">Not set</span>{% endif %}
+						{% if viewing.region %}{{ viewing.region|replace('-', ' ')|title }}{% else %}<span class="profile-info-empty">Not set</span>{% endif %}
 					</div>
 				</div>
 
 				<div class="profile-info-item">
 					<div class="profile-info-label">Age</div>
 					<div class="profile-info-value">
-						{% if profile.age %}{{ profile.age }} years
-						{% elif profile.birth_year %}{{ 2026 - profile.birth_year }} years
+						{% if viewing.age %}{{ viewing.age }} years
+						{% elif viewing.birth_year %}{{ 2026 - viewing.birth_year }} years
 						{% else %}<span class="profile-info-empty">Not set</span>{% endif %}
 					</div>
 				</div>
@@ -104,27 +99,27 @@
 				<div class="profile-info-item">
 					<div class="profile-info-label">Playtime</div>
 					<div class="profile-info-value">
-						{% if profile.playtime is iterable and profile.playtime is not string and profile.playtime|length > 0 %}
-							{{ profile.playtime|join(', ') }}
-						{% elif profile.playtime is string and profile.playtime %}
-							{{ profile.playtime }}
+						{% if viewing.playtime is iterable and viewing.playtime is not string and viewing.playtime|length > 0 %}
+							{{ viewing.playtime|join(', ') }}
+						{% elif viewing.playtime is string and viewing.playtime %}
+							{{ viewing.playtime }}
 						{% else %}
 							<span class="profile-info-empty">Not set</span>
 						{% endif %}
 					</div>
 				</div>
 
-				{% if profile.discord %}
+				{% if viewing.discord %}
 				<div class="profile-info-item">
 					<div class="profile-info-label">Discord</div>
-					<div class="profile-info-value">{{ profile.discord }}</div>
+					<div class="profile-info-value">{{ viewing.discord }}</div>
 				</div>
 				{% endif %}
 
-				{% if profile.steam %}
+				{% if viewing.steam %}
 				<div class="profile-info-item">
 					<div class="profile-info-label">Steam</div>
-					<div class="profile-info-value">{{ profile.steam }}</div>
+					<div class="profile-info-value">{{ viewing.steam }}</div>
 				</div>
 				{% endif %}
 			</div>
@@ -133,7 +128,7 @@
 				<span class="profile-tags-label">Languages</span>
 				<div class="profile-tags">
 					{% if has_languages %}
-						{% for lang in profile.languages %}
+						{% for lang in viewing.languages %}
 						<span class="profile-tag">{{ lang }}</span>
 						{% endfor %}
 					{% else %}
@@ -146,7 +141,7 @@
 				<span class="profile-tags-label">Platforms</span>
 				<div class="profile-tags">
 					{% if has_platforms %}
-						{% for plat in profile.platforms %}
+						{% for plat in viewing.platforms %}
 						<span class="profile-tag">{{ plat }}</span>
 						{% endfor %}
 					{% else %}
@@ -162,14 +157,14 @@
 		<div class="hud-header">
 			<h2>Favorite games</h2>
 			<div class="hud-line"></div>
-			{% if profile.favorite_games and profile.favorite_games|length > 0 %}
-			<div class="hud-count">{{ profile.favorite_games|length }} titles</div>
+			{% if viewing.favorite_games and viewing.favorite_games|length > 0 %}
+			<div class="hud-count">{{ viewing.favorite_games|length }} titles</div>
 			{% endif %}
 		</div>
 
-		{% if profile.favorite_games and profile.favorite_games|length > 0 %}
+		{% if viewing.favorite_games and viewing.favorite_games|length > 0 %}
 		<div class="profile-fav-row">
-			{% for g in profile.favorite_games %}
+			{% for g in viewing.favorite_games %}
 			<a href="/game/{{ g.game_slug }}" class="profile-fav-tile" aria-label="{{ g.game_name }}">
 				<img class="profile-fav-tile-img" src="{{ g.image_url|default('/static/img/games/default.jpg') }}" alt="{{ g.game_name }}">
 				<div class="profile-fav-tile-body">

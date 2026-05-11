@@ -235,7 +235,6 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 	profile = {
 		"username": player.username,
 		"avatar_url": "/static/img/profiles/default.jpg",  # TODO: Replace with actual avatar
-		"status": "offline",  # TODO: Implement online status tracking
 		"region": player.profile.region.name if player.profile.region else None,
 		"birth_year": player.profile.birth_year,
 		"bio": player.profile.bio or "",
@@ -269,7 +268,8 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 			"rank": rank,
 		})
 	
-	context["profile"] = profile
+	context["profile"] = create_profile_context(db, request, current_user)
+	context["viewing"] = profile
 	context["is_own_profile"] = is_own_profile
 	context["current_user"] = current_user
 	
