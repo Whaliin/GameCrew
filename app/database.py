@@ -4,6 +4,9 @@ import json
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
+from app.models import Game
+from app.schemas import GameProfileSpec
+
 DATABASE_URL = "sqlite:///./gamecrew.db"
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
@@ -27,6 +30,36 @@ def init_database() -> None:
 	with SessionLocal() as db:
 		if db.query(app.models.Game).first() is None:
 			seed_default_data()
+		else:
+			# create a schema map (slugs -> schema class)
+			schema_map = {s.game_slug: s for s in GameProfileSpec.__subclasses__()}
+			# get the set of slugs (unique identifiers)
+			code_slugs = set(schema_map.keys())
+
+			# get existing games from the database
+			existing_games = {row.slug: row for row in db.query(Game).all()}
+			# get the set (unique values) of slugs from the database (realistically this does nothing)
+			db_slugs = set(existing_games.keys())
+
+			# calculate difference between the sets
+			to_create = code_slugs - db_slugs
+			to_delete = db_slugs - code_slugs
+
+			# create new games
+			for slug in to_create:
+				schema = schema_map[slug]
+				db.add(Game(
+					slug=slug, 
+					name=schema.game_name, 
+					schema_spec=schema.__name__
+				))
+
+			# remove games in db but not in code
+			if to_delete:
+				db.query(Game).filter(Game.slug.in_(to_delete)).delete()
+
+			# commit changes
+			db.commit()
 		
 		if db.query(app.models.PlayerProfile).first() is None:
 			seed_player_profiles()
