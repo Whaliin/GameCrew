@@ -26,27 +26,28 @@ def create_profile_context(db: Session, request: Request, user_session: Player |
 	if not user_session:
 		user_session = get_user(request, db)
 	
-	if user_session:
-		# Get the users favorite games
-		user_favorite_games = db.query(Game).join(PlayerGameProfile, PlayerGameProfile.game_id == Game.id).filter(PlayerGameProfile.player_id == user_session.id).all()
-		
-		# Append image URLs to the favorite games
-		for game in user_favorite_games:
-			game.image_url = get_game_image_url(game.slug)
+	if not user_session:
+		return None
+	
+	# Get the users favorite games
+	user_favorite_games = db.query(Game).join(PlayerGameProfile, PlayerGameProfile.game_id == Game.id).filter(PlayerGameProfile.player_id == user_session.id).all()
+	
+	# Append image URLs to the favorite games
+	for game in user_favorite_games:
+		game.image_url = get_game_image_url(game.slug)
 
-		profile_context = {
-			"username": user_session.username,
-			"avatar_url": "/static/img/profiles/default.jpg",  # TODO: Replace
-			"pending_requests": get_friend_requests_count(db, user_session),
-			"favorite_games": user_favorite_games,
-			"platforms": [pf.name for pf in user_session.platforms] if user_session.platforms else [],
-			"playtimes": [pt.name for pt in user_session.playtimes] if user_session.playtimes else [],
-			"languages": [lang.name for lang in user_session.languages] if user_session.languages else [],
-			"region": user_session.profile.region.name if user_session.profile.region else None,
-		}
+	profile_context = {
+		"username": user_session.username,
+		"avatar_url": "/static/img/profiles/default.jpg",  # TODO: Replace
+		"pending_requests": get_friend_requests_count(db, user_session),
+		"favorite_games": user_favorite_games,
+		"platforms": [pf.name for pf in user_session.platforms] if user_session.platforms else [],
+		"playtimes": [pt.name for pt in user_session.playtimes] if user_session.playtimes else [],
+		"languages": [lang.name for lang in user_session.languages] if user_session.languages else [],
+		"region": user_session.profile.region.name if user_session.profile.region else None,
+	}
 
-		return profile_context
-	return None
+	return profile_context
 
 IMG_EXTENSIONS = ("jpg", "png", "webp", "jpeg")
 
@@ -110,6 +111,24 @@ def get_friends(db: Session, user: Player) -> list[Player]:
 		Friendship.accepted == True
 	).distinct().all()
 
+# ==================================
+# Page Routes
+# ==================================
+def http_exception_handler(request: Request, exc: HTTPException, db: Session = Depends(get_db)):
+	"""Custom handler for HTTP exceptions to render a user-friendly error page."""
+
+	return templates.TemplateResponse(
+		request=request,
+		name="error.html",
+		context={
+			"request": request, 
+			"status_code": 
+			exc.status_code, 
+			"message": exc.detail,
+			"profile": create_profile_context(db, request)
+		},
+		status_code=exc.status_code,
+	)
 
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db)):
