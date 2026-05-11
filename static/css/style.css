@@ -603,7 +603,81 @@ main { padding: 32px 0 80px; animation: page-fade-in .4s var(--ease-out) both; }
 
 section { margin-bottom: 48px; }
 
-.game-row { display: flex; gap: 26px; flex-wrap: wrap; }
+.game-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 26px; }
+
+
+/* Section "see all" footer */
+.section-footer {
+	display: flex;
+	justify-content: center;
+	margin-top: 18px;
+}
+
+.see-all-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 22px;
+	font-size: 11px;
+	letter-spacing: .14em;
+	background: transparent;
+	border: 1px solid var(--border);
+	color: var(--text-muted);
+	border-radius: 999px;
+	cursor: pointer;
+	transition: var(--tr-ui);
+}
+
+.see-all-btn:hover {
+	border-color: var(--cyan);
+	color: var(--cyan);
+	background: rgba(0, 240, 255, .06);
+	box-shadow: var(--glow-cyan);
+	transform: none;
+}
+
+/* Hero strip search */
+.hero-search {
+	position: relative;
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.hero-search-icon {
+	position: absolute;
+	left: 11px;
+	color: var(--text-muted);
+	font-size: 16px;
+	pointer-events: none;
+	line-height: 1;
+}
+
+.hero-search-input {
+	background: rgba(26, 26, 50, .6);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	color: var(--text-primary);
+	font-family: var(--font-mono);
+	font-size: 13px;
+	padding: 10px 14px 10px 36px;
+	width: 220px;
+	letter-spacing: .04em;
+	transition: border-color var(--dur-fast) var(--ease-out),
+		background var(--dur-fast) var(--ease-out),
+		box-shadow var(--dur-base) var(--ease-out),
+		width var(--dur-base) var(--ease-out);
+}
+
+.hero-search-input::placeholder { color: var(--text-muted); }
+
+.hero-search-input:focus {
+	outline: none;
+	border-color: var(--cyan);
+	background: var(--card-hover);
+	box-shadow: var(--glow-cyan);
+	width: 300px;
+}
 
 .game-card { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 130px; }
 
@@ -671,9 +745,9 @@ section { margin-bottom: 48px; }
 .game-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 .game-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.game-label { font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: .1em; text-align: center; max-width: 130px; }
-.game-stat { font-family: 'Share Tech Mono', monospace; font-size: 14px; color: var(--cyan); letter-spacing: .04em; }
-.game-stat-label { font-family: 'Orbitron', sans-serif; font-size: 8px; font-weight: 600; color: var(--text-muted); letter-spacing: .2em; text-transform: uppercase; margin-top: 1px; }
+.game-label { font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: .1em; text-align: center; max-width: 130px; min-height: 2.8em; line-height: 1.4; display: flex; align-items: center; justify-content: center; }
+.game-stat { font-family: 'Share Tech Mono', monospace; font-size: 14px; color: var(--cyan); letter-spacing: .04em; text-align: center; }
+.game-stat-label { font-family: 'Orbitron', sans-serif; font-size: 8px; font-weight: 600; color: var(--text-muted); letter-spacing: .2em; text-transform: uppercase; margin-top: 1px; text-align: center; }
 
 /* ============================================================
    Game page
@@ -3248,6 +3322,8 @@ section { margin-bottom: 48px; }
 	.nav-games-shell { gap: 6px; }
 	.spel-title span.spel-name { font-size: 19px; }
 	.hero-strip { grid-template-columns: 1fr; gap: 16px; }
+	.hero-search-input { width: 100%; }
+	.hero-search-input:focus { width: 100%; }
 	.hero-stats { justify-content: flex-start; gap: 22px; }
 	.hero-stat { text-align: left; }
 
@@ -3272,7 +3348,7 @@ section { margin-bottom: 48px; }
 	.players-grid { grid-template-columns: 1fr; }
 	.game-btn,
 	.game-btn-wrap { width: 86px; height: 86px; }
-	.game-row { gap: 18px; }
+	.game-row { gap: 18px; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); }
 	.profile-avatar { width: 96px; height: 96px; }
 	.auth-card { padding: 24px 20px; }
 	.auth-form .field-row { grid-template-columns: 1fr; }
