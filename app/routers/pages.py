@@ -99,6 +99,17 @@ def get_sent_requests(db: Session, user: Player) -> list[Friendship]:
 		Friendship.accepted == False
 	).all()
 
+def is_friend(db: Session, user1: Player, user2: Player) -> bool:
+	"""Check if two users are friends."""
+	if not user1 or not user2:
+		return False
+	
+	return db.query(Friendship).filter(
+		((Friendship.sender_id == user1.id) & (Friendship.receiver_id == user2.id)) |
+		((Friendship.sender_id == user2.id) & (Friendship.receiver_id == user1.id)),
+		Friendship.accepted == True
+	).first() is not None
+
 def get_friends(db: Session, user: Player) -> list[Player]:
 	"""Return a list of friends for the current user."""
 	if not user:
@@ -250,6 +261,10 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 	context = {}
 	
 	current_user = get_user(request, db)
+
+	if current_user is None:
+		# If not logged in, redirect to login page.
+		return RedirectResponse(url="/login", status_code=302)
 	
 	# Fetch the requested player
 	player = db.query(Player).filter(Player.username == username).first()
@@ -272,6 +287,17 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 		"discord": player.profile.discord,
 		"steam": player.profile.steam_url,
 	}
+
+	# add privacy settings:
+	# if the profile is private and the current user is not a friend,
+	# hide the external links and other profile information until they become friends.
+	if player.profile.private == True and not is_own_profile and not is_friend(db, current_user, player):
+		profile["discord"] = "Private"
+		profile["steam"] = "Private"
+		# profile["bio"] = "This profile is private. Send a friend request to view more information about this player."
+		# profile["playtime"] = None
+		# profile["platforms"] = []
+		# profile["languages"] = []
 	
 	# Fetch favorite games with ranks
 	game_profiles = db.query(Game, PlayerGameProfile).join(
