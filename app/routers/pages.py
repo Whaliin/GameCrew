@@ -236,10 +236,13 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 	if not game:
 		raise HTTPException(status_code=404, detail="Game not found")
 	
+	user = get_user(request, db)
+	
 	context["game"] = {
 		"name": game.name,
 		"slug": game.slug,
-		"image_url": get_game_image_url(game.slug)
+		"image_url": get_game_image_url(game.slug),
+		"is_favorite": db.query(PlayerGameProfile).filter(PlayerGameProfile.game_id == game.id, PlayerGameProfile.player_id == user.id).first() is not None if user else False
 	}
 
 	context["age_marks"] = AGE_MARK_LABELS
