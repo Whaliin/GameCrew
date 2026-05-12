@@ -835,7 +835,43 @@ section { margin-bottom: 48px; }
 	transform: none;
 }
 
-.fav-btn .fav-icon { font-size: 16px; line-height: 1; }
+.fav-btn .fav-icon {
+	width: 16px;
+	height: 16px;
+	display: inline-block;
+	flex-shrink: 0;
+	background: currentColor;
+	-webkit-mask: url('/static/img/icons/icon-star-empty.svg') no-repeat center / contain;
+	        mask: url('/static/img/icons/icon-star-empty.svg') no-repeat center / contain;
+}
+.fav-btn.active .fav-icon,
+.fav-btn .fav-icon.is-filled {
+	-webkit-mask-image: url('/static/img/icons/icon-star-filled.svg');
+	        mask-image: url('/static/img/icons/icon-star-filled.svg');
+}
+.fav-btn .fav-icon-profile {
+	-webkit-mask-image: url('/static/img/icons/icon-profile.svg');
+	        mask-image: url('/static/img/icons/icon-profile.svg');
+}
+
+/* Profile schema modal form layout */
+.profile-form-group {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-bottom: 14px;
+}
+.profile-form-label {
+	font-size: 11px;
+	letter-spacing: .1em;
+	text-transform: uppercase;
+	color: var(--text-secondary);
+	font-weight: 600;
+}
+.profile-form-input {
+	width: 100%;
+	box-sizing: border-box;
+}
 
 .fav-btn.active {
 	border-color: var(--purple);
@@ -891,7 +927,15 @@ section { margin-bottom: 48px; }
 	transform: none;
 }
 
-.rank-btn .rank-icon { color: var(--purple); font-size: 11px; }
+.rank-btn .rank-icon {
+	width: 11px;
+	height: 11px;
+	display: inline-block;
+	flex-shrink: 0;
+	background: var(--purple);
+	-webkit-mask: url('/static/img/icons/icon-rank.svg') no-repeat center / contain;
+	        mask: url('/static/img/icons/icon-rank.svg') no-repeat center / contain;
+}
 
 .rank-btn-update .rank-btn-current {
 	font-family: 'Share Tech Mono', monospace;
@@ -930,6 +974,18 @@ section { margin-bottom: 48px; }
 	font-size: 10px;
 	color: var(--orange);
 	letter-spacing: .04em;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+.rank-display-cooldown::before {
+	content: '';
+	width: 12px;
+	height: 12px;
+	display: inline-block;
+	background: currentColor;
+	-webkit-mask: url('/static/img/icons/icon-lock.svg') no-repeat center / contain;
+	        mask: url('/static/img/icons/icon-lock.svg') no-repeat center / contain;
 }
 
 .players-grid {
@@ -1399,6 +1455,15 @@ section { margin-bottom: 48px; }
 	height: 14px;
 	flex-shrink: 0;
 	display: inline-block;
+	background: currentColor;
+}
+.p-action-btn-discord .p-action-icon {
+	-webkit-mask: url('/static/img/icons/icon-discord.svg') no-repeat center / contain;
+	        mask: url('/static/img/icons/icon-discord.svg') no-repeat center / contain;
+}
+.p-action-btn-platform .p-action-icon {
+	-webkit-mask: url('/static/img/icons/icon-platform.svg') no-repeat center / contain;
+	        mask: url('/static/img/icons/icon-platform.svg') no-repeat center / contain;
 }
 
 .p-action-label {
