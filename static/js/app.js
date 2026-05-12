@@ -251,12 +251,13 @@ function createGameIcon(gamePanel, game) {
 	info.appendChild(nameEl);
 
 	const rankEl = document.createElement('div');
-	if (game.rank) {
+	const displayValue = game.display_value || game.rank;
+	if (displayValue) {
 		rankEl.className = 'game-tile-rank';
-		rankEl.textContent = game.rank;
+		rankEl.textContent = displayValue;
 	} else {
 		rankEl.className = 'game-tile-rank unranked';
-		rankEl.textContent = 'Unranked';
+		rankEl.textContent = 'Unknown';
 	}
 	info.appendChild(rankEl);
 

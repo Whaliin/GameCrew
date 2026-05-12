@@ -12,6 +12,7 @@ from app.auth.validation import validate_birth_year, validate_username
 from app.database import get_db
 from app.models import Friendship, Game, Language, Platform, Player, PlayerProfile, PlayerGameProfile, Playtime
 from app.routers.pages import get_game_image_url
+from app.schemas import GameProfileSpec
 
 router = APIRouter(prefix="/api/players", tags=["players"])
 
@@ -94,6 +95,8 @@ def get_player_profile(username: str, db: Session = Depends(get_db)):
 		# For each game profile, get the game info and include any relevant profile data.
 		game = db.query(Game).filter(Game.id == pgp.game_id).first()
 		if game:
+			game_schema = GameProfileSpec.get_schema(game.schema_spec) if game.schema_spec else None
+			display_value = None
 			game_data = {
 				"slug": game.slug,
 				"image_url": get_game_image_url(game.slug),
@@ -101,12 +104,16 @@ def get_player_profile(username: str, db: Session = Depends(get_db)):
 			}
 			# Add game-specific profile data if it exists
 			if pgp.data:
-				# TODO: is it up to the frontend to know what value to display as the primary value?
-				# schema returns DISPLAY_VALUE for the primary value but this is not displayed here. so it assumes the frontend already knows what to display.
 				try:
-					game_data["profile_data"] = json.loads(pgp.data)
+					profile_data = json.loads(pgp.data)
+					game_data["profile_data"] = profile_data
+					if game_schema:
+						display_value = game_schema.get_display_value(profile_data)
+						game_data["display_value"] = display_value
 				except json.JSONDecodeError:
 					pass
+			if display_value is not None:
+				game_data["display_value"] = display_value
 			profile["games"].append(game_data)
 
 	return profile
