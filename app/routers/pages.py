@@ -284,6 +284,7 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 	
 	# Check if viewing own profile
 	is_own_profile = current_user and current_user.id == player.id
+	my_friend = is_friend(db, current_user, player) if current_user else False
 	
 	# Build profile context
 	profile = {
@@ -297,12 +298,13 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 		"languages": [lang.name for lang in player.languages] if player.languages else [],
 		"discord": player.profile.discord,
 		"steam": player.profile.steam_url,
+		"is_friend": my_friend,
 	}
 
 	# add privacy settings:
 	# if the profile is private and the current user is not a friend,
 	# hide the external links and other profile information until they become friends.
-	if player.profile.private == True and not is_own_profile and not is_friend(db, current_user, player):
+	if player.profile.private == True and not is_own_profile and not my_friend:
 		profile["discord"] = "Private"
 		profile["steam"] = "Private"
 		# profile["bio"] = "This profile is private. Send a friend request to view more information about this player."
