@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.hashing import hash_password, verify_password
 from app.auth.sessions import get_session, get_session_id, get_user
-from app.auth.validation import validate_birth_year, validate_username
+from app.auth.validation import validate_birth_year, validate_languages, validate_password, validate_username
 from app.database import get_db
 from app.models import Language, Platform, Player, Playtime, Region
 
@@ -53,6 +53,10 @@ def update_player_account(
 		# validate new password and confirmation
 		if new_password != confirm_password:
 			raise HTTPException(status_code=400, detail="Passwords do not match")
+
+		password_error = validate_password(new_password)
+		if password_error:
+			raise HTTPException(status_code=400, detail="New password does not meet complexity requirements")
 		
 		# verify the current password before allowing the change
 		if not current_password or not verify_password(current_password, user.password_hash):
@@ -127,6 +131,11 @@ def update_player_profile(
 		if languages is not None:
 			# fetch Language objects matching the provided names
 			selected_languages = db.query(Language).filter(Language.name.in_(languages)).all()
+
+			validate_languages_error = validate_languages(db, languages)
+			if validate_languages_error:
+				raise HTTPException(status_code=400, detail=validate_languages_error)
+
 			# replace the collection
 			user.languages = selected_languages
 		
