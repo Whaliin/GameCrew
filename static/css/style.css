@@ -827,6 +827,10 @@ section { margin-bottom: 48px; }
 	transition: var(--tr-ui);
 }
 
+.fav-btn[hidden] {
+	display: none !important;
+}
+
 .fav-btn:hover {
 	border-color: var(--cyan);
 	color: var(--cyan);
