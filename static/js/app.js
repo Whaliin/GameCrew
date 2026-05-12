@@ -503,34 +503,45 @@ function createPlayerCard(player) {
 	actions.addEventListener('click', e => e.stopPropagation());
 	actions.addEventListener('keydown', e => e.stopPropagation());
 
-	const discordBtn = document.createElement('button');
-	discordBtn.type = 'button';
-	discordBtn.className = 'p-action-btn p-action-btn-discord';
-	discordBtn.dataset.discord = player.discord || '';
-	discordBtn.dataset.username = player.username || '';
-	discordBtn.setAttribute('aria-label', `Show Discord for ${player.username || 'player'}`);
-	discordBtn.innerHTML =
-		`<svg class="p-action-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="${DISCORD_SVG_PATH}"/></svg>` +
-		`<span class="p-action-label">Discord</span>`;
-	discordBtn.addEventListener('click', e => showDiscord(e, discordBtn));
+	const friendBtn = document.createElement('button');
+	friendBtn.type = 'button';
+	friendBtn.className = 'p-action-btn p-action-btn-friend';
+	friendBtn.dataset.username = player.username || '';
+	friendBtn.setAttribute('aria-label', `Add ${player.username || 'player'} as friend`);
+	friendBtn.innerHTML =
+		`<span class="p-action-icon" aria-hidden="true"></span>` +
+		`<span class="p-action-label">Add friend</span>`;
+	friendBtn.addEventListener('click', async e => {
+		e.stopPropagation();
+		if (friendBtn.dataset.sent) return;
+		friendBtn.dataset.sent = '1';
+		friendBtn.querySelector('.p-action-label').textContent = 'Sent!';
+		friendBtn.classList.add('p-action-btn-active');
+		friendBtn.disabled = true;
+		try { await addFriend(friendBtn.dataset.username); }
+		catch (err) {
+			friendBtn.querySelector('.p-action-label').textContent = 'Add friend';
+			friendBtn.classList.remove('p-action-btn-active');
+			friendBtn.disabled = false;
+			delete friendBtn.dataset.sent;
+		}
+	});
 
-	const platformBtn = document.createElement('button');
-	platformBtn.type = 'button';
-	platformBtn.className = 'p-action-btn p-action-btn-platform';
-	platformBtn.dataset.platform = player.platform || '';
-	platformBtn.dataset.username = player.username || '';
-	platformBtn.setAttribute('aria-label', `Show platform for ${player.username || 'player'}`);
-	platformBtn.innerHTML =
-		`<svg class="p-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
-			`<rect x="2" y="4" width="20" height="13" rx="2" ry="2"/>` +
-			`<line x1="8" y1="21" x2="16" y2="21"/>` +
-			`<line x1="12" y1="17" x2="12" y2="21"/>` +
-		`</svg>` +
-		`<span class="p-action-label">Platform</span>`;
-	platformBtn.addEventListener('click', e => showPlatform(e, platformBtn));
+	const profileBtn = document.createElement('button');
+	profileBtn.type = 'button';
+	profileBtn.className = 'p-action-btn p-action-btn-profile';
+	profileBtn.dataset.username = player.username || '';
+	profileBtn.setAttribute('aria-label', `Show full profile for ${player.username || 'player'}`);
+	profileBtn.innerHTML =
+		`<span class="p-action-icon" aria-hidden="true"></span>` +
+		`<span class="p-action-label">Show profile</span>`;
+	profileBtn.addEventListener('click', e => {
+		e.stopPropagation();
+		goProfile(profileBtn.dataset.username);
+	});
 
-	actions.appendChild(discordBtn);
-	actions.appendChild(platformBtn);
+	actions.appendChild(friendBtn);
+	actions.appendChild(profileBtn);
 
 	card.appendChild(top);
 	card.appendChild(actions);

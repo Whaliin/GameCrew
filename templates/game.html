@@ -53,7 +53,6 @@
 			<div class="hud-header">
 				<h2>Available players</h2>
 				<div class="hud-line"></div>
-				<div class="hud-count">{{ found_players|length }} found</div>
 			</div>
 
 			<div class="players-grid">
@@ -84,22 +83,20 @@
 					</div>
 
 					<div class="p-actions" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">
-						<button type="button" class="p-action-btn p-action-btn-discord"
-								data-discord="{{ player.discord|default('') }}"
+						<button type="button" class="p-action-btn p-action-btn-friend"
 								data-username="{{ player.username }}"
-								onclick="showDiscord(event, this)"
-								aria-label="Show Discord for {{ player.username }}">
+								onclick="sendFriendRequest(event, this)"
+								aria-label="Add {{ player.username }} as friend">
 							<span class="p-action-icon" aria-hidden="true"></span>
-							<span class="p-action-label">Discord</span>
+							<span class="p-action-label">Add friend</span>
 						</button>
 
-						<button type="button" class="p-action-btn p-action-btn-platform"
-								data-platform="{{ player.platform|default('') }}"
+						<button type="button" class="p-action-btn p-action-btn-profile"
 								data-username="{{ player.username }}"
-								onclick="showPlatform(event, this)"
-								aria-label="Show platform for {{ player.username }}">
+								onclick="goProfile('{{ player.username }}')"
+								aria-label="Show full profile for {{ player.username }}">
 							<span class="p-action-icon" aria-hidden="true"></span>
-							<span class="p-action-label">Platform</span>
+							<span class="p-action-label">Show profile</span>
 						</button>
 					</div>
 				</div>
@@ -289,6 +286,24 @@
 
 {% block extra_scripts %}
 <script>
+	async function sendFriendRequest(event, btn) {
+		event.stopPropagation();
+		const username = btn.dataset.username;
+		if (btn.dataset.sent) return;
+		btn.dataset.sent = '1';
+		btn.querySelector('.p-action-label').textContent = 'Sent!';
+		btn.classList.add('p-action-btn-active');
+		btn.disabled = true;
+		try {
+			await addFriend(username);
+		} catch (e) {
+			btn.querySelector('.p-action-label').textContent = 'Add friend';
+			btn.classList.remove('p-action-btn-active');
+			btn.disabled = false;
+			delete btn.dataset.sent;
+		}
+	}
+
 	(function () {
 		'use strict';
 		const input = document.getElementById('filter-tag-search');
