@@ -213,8 +213,14 @@ def home(request: Request, db: Session = Depends(get_db)):
 
 	context["trending_games"] = [
 		# Get the most popular games among all players
-		{"name": game.name, "slug": game.slug, "image_url": get_game_image_url(game.slug), "player_count": pcount} 
+		{"name": game.name, "slug": game.slug, "image_url": get_game_image_url(game.slug), "player_count": pcount}
 		for game, pcount in most_popular_games
+	]
+
+	all_games_rows = db.query(Game).order_by(Game.name).all()
+	context["all_games"] = [
+		{"name": game.name, "slug": game.slug, "image_url": get_game_image_url(game.slug)}
+		for game in all_games_rows
 	]
 
 	return templates.TemplateResponse(request=request, name="index.html", context=context)
