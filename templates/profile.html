@@ -46,8 +46,10 @@
 			<div class="profile-hero-actions">
 				{% if is_self %}
 				<a href="/settings#profile" class="profile-edit-link">Edit profile</a>
+				{% elif viewing.is_friend %}
+				<p>You are friends with {{ viewing.username }}</p>
 				{% else %}
-				<button type="button" class="btn-primary" onclick="addFriend('{{ viewing.username }}')">Add friend</button>
+				<button type="button" class="btn-primary" onclick="handleAddFriendClick('{{ viewing.username }}', this)">Add friend</button>
 				{% if viewing.discord %}
 				<button type="button" class="btn-secondary"
 					data-discord="{{ viewing.discord }}"

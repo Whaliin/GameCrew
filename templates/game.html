@@ -16,15 +16,19 @@
 					<div class="spel-title-eyebrow">// Game · {{ game.slug }}</div>
 					<span class="spel-name">{{ game.name }}</span>
 				</div>
-				<button id="fav-btn" class="fav-btn" data-fav-slug="{{ game.slug }}" type="button" aria-pressed="false" onclick="toggleFavorite(this)">
-					<span class="fav-icon{% if game.is_favorite %} is-filled{% endif %}" aria-hidden="true"></span>
-					<span class="fav-label">{% if game.is_favorite %}Remove from favorites{% else %}Add to favorites{% endif %}</span>
+				
+				{% if profile %}
+				<button id="fav-btn" 
+						class="fav-btn {% if game.is_favorite %}active{% endif %}" 
+						data-fav-slug="{{ game.slug }}" 
+						type="button"
+						title="Toggle Favorite">
+					<span class="fav-icon"></span>
+					<span class="fav-label">
+						{% if game.is_favorite %}Remove from favorites{% else %}Add to favorites{% endif %}
+					</span>
 				</button>
-
-				<button class="fav-btn" type="button" onclick="openGameProfilePopup()">
-					<span class="fav-icon fav-icon-profile" aria-hidden="true"></span>
-					<span class="fav-label">Set up profile</span>
-				</button>
+				{% endif %}
 
 				{% if current_user %}
 					{% if user_rank and user_rank_locked %}
@@ -85,7 +89,7 @@
 					<div class="p-actions" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">
 						<button type="button" class="p-action-btn p-action-btn-friend"
 								data-username="{{ player.username }}"
-								onclick="sendFriendRequest(event, this)"
+							onclick="handleAddFriendClick(this.dataset.username, this)"
 								aria-label="Add {{ player.username }} as friend">
 							<span class="p-action-icon" aria-hidden="true"></span>
 							<span class="p-action-label">Add friend</span>
@@ -286,24 +290,6 @@
 
 {% block extra_scripts %}
 <script>
-	async function sendFriendRequest(event, btn) {
-		event.stopPropagation();
-		const username = btn.dataset.username;
-		if (btn.dataset.sent) return;
-		btn.dataset.sent = '1';
-		btn.querySelector('.p-action-label').textContent = 'Sent!';
-		btn.classList.add('p-action-btn-active');
-		btn.disabled = true;
-		try {
-			await addFriend(username);
-		} catch (e) {
-			btn.querySelector('.p-action-label').textContent = 'Add friend';
-			btn.classList.remove('p-action-btn-active');
-			btn.disabled = false;
-			delete btn.dataset.sent;
-		}
-	}
-
 	(function () {
 		'use strict';
 		const input = document.getElementById('filter-tag-search');

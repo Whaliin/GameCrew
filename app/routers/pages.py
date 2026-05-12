@@ -118,9 +118,11 @@ def get_friends(db: Session, user: Player) -> list[Player]:
 	# query for players
 	# join on friendships where (sender_id or receiver_id is the user) and accepted is true
 	# distinct to deduplicate
+	# exclude the user themselves from results
 	return db.query(Player).join(Friendship, ((Friendship.receiver_id == Player.id) | (Friendship.sender_id == Player.id))).filter(
 		((Friendship.sender_id == user.id) | (Friendship.receiver_id == user.id)),
-		Friendship.accepted == True
+		Friendship.accepted == True,
+		Player.id != user.id
 	).distinct().all()
 
 # ==================================
@@ -236,10 +238,13 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 	if not game:
 		raise HTTPException(status_code=404, detail="Game not found")
 	
+	user = get_user(request, db)
+	
 	context["game"] = {
 		"name": game.name,
 		"slug": game.slug,
-		"image_url": get_game_image_url(game.slug)
+		"image_url": get_game_image_url(game.slug),
+		"is_favorite": db.query(PlayerGameProfile).filter(PlayerGameProfile.game_id == game.id, PlayerGameProfile.player_id == user.id).first() is not None if user else False
 	}
 
 	context["age_marks"] = AGE_MARK_LABELS
@@ -279,6 +284,7 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 	
 	# Check if viewing own profile
 	is_own_profile = current_user and current_user.id == player.id
+	my_friend = is_friend(db, current_user, player) if current_user else False
 	
 	# Build profile context
 	profile = {
@@ -292,12 +298,13 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 		"languages": [lang.name for lang in player.languages] if player.languages else [],
 		"discord": player.profile.discord,
 		"steam": player.profile.steam_url,
+		"is_friend": my_friend,
 	}
 
 	# add privacy settings:
 	# if the profile is private and the current user is not a friend,
 	# hide the external links and other profile information until they become friends.
-	if player.profile.private == True and not is_own_profile and not is_friend(db, current_user, player):
+	if player.profile.private == True and not is_own_profile and not my_friend:
 		profile["discord"] = "Private"
 		profile["steam"] = "Private"
 		# profile["bio"] = "This profile is private. Send a friend request to view more information about this player."
