@@ -24,15 +24,48 @@ function goProfile(username)   { window.location.href = `/profile/${username}`; 
 
 /* --- API FUNCTIONS --- */
 async function fetchProfile(username) {
-	const response = await fetch(`/api/players/${username}`);
+	const response = await fetch(`/api/players/${encodeURIComponent(username)}`);
 	if (!response.ok) {
-		throw new Error('Network response was not ok');
+		throw new Error(`Profile request failed with status ${response.status}`);
 	}
 	return response.json();
 }
 
 async function addFriend(username) {
-	alert('Feature not implemented yet');
+	const response = await fetch(`/api/players/${encodeURIComponent(username)}/friend`, {
+		method: 'POST',
+	});
+	if (!response.ok && response.status !== 204) {
+		throw new Error(`Friend request failed with status ${response.status}`);
+	}
+}
+
+async function removeFriend(username) {
+	const response = await fetch(`/api/players/${encodeURIComponent(username)}/friend`, {
+		method: 'DELETE',
+	});
+	if (!response.ok && response.status !== 204) {
+		throw new Error(`Remove friend failed with status ${response.status}`);
+	}
+}
+
+async function respondToFriendRequest(username, accept) {
+	const url = `/api/players/${encodeURIComponent(username)}/friend?accept=${accept ? 'true' : 'false'}`;
+	const response = await fetch(url, {
+		method: 'PATCH',
+	});
+	if (!response.ok && response.status !== 204) {
+		throw new Error(`Friend request action failed with status ${response.status}`);
+	}
+}
+
+async function deleteAccount() {
+	const response = await fetch('/delete-account', {
+		method: 'DELETE',
+	});
+	if (!response.ok && response.status !== 302) {
+		throw new Error(`Delete account failed with status ${response.status}`);
+	}
 }
 
 /* --- NAVIGATION SCROLLING --- */
@@ -45,48 +78,14 @@ function scrollNavGames(direction) {
 	track.scrollBy({ left: distance * direction, behavior: 'smooth' });
 }
 
-/* --- FAVORITE GAMES (localStorage-backed for now) --- */
-/*
-	Favorites are persisted client-side under "gamecrew:favorites".
-	When the backend gains a /api/me/favorites endpoint, swap the
-	read/write helpers below to fetch/PUT calls — the rest of the
-	UI logic stays the same.
-*/
-const FAV_STORAGE_KEY = 'gamecrew:favorites';
-
-function readFavorites() {
-	try {
-		const raw = localStorage.getItem(FAV_STORAGE_KEY);
-		const parsed = JSON.parse(raw || '[]');
-		return Array.isArray(parsed) ? parsed : [];
-	} catch (error) {
-		return [];
+/* --- FAVORITE GAMES --- */
+async function setFavoriteState(slug, active) {
+	const response = await fetch(`/api/games/${encodeURIComponent(slug)}/favorite`, {
+		method: active ? 'PUT' : 'DELETE',
+	});
+	if (!response.ok && response.status !== 204) {
+		throw new Error(`Favorite update failed with status ${response.status}`);
 	}
-}
-
-function writeFavorites(slugs) {
-	try {
-		localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(slugs));
-	} catch (error) {
-		console.warn('Could not persist favorites:', error);
-	}
-}
-
-function isFavorite(slug) {
-	return readFavorites().includes(slug);
-}
-
-function toggleFavorite(slug) {
-	const list = readFavorites();
-	const index = list.indexOf(slug);
-	if (index >= 0) {
-		list.splice(index, 1);
-		writeFavorites(list);
-		return false; // no longer a favorite
-	}
-	list.push(slug);
-	writeFavorites(list);
-	return true; // newly favorited
 }
 
 function paintFavoriteButton(button, active) {
@@ -105,29 +104,37 @@ function paintFavoriteButton(button, active) {
 }
 
 function setupFavoriteButton() {
-	const button = document.getElementById('fav-btn');
-	if (!button) {
-		return;
+	// Support two explicit server-rendered buttons: add and remove.
+	const addBtn = document.getElementById('fav-add-btn');
+	const removeBtn = document.getElementById('fav-remove-btn');
+
+	if (!addBtn && !removeBtn) return;
+
+	const slug = (addBtn || removeBtn).dataset.favSlug;
+	if (!slug) return;
+
+	async function handleToggle(isAdd) {
+		try {
+			await setFavoriteState(slug, isAdd);
+			if (isAdd) {
+				if (addBtn) addBtn.hidden = true;
+				if (removeBtn) removeBtn.hidden = false;
+			} else {
+				if (addBtn) addBtn.hidden = false;
+				if (removeBtn) removeBtn.hidden = true;
+			}
+		} catch (error) {
+			console.error('Favorite toggle failed:', error);
+			alert('TODO: favorite toggling needs the /api/games favorite endpoints wired and available.');
+		}
 	}
-	const slug = button.dataset.favSlug;
-	if (!slug) {
-		return;
+
+	if (addBtn) {
+		addBtn.addEventListener('click', event => { event.preventDefault(); handleToggle(true); });
 	}
-
-	paintFavoriteButton(button, isFavorite(slug));
-
-	button.addEventListener('click', () => {
-		/*
-		TODO: use fetch
-		*/
-		const nowActive = toggleFavorite(slug);
-		paintFavoriteButton(button, nowActive);
-
-		// short pulse so the user sees the state change
-		button.classList.remove('is-pulsing');
-		void button.offsetWidth; // force reflow to restart animation
-		button.classList.add('is-pulsing');
-	});
+	if (removeBtn) {
+		removeBtn.addEventListener('click', event => { event.preventDefault(); handleToggle(false); });
+	}
 }
 
 /* --- PROFILE CARD LOGIC --- */
@@ -242,36 +249,15 @@ function setProfileAvatar(elements, data) {
 }
 
 function renderProfileInfoRows(elements, data) {
-	// If we're on a game page (/game/{slug}), show that game's rank prominently
-	const gameSlugMatch = window.location.pathname.match(/^\/game\/([^/]+)/);
-	const currentGameSlug = gameSlugMatch ? gameSlugMatch[1] : null;
-
-	if (currentGameSlug && Array.isArray(data.game_ranks)) {
-		const gameRank = data.game_ranks.find(r => r.game_slug === currentGameSlug);
-		if (gameRank) {
-			const highlight = document.createElement('div');
-			highlight.className = 'info-row info-row-highlight';
-			highlight.innerHTML =
-				'<span class="lbl">' + escapeHtmlText(gameRank.game_name || currentGameSlug) + ' rank</span>' +
-				'<span class="val val-rank">' + escapeHtmlText(gameRank.rank_name) + '</span>';
-			elements.infoBox.appendChild(highlight);
-		}
-	}
-
 	const rows = [
 		['Username',   withFallback(data.username, 'Unknown')],
 		['Region',     withFallback(data.region ? data.region.toUpperCase() : null, 'N/A')],
 		['Age',        withFallback(data.age ? data.age + ' yrs' : data.age_range, 'N/A')],
-		['Platform',   withFallback(data.platform, 'N/A')],
+		['Platform',   Array.isArray(data.platforms) ? data.platforms.join(', ') : withFallback(data.platforms, 'N/A')],
+		['Playtime',   Array.isArray(data.playtimes) ? data.playtimes.join(', ') : withFallback(data.playtimes, 'N/A')],
 		['Languages',  Array.isArray(data.languages) ? data.languages.join(', ') : withFallback(data.languages, 'N/A')],
 	];
 	rows.forEach(([label, value]) => createInfoRow(elements.infoBox, label, value));
-}
-
-function escapeHtmlText(str) {
-	const div = document.createElement('div');
-	div.textContent = String(str);
-	return div.innerHTML;
 }
 
 function renderProfileGames(gamePanel, games) {
@@ -294,8 +280,7 @@ function openProfile(username) {
 	showProfileCard(elements.card, elements.loading);
 	resetProfileCard(elements);
 
-	fetch(`/api/players/${username}`)
-		.then(response => response.json())
+	fetchProfile(username)
 		.then(data => renderProfileData(elements, data))
 		.catch(error => renderProfileError(elements, username, error));
 }
@@ -586,98 +571,10 @@ function showPlatform(event, btn) {
 
 /* ── Rank picker popup — opens from rank button on game page ── */
 function openRankPopup(gameSlug, currentRank) {
-	const ranks = (window.GameCrewRanks && window.GameCrewRanks[gameSlug]) || null;
-
-	if (!ranks || !ranks.length) {
-		showPopup({
-			title: 'No ranks available',
-			body: "This game doesn't have a ranking system configured yet.",
-			variant: 'muted',
-		});
-		return;
-	}
-
-	closePopup();
-
-	const overlay = document.createElement('div');
-	overlay.className = 'info-popup-overlay';
-	overlay.id = 'info-popup-overlay';
-	overlay.setAttribute('role', 'dialog');
-	overlay.setAttribute('aria-modal', 'true');
-
-	const box = document.createElement('div');
-	box.className = 'info-popup info-popup-rank';
-
-	// Close button
-	const closeBtn = document.createElement('button');
-	closeBtn.type = 'button';
-	closeBtn.className = 'info-popup-close';
-	closeBtn.setAttribute('aria-label', 'Close popup');
-	closeBtn.addEventListener('click', closePopup);
-
-	// Header
-	const title = document.createElement('div');
-	title.className = 'info-popup-title';
-	title.textContent = currentRank ? 'Update your rank' : 'Set your rank';
-
-	const note = document.createElement('div');
-	note.className = 'info-popup-note';
-	note.innerHTML = currentRank
-		? 'Current: <strong>' + escapeHtml(currentRank) + '</strong><br>You can change your rank once every 24 hours.'
-		: 'Your rank locks for 24 hours after each change. Pick carefully.';
-
-	box.appendChild(closeBtn);
-	box.appendChild(title);
-	box.appendChild(note);
-
-	// Form with select + submit
-	const form = document.createElement('form');
-	form.method = 'post';
-	form.action = '/game/' + encodeURIComponent(gameSlug) + '/rank';
-	form.className = 'rank-popup-form';
-
-	const selectWrap = document.createElement('div');
-	selectWrap.className = 'select-wrap';
-	const select = document.createElement('select');
-	select.name = 'rank_name';
-	select.required = true;
-
-	const placeholder = document.createElement('option');
-	placeholder.value = '';
-	placeholder.textContent = 'Choose your rank…';
-	placeholder.disabled = true;
-	if (!currentRank) placeholder.selected = true;
-	select.appendChild(placeholder);
-
-	ranks.forEach(rank => {
-		const opt = document.createElement('option');
-		opt.value = rank;
-		opt.textContent = rank;
-		if (rank === currentRank) opt.selected = true;
-		select.appendChild(opt);
-	});
-
-	selectWrap.appendChild(select);
-	form.appendChild(selectWrap);
-
-	const submitBtn = document.createElement('button');
-	submitBtn.type = 'submit';
-	submitBtn.className = 'btn-primary rank-popup-submit';
-	submitBtn.textContent = currentRank ? 'Update rank' : 'Save rank';
-	form.appendChild(submitBtn);
-
-	box.appendChild(form);
-
-	overlay.appendChild(box);
-	document.body.appendChild(overlay);
-	document.body.classList.add('modal-open');
-
-	overlay.addEventListener('click', e => {
-		if (e.target === overlay) closePopup();
-	});
-
-	// Focus the select for keyboard users
-	setTimeout(() => select.focus(), 50);
+	void gameSlug;
+	void currentRank;
+	// TODO: restore the rank picker after the backend exposes a rank options source and save endpoint.
+	alert("TODO: rank editing is disabled until the backend provides rank options and a save route for this game.");
 }
 
 function escapeHtml(str) {
@@ -814,6 +711,375 @@ document.addEventListener('keydown', event => {
 	if (event.key === 'Escape') closePopup();
 });
 
+function showMissingBackendAlert(message) {
+	alert(message);
+}
+
+function setupLandingPage() {
+	const counters = document.querySelectorAll('.lp-stat-num[data-count]');
+	if (!counters.length) {
+		return;
+	}
+
+	function formatStat(el, current) {
+		const suffix   = el.dataset.suffix || '';
+		const divisor  = parseFloat(el.dataset.divisor) || 1;
+		const decimals = parseInt(el.dataset.decimals || '0', 10);
+		const value    = current / divisor;
+		const display  = decimals > 0 ? value.toFixed(decimals) : Math.round(value).toString();
+		el.textContent = display + suffix;
+	}
+
+	function animateCounter(el) {
+		const target   = parseFloat(el.dataset.count);
+		const duration = 1400;
+		const start    = performance.now();
+
+		function tick(now) {
+			const elapsed  = now - start;
+			const progress = Math.min(elapsed / duration, 1);
+			const eased    = 1 - Math.pow(1 - progress, 3);
+			const current  = target * eased;
+			formatStat(el, current);
+			if (progress < 1) requestAnimationFrame(tick);
+			else formatStat(el, target);
+		}
+
+		requestAnimationFrame(tick);
+	}
+
+	if ('IntersectionObserver' in window) {
+		const observer = new IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				if (entry.isIntersecting) {
+					animateCounter(entry.target);
+					observer.unobserve(entry.target);
+				}
+			});
+		}, { threshold: 0.3 });
+
+		counters.forEach(function (el) { observer.observe(el); });
+	} else {
+		counters.forEach(animateCounter);
+	}
+
+	// Live feed removed per project decision — no placeholder or simulated feed.
+}
+
+function setupMultiSelect(root) {
+	const trigger = root.querySelector('.multi-select-trigger');
+	const dropdown = root.querySelector('.multi-select-dropdown');
+	const tagsEl = root.querySelector('[data-tags]');
+	const search = root.querySelector('.multi-select-search');
+	const options = Array.from(root.querySelectorAll('.multi-select-option'));
+	const empty = root.querySelector('.multi-select-empty');
+	const placeholder = '<span class="multi-select-placeholder">Select languages…</span>';
+
+	function escapeText(str) {
+		const div = document.createElement('div');
+		div.textContent = String(str);
+		return div.innerHTML;
+	}
+
+	function renderTags() {
+		const checked = options.filter(o => o.querySelector('input').checked);
+		if (!checked.length) {
+			tagsEl.innerHTML = placeholder;
+			return;
+		}
+		tagsEl.innerHTML = '';
+		checked.forEach(opt => {
+			const value = opt.dataset.value;
+			const chip = document.createElement('span');
+			chip.className = 'multi-select-chip';
+			chip.innerHTML = '<span>' + escapeText(value) + '</span><button type="button" class="multi-select-chip-x" aria-label="Remove ' + escapeText(value) + '">×</button>';
+			chip.querySelector('button').addEventListener('click', e => {
+				e.stopPropagation();
+				opt.querySelector('input').checked = false;
+				renderTags();
+			});
+			tagsEl.appendChild(chip);
+		});
+	}
+
+	function openDropdown() {
+		dropdown.hidden = false;
+		trigger.setAttribute('aria-expanded', 'true');
+		root.classList.add('is-open');
+		if (search) {
+			search.value = '';
+			filterOptions('');
+			setTimeout(() => search.focus(), 50);
+		}
+	}
+
+	function closeDropdown() {
+		dropdown.hidden = true;
+		trigger.setAttribute('aria-expanded', 'false');
+		root.classList.remove('is-open');
+	}
+
+	function filterOptions(query) {
+		const q = (query || '').toLowerCase().trim();
+		let visibleCount = 0;
+		options.forEach(opt => {
+			const value = (opt.dataset.value || '').toLowerCase();
+			const match = !q || value.includes(q);
+			opt.style.display = match ? '' : 'none';
+			if (match) visibleCount++;
+		});
+		if (empty) empty.hidden = visibleCount > 0;
+	}
+
+	trigger.addEventListener('click', e => {
+		e.stopPropagation();
+		if (dropdown.hidden) openDropdown();
+		else closeDropdown();
+	});
+
+	options.forEach(opt => {
+		opt.querySelector('input').addEventListener('change', renderTags);
+	});
+
+	if (search) {
+		search.addEventListener('input', () => filterOptions(search.value));
+		search.addEventListener('click', e => e.stopPropagation());
+		search.addEventListener('keydown', e => {
+			if (e.key === 'Escape') closeDropdown();
+		});
+	}
+
+	document.addEventListener('click', e => {
+		if (!root.contains(e.target)) closeDropdown();
+	});
+
+	renderTags();
+}
+
+function setupSettingsPage() {
+	const links  = document.querySelectorAll('[data-settings-link]');
+	const panels = document.querySelectorAll('[data-settings-panel]');
+
+	if (!links.length || !panels.length) {
+		return;
+	}
+
+	function showPanel(name) {
+		panels.forEach(function (panel) {
+			panel.hidden = panel.dataset.settingsPanel !== name;
+		});
+		links.forEach(function (link) {
+			link.classList.toggle('active', link.dataset.settingsLink === name);
+		});
+	}
+
+	links.forEach(function (link) {
+		link.addEventListener('click', function (event) {
+			event.preventDefault();
+			const name = link.dataset.settingsLink;
+			showPanel(name);
+			history.replaceState(null, '', '#' + name);
+		});
+	});
+
+	const initial = window.location.hash.replace('#', '');
+	if (initial && document.querySelector('[data-settings-panel="' + initial + '"]')) {
+		showPanel(initial);
+	}
+
+	document.querySelectorAll('[data-multi-select]').forEach(setupMultiSelect);
+}
+
+function setupFriendsPage() {
+	const tabs = document.querySelectorAll('[data-tab]');
+	const panels = document.querySelectorAll('[data-panel]');
+
+	if (!tabs.length || !panels.length) {
+		return;
+	}
+
+	function showTab(target) {
+		tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === target));
+		panels.forEach(p => p.hidden = p.dataset.panel !== target);
+	}
+
+	tabs.forEach(tab => {
+		tab.addEventListener('click', () => {
+			const target = tab.dataset.tab;
+			showTab(target);
+			history.replaceState(null, '', '#' + target);
+		});
+	});
+
+	const initial = window.location.hash.replace('#', '');
+	if (initial && document.querySelector('[data-tab="' + initial + '"]')) {
+		showTab(initial);
+	}
+
+	const searchInput = document.getElementById('friends-search-input');
+	if (searchInput) {
+		searchInput.addEventListener('input', () => {
+			const query = searchInput.value.toLowerCase().trim();
+			document.querySelectorAll('[data-panel="all"] .friend-card').forEach(card => {
+				const name = (card.dataset.username || '').toLowerCase();
+				card.style.display = (!query || name.includes(query)) ? '' : 'none';
+			});
+		});
+	}
+}
+
+function setupGamePage() {
+	const gamePage = document.getElementById('page-spel');
+	if (!gamePage) {
+		return;
+	}
+
+	setupGameFiltersSearch();
+	setupFavoriteButton();
+}
+
+async function handleDeleteAccountClick() {
+	const confirmation = prompt('This will permanently delete your account.\nType DELETE to confirm:');
+	if (confirmation !== 'DELETE') {
+		return;
+	}
+
+	try {
+		await deleteAccount();
+		window.location.href = '/';
+	} catch (error) {
+		console.error('Delete account failed:', error);
+		alert('TODO: deleting accounts requires the backend delete route to return a success response for the UI flow.');
+	}
+}
+
+function setupSharedDelegation() {
+	document.addEventListener('click', async event => {
+		const navTarget = event.target.closest('[data-nav-action]');
+		if (navTarget) {
+			const action = navTarget.dataset.navAction;
+			if (action === 'home') goHome();
+			else if (action === 'login') goLogin();
+			else if (action === 'register') goRegister();
+			else if (action === 'back') history.back();
+			else if (action === 'scroll-games-left') scrollNavGames(-1);
+			else if (action === 'scroll-games-right') scrollNavGames(1);
+			else if (action === 'game') goGame(navTarget.dataset.gameSlug);
+			return;
+		}
+
+		const profileTarget = event.target.closest('[data-profile-open]');
+		if (profileTarget) {
+			openProfile(profileTarget.dataset.profileOpen);
+			return;
+		}
+
+		const profileAction = event.target.closest('[data-profile-action]');
+		if (profileAction) {
+			const username = profileAction.dataset.username;
+			const action = profileAction.dataset.profileAction;
+			if (action === 'close') {
+				closeProfile();
+				return;
+			}
+			if (action === 'discord') {
+				showDiscord(event, profileAction);
+			} else if (action === 'platform') {
+				showPlatform(event, profileAction);
+			} else if (action === 'add-friend') {
+				try {
+					await addFriend(username);
+					alert('Friend request sent.');
+				} catch (error) {
+					console.error('Friend request failed:', error);
+					alert('TODO: friend requests need the backend route to stay available.');
+				}
+			}
+			return;
+		}
+
+		const friendAction = event.target.closest('[data-friend-action]');
+		if (friendAction) {
+			const username = friendAction.dataset.username;
+			const action = friendAction.dataset.friendAction;
+			const card = friendAction.closest('.friend-card');
+			try {
+				if (action === 'accept') {
+					await respondToFriendRequest(username, true);
+					adjustPendingBadge(-1);
+				} else if (action === 'ignore') {
+					await respondToFriendRequest(username, false);
+					adjustPendingBadge(-1);
+				} else if (action === 'remove') {
+					await removeFriend(username);
+				}
+				if (card) {
+					card.remove();
+				}
+			} catch (error) {
+				console.error('Friend action failed:', error);
+				alert('TODO: friend actions need the current backend routes to stay available.');
+			}
+			return;
+		}
+
+		const settingsAction = event.target.closest('[data-settings-action]');
+		if (settingsAction && settingsAction.dataset.settingsAction === 'delete-account') {
+			await handleDeleteAccountClick();
+			return;
+		}
+
+		const rankButton = event.target.closest('[data-rank-action]');
+		if (rankButton) {
+			openRankPopup(rankButton.dataset.gameSlug, rankButton.dataset.currentRank || null);
+		}
+	});
+
+	document.addEventListener('keydown', event => {
+		const profileTarget = event.target.closest('[data-profile-open]');
+		if (!profileTarget) {
+			return;
+		}
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			openProfile(profileTarget.dataset.profileOpen);
+		}
+	});
+
+	document.addEventListener('change', event => {
+		const avatarInput = event.target.closest('[data-avatar-input]');
+		if (avatarInput) {
+			previewAvatar(avatarInput);
+		}
+	});
+}
+
+function adjustPendingBadge(delta) {
+	const badge = document.querySelector('.nav-friends-badge');
+	const tabBadge = document.querySelector('[data-tab="pending"] .friends-tab-count');
+	if (!badge && !tabBadge) {
+		return;
+	}
+
+	const current = parseInt(badge?.textContent || tabBadge?.textContent || '0', 10) || 0;
+	const next = Math.max(0, current + delta);
+
+	if (badge) {
+		if (next === 0) {
+			badge.remove();
+		} else {
+			badge.textContent = next;
+		}
+	}
+
+	if (tabBadge) {
+		tabBadge.textContent = next;
+		if (next === 0) {
+			tabBadge.classList.remove('has-pending');
+		}
+	}
+}
+
 function renderPlayersGrid(gridElement, players) {
 	gridElement.innerHTML = '';
 
@@ -855,6 +1121,7 @@ function setupGameFiltersSearch() {
 	}
 
 	let latestRequestId = 0;
+	const tagSearchInput = document.getElementById('filter-tag-search');
 
 	function getSelectedFilterValue(group) {
 		const selected = document.querySelector(`.filter-btn.on[data-filter-group="${group}"]`);
@@ -902,19 +1169,16 @@ function setupGameFiltersSearch() {
 		return schemaFilters;
 	}
 	
-	function getSelectedFilterValues(group) {
-		return Array.from(document.querySelectorAll(`.filter-btn.on[data-filter-group="${group}"]`))
-			.map(btn => btn.dataset.filterValue);
-	}
-
 	const triggerSearch = debounce(async () => {
 		const requestId = ++latestRequestId;
 		playersGrid.innerHTML = '<p>Searching players…</p>';
 	
 		const ageBounds = ageFilterController?.getAgeBounds() ?? { ageLo: null, ageHi: null };
 		const languageSelect = document.getElementById('filter-language');
+		const tagSearch = tagSearchInput?.value?.trim().replace(/^@/, '') || '';
 	
 		const filters = {
+			name_contains: tagSearch || null,
 			age_lo:   ageBounds.ageLo,
 			age_hi:   ageBounds.ageHi,
 			playtime: getSelectedFilterValue('playtime') ? [getSelectedFilterValue('playtime')] : [],
@@ -958,6 +1222,10 @@ function setupGameFiltersSearch() {
 		triggerSearch();
 	});
 
+	if (tagSearchInput) {
+		tagSearchInput.addEventListener('input', triggerSearch);
+	}
+
 	const languageSelect = document.getElementById('filter-language');
 	if (languageSelect) {
 		languageSelect.addEventListener('change', triggerSearch);
@@ -998,5 +1266,38 @@ function setupGameFiltersSearch() {
 	triggerSearch();
 }
 
-setupGameFiltersSearch();
-setupFavoriteButton();
+function previewAvatar(input) {
+	const file = input.files && input.files[0];
+	const filenameEl = document.getElementById('avatar-filename');
+	const previewImg = document.getElementById('avatar-preview-img');
+	if (!file) {
+		return;
+	}
+
+	if (file.size > 2 * 1024 * 1024) {
+		alert('Image is too large. Max 2 MB.');
+		input.value = '';
+		return;
+	}
+
+	if (filenameEl) {
+		filenameEl.textContent = file.name;
+	}
+
+	const reader = new FileReader();
+	reader.onload = e => {
+		if (previewImg) {
+			previewImg.src = e.target.result;
+		}
+	};
+	reader.readAsDataURL(file);
+
+	// TODO: avatar uploads still need the backend multipart endpoint and storage flow.
+	showMissingBackendAlert('TODO: avatar uploads need the backend /api/profile/settings/avatar endpoint before this can save.');
+}
+
+setupLandingPage();
+setupSettingsPage();
+setupFriendsPage();
+setupGamePage();
+setupSharedDelegation();

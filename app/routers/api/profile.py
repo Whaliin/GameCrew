@@ -181,7 +181,7 @@ def update_player_privacy(
 
 	db.commit()
 
-	return RedirectResponse(url="/settings#privacy", status_code=303)
+	return RedirectResponse(url="/settings#visibility", status_code=303)
 	
 @router.post("/settings/avatar")
 def update_player_avatar():

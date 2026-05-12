@@ -19,6 +19,7 @@
 	{% endif %}
 
 	<div class="settings-layout">
+		<!-- SIDEBAR NAV -->
 		<aside class="settings-sidebar">
 			<div class="settings-sidebar-title">// Sections</div>
 			<nav class="settings-nav">
@@ -37,7 +38,10 @@
 			</nav>
 		</aside>
 
+		<!-- PANELS -->
 		<div class="settings-content">
+
+			<!-- ACCOUNT -->
 			<section id="account" class="settings-panel" data-settings-panel="account">
 				<header class="settings-panel-header">
 					<div class="settings-panel-eyebrow">// Account</div>
@@ -77,6 +81,7 @@
 					</div>
 				</form>
 
+				<!-- Collapsible: Account actions -->
 				<div class="settings-divider"></div>
 
 				<details class="settings-collapse">
@@ -108,6 +113,7 @@
 				</details>
 			</section>
 
+			<!-- PROFILE -->
 			<section id="profile" class="settings-panel" data-settings-panel="profile" hidden>
 				<header class="settings-panel-header">
 					<div class="settings-panel-eyebrow">// Profile</div>
@@ -115,6 +121,7 @@
 					<p>What other players see when they open your card.</p>
 				</header>
 
+				<!-- Avatar upload -->
 				<form class="settings-form settings-avatar-form" method="post" action="/api/profile/settings/avatar" enctype="multipart/form-data">
 					<div class="settings-avatar-row">
 						<div class="settings-avatar-preview">
@@ -152,6 +159,7 @@
 							<div class="select-wrap">
 								<select id="set-region" name="region">
 									<option value="">Choose region…</option>
+
 									{% for region in regions %}
 									<option value="{{ region }}" {% if current.region == region %}selected{% endif %}>{{ region }}</option>
 									{% endfor %}
@@ -182,6 +190,7 @@
 									</div>
 								</div>
 							</div>
+						</div>
 
 						<div class="settings-form-group" data-multi-select="platforms">
 							<label class="settings-label">Platforms</label>
@@ -205,6 +214,7 @@
 									</div>
 								</div>
 							</div>
+						</div>
 
 						<div class="settings-form-group" data-multi-select="playtimes">
 							<label class="settings-label">Preferred Playtime</label>
@@ -225,64 +235,59 @@
 								</div>
 							</div>
 						</div>
-
-						<div class="settings-section">
-							<div class="settings-section-header">
-								<h2 class="settings-section-title">Linked Accounts</h2>
-								<p class="settings-section-desc">Connect your gaming profiles to verify your stats</p>
-							</div>
-							<div class="settings-form-grid">
-								<div class="settings-form-group">
-									<label class="settings-label" for="set-discord">Discord</label>
-									<input type="text" id="set-discord" name="discord" value="{{ current.discord or '' }}" placeholder="Username#0000">
-								</div>
-								<div class="settings-form-group">
-									<label class="settings-label" for="set-steam">Steam ID</label>
-									<input type="text" id="set-steam" name="steam" value="{{ current.steam or '' }}" placeholder="76561198...">
-								</div>
-								<div class="settings-form-group">
-									<label class="settings-label" for="set-riot">Riot ID</label>
-									<input type="text" id="set-riot" name="riot" value="{{ current.riot or '' }}" placeholder="Username#TAG">
-								</div>
-							</div>
-						</div>
-
-						<div class="settings-actions">
-							<button type="submit" class="btn btn-primary">Save Changes</button>
-							<button type="reset" class="btn btn-ghost">Discard</button>
-						</div>
-				</form>
-			</section>
-
-			<section id="visibility" class="settings-panel" data-settings-panel="visibility" hidden>
-				<header class="settings-panel-header">
-					<div class="settings-panel-eyebrow">// Visibility</div>
-					<h2>Privacy & Visibility</h2>
-					<p>Control who can find and interact with you.</p>
-				</header>
-
-				<form class="settings-form" method="post" action="/api/profile/settings/visibility">
-					<div class="settings-field">
-						<label class="settings-label" for="set-visibility">Profile Visibility</label>
-						<select id="set-visibility" name="visibility">
-							<option value="public" {% if current.private == false %}selected{% endif %}>Public — Anyone can find you</option>
-							<option value="friends" {% if current.private == true %}selected{% endif %}>Friends — Only friends can see</option>
-						</select>
 					</div>
-
-					<div class="settings-actions">
-						<button type="submit" class="btn-primary">Save visibility</button>
-					</div>
-				</form>
-
-				<div class="settings-divider"></div>
-
-				<div class="settings-danger-zone">
-					<h3 class="danger-title">Danger Zone</h3>
-					<p>Once you delete your account, there is no going back. Please be certain.</p>
-					<button type="button" class="btn btn-danger" data-settings-action="delete-account">Delete Account</button>
 				</div>
-			</section>
+
+				<div class="settings-section">
+					<div class="settings-section-header">
+						<h2 class="settings-section-title">Linked Accounts</h2>
+						<p class="settings-section-desc">Connect your gaming profiles to verify your stats</p>
+					</div>
+					<div class="settings-form-grid">
+						<div class="settings-form-group">
+							<label class="settings-label" for="set-discord">Discord</label>
+							<input type="text" id="set-discord" name="discord" value="{{ current.discord or '' }}" placeholder="Username#0000">
+						</div>
+						<div class="settings-form-group">
+							<label class="settings-label" for="set-steam">Steam ID</label>
+							<input type="text" id="set-steam" name="steam" value="{{ current.steam or '' }}" placeholder="76561198...">
+						</div>
+						<div class="settings-form-group">
+							<label class="settings-label" for="set-riot">Riot ID</label>
+							<input type="text" id="set-riot" name="riot" value="{{ current.riot or '' }}" placeholder="Username#TAG">
+						</div>
+						</div>
+					</div>
+
+				<div class="settings-section">
+					<div class="settings-section-header">
+						<h2 class="settings-section-title">Privacy & Visibility</h2>
+						<p class="settings-section-desc">Control who can find and interact with you</p>
+					</div>
+					<div class="settings-form-grid">
+						<div class="settings-form-group">
+							<label class="settings-label" for="set-visibility">Profile Visibility</label>
+							<select id="set-visibility" name="visibility">
+								<option value="public" {% if current.private == false %}selected{% endif %}>Public — Anyone can find you</option>
+								<option value="private" {% if current.private == true %}selected{% endif %}>Private — Only friends can see</option>
+								<option value="hidden">Hidden — Not shown in searches</option>
+							</select>
+						</div>
+					</div>
+					</div>
+				</div>
+
+				<div class="settings-actions">
+					<button type="submit" class="btn btn-primary">Save Changes</button>
+					<button type="reset" class="btn btn-ghost">Discard</button>
+				</div>
+			</form>
+
+			<div class="settings-danger-zone">
+				<h3 class="danger-title">Danger Zone</h3>
+				<p>Once you delete your account, there is no going back. Please be certain.</p>
+				<button type="button" class="btn btn-danger" data-settings-action="delete-account">Delete Account</button>
+			</div>
 		</div>
 	</div>
 </main>

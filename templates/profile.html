@@ -12,7 +12,7 @@
 
 <main class="profile-page">
 	<div class="back-row">
-		<button type="button" class="back-btn" onclick="history.back()">← Back</button>
+		<button type="button" class="back-btn" data-nav-action="back">← Back</button>
 	</div>
 
 	<!-- HERO -->
@@ -47,18 +47,18 @@
 				{% if is_self %}
 				<a href="/settings#profile" class="profile-edit-link">Edit profile</a>
 				{% else %}
-				<button type="button" class="btn-primary" onclick="addFriend('{{ viewing.username }}')">Add friend</button>
+				<button type="button" class="btn-primary" data-profile-action="add-friend" data-username="{{ viewing.username }}">Add friend</button>
 				{% if viewing.discord %}
 				<button type="button" class="btn-secondary"
 					data-discord="{{ viewing.discord }}"
 					data-username="{{ viewing.username }}"
-					onclick="showDiscord(event, this)">Discord</button>
+					data-profile-action="discord">Discord</button>
 				{% endif %}
 				{% if viewing.platform %}
 				<button type="button" class="btn-secondary"
 					data-platform="{{ viewing.platform }}"
 					data-username="{{ viewing.username }}"
-					onclick="showPlatform(event, this)">Platform</button>
+					data-profile-action="platform">Platform</button>
 				{% endif %}
 				{% endif %}
 			</div>
