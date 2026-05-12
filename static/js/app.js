@@ -74,6 +74,7 @@ async function setFavoriteState(slug, active) {
 
 function setupFavoriteButton() {
     const btn = document.getElementById('fav-btn');
+	if (!btn) return;
 
     btn.addEventListener('click', async (e) => {
         e.preventDefault();
