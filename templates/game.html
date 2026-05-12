@@ -17,6 +17,7 @@
 					<span class="spel-name">{{ game.name }}</span>
 				</div>
 				
+				{% if profile %}
 				<button id="fav-add-btn" class="fav-btn fav-add" data-fav-slug="{{ game.slug }}" type="button" {% if game.is_favorite %}hidden{% endif %}>
 					<span class="fav-icon">☆</span>
 					<span class="fav-label">Add to favorites</span>
@@ -26,6 +27,7 @@
 					<span class="fav-icon">★</span>
 					<span class="fav-label">Remove from favorites</span>
 				</button>
+				{% endif %}
 
 				{% if current_user %}
 					{% if user_rank and user_rank_locked %}

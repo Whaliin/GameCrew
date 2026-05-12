@@ -71,7 +71,6 @@ function paintFavoriteButton(button, active) {
 }
 
 function setupFavoriteButton() {
-	// Support two explicit server-rendered buttons: add and remove.
 	const addBtn = document.getElementById('fav-add-btn');
 	const removeBtn = document.getElementById('fav-remove-btn');
 
