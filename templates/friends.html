@@ -57,7 +57,7 @@
 
 				<div class="friend-card-actions">
 					<button type="button" class="friend-action-btn primary" onclick="openProfile('{{ friend.username }}')">View profile</button>
-					<button type="button" class="friend-action-btn danger" data-username="{{ friend.username }}" onclick="confirmRemoveFriend(this)" aria-label="Remove {{ friend.username }} from friends">Remove</button>
+				<button type="button" class="friend-action-btn danger" data-username="{{ friend.username }}" onclick="handleRemoveFriend(this)" aria-label="Remove {{ friend.username }} from friends">Remove</button>
 				</div>
 			</div>
 			{% endfor %}
@@ -101,10 +101,10 @@
 				</div>
 
 				<div class="friend-card-actions">
-					<button type="button" class="friend-action-btn accept" data-username="{{ req.username }}" onclick="acceptRequest(this)">
+					<button type="button" class="friend-action-btn accept" data-username="{{ req.username }}" onclick="handleAcceptRequest(this)">
 						<span>Accept</span>
 					</button>
-					<button type="button" class="friend-action-btn ignore" data-username="{{ req.username }}" onclick="ignoreRequest(this)">
+					<button type="button" class="friend-action-btn ignore" data-username="{{ req.username }}" onclick="handleIgnoreRequest(this)">
 						<span>Ignore</span>
 					</button>
 				</div>
@@ -162,58 +162,5 @@
 			});
 		}
 	})();
-
-	function acceptRequest(btn) {
-		const username = btn.dataset.username;
-		const card = btn.closest('.friend-card');
-		// TODO: fetch('/friends/accept', { method: 'POST', body: ... })
-		card.classList.add('is-accepted');
-		const actions = card.querySelector('.friend-card-actions');
-		if (actions) {
-			actions.innerHTML = '<div class="friend-action-result accepted">✓ Friend added</div>';
-		}
-		// Decrement pending badge in navbar if present
-		decrementPendingBadge();
-	}
-
-	function ignoreRequest(btn) {
-		const username = btn.dataset.username;
-		const card = btn.closest('.friend-card');
-		// TODO: fetch('/friends/ignore', { method: 'POST', body: ... })
-		card.style.transition = 'opacity .3s ease, transform .3s ease, max-height .3s ease, margin .3s ease, padding .3s ease';
-		card.style.opacity = '0';
-		card.style.transform = 'scale(.95)';
-		setTimeout(() => card.remove(), 300);
-		decrementPendingBadge();
-	}
-
-	function confirmRemoveFriend(btn) {
-		const username = btn.dataset.username;
-		if (!confirm('Remove ' + username + ' from your friends?')) return;
-		const card = btn.closest('.friend-card');
-		// TODO: fetch('/friends/remove', { method: 'POST', body: ... })
-		card.style.transition = 'opacity .3s ease, transform .3s ease';
-		card.style.opacity = '0';
-		card.style.transform = 'scale(.95)';
-		setTimeout(() => card.remove(), 300);
-	}
-
-	function decrementPendingBadge() {
-		const badge = document.querySelector('.nav-friends-badge');
-		if (!badge) return;
-		const current = parseInt(badge.textContent, 10) || 0;
-		const next = Math.max(0, current - 1);
-		if (next === 0) {
-			badge.remove();
-		} else {
-			badge.textContent = next;
-		}
-		// Also update tab count
-		const tabBadge = document.querySelector('[data-tab="pending"] .friends-tab-count');
-		if (tabBadge) {
-			tabBadge.textContent = next;
-			if (next === 0) tabBadge.classList.remove('has-pending');
-		}
-	}
 </script>
 {% endblock %}

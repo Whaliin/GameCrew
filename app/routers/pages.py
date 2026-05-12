@@ -118,9 +118,11 @@ def get_friends(db: Session, user: Player) -> list[Player]:
 	# query for players
 	# join on friendships where (sender_id or receiver_id is the user) and accepted is true
 	# distinct to deduplicate
+	# exclude the user themselves from results
 	return db.query(Player).join(Friendship, ((Friendship.receiver_id == Player.id) | (Friendship.sender_id == Player.id))).filter(
 		((Friendship.sender_id == user.id) | (Friendship.receiver_id == user.id)),
-		Friendship.accepted == True
+		Friendship.accepted == True,
+		Player.id != user.id
 	).distinct().all()
 
 # ==================================
