@@ -669,7 +669,24 @@ function showPlatform(event, btn) {
 
 /* ── Rank picker popup — opens from rank button on game page ── */
 function openRankPopup(gameSlug, currentRank) {
-	const ranks = (window.GameCrewRanks && window.GameCrewRanks[gameSlug]) || null;
+	// Read rank metadata from the DOM to avoid embedding globals
+	const pageEl = document.querySelector('[data-game-slug="' + gameSlug + '"]');
+	let ranks = null;
+	let displayField = null;
+	if (pageEl) {
+		const opts = pageEl.getAttribute('data-rank-options');
+		const df = pageEl.getAttribute('data-rank-display-field');
+		try {
+			ranks = opts ? JSON.parse(opts) : null;
+		} catch (err) {
+			ranks = null;
+		}
+		try {
+			displayField = df && df !== 'null' ? JSON.parse(df) : null;
+		} catch (err) {
+			displayField = df && df !== 'null' ? df : null;
+		}
+	}
 
 	if (!ranks || !ranks.length) {
 		showPopup({
@@ -713,10 +730,8 @@ function openRankPopup(gameSlug, currentRank) {
 	box.appendChild(title);
 	box.appendChild(note);
 
-	// Form with select + submit
+	// Form with select + submit (we handle submit via fetch JSON)
 	const form = document.createElement('form');
-	form.method = 'post';
-	form.action = '/game/' + encodeURIComponent(gameSlug) + '/rank';
 	form.className = 'rank-popup-form';
 
 	const selectWrap = document.createElement('div');
@@ -746,7 +761,7 @@ function openRankPopup(gameSlug, currentRank) {
 	const submitBtn = document.createElement('button');
 	submitBtn.type = 'submit';
 	submitBtn.className = 'btn-primary rank-popup-submit';
-	submitBtn.textContent = currentRank ? 'Update rank' : 'Save rank';
+	submitBtn.textContent = 'Update rank';
 	form.appendChild(submitBtn);
 
 	box.appendChild(form);
@@ -761,6 +776,51 @@ function openRankPopup(gameSlug, currentRank) {
 
 	// Focus the select for keyboard users
 	setTimeout(() => select.focus(), 50);
+
+	// Handle submission via fetch to backend API
+	form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		if (!displayField) {
+			showPopup({ title: 'Update failed', body: 'No display field configured for this game.', variant: 'muted' });
+			return;
+		}
+		const value = select.value;
+		if (!value) return;
+
+		submitBtn.disabled = true;
+		try {
+			const res = await fetch('/api/games/' + encodeURIComponent(gameSlug) + '/info', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ [displayField]: value }),
+			});
+
+			if (res.status === 204) {
+				closePopup();
+				showPopup({ title: 'Rank updated', body: 'Your rank was updated.', variant: 'success' });
+
+				// Update in-page displays for this game (if present)
+				const main = document.querySelector('[data-game-slug="' + gameSlug + '"]');
+				if (main) {
+					const btnCurrent = main.querySelector('.rank-btn-current');
+					if (btnCurrent) btnCurrent.textContent = value;
+					const displayVal = main.querySelector('.rank-display-value');
+					if (displayVal) displayVal.textContent = value;
+				}
+			} else {
+				let errText = 'Could not update rank.';
+				try {
+					const body = await res.json();
+					errText = body.detail || errText;
+				} catch (err) {}
+				showPopup({ title: 'Update failed', body: errText, variant: 'muted' });
+			}
+		} catch (err) {
+			showPopup({ title: 'Update failed', body: 'Network error', variant: 'muted' });
+		} finally {
+			submitBtn.disabled = false;
+		}
+	});
 }
 
 /* ── Game profile modal — only open/close; HTML & fields come from template ── */
@@ -787,6 +847,68 @@ document.addEventListener('keydown', e => {
 document.addEventListener('click', e => {
 	const modal = document.getElementById('profile-schema-modal');
 	if (modal && e.target === modal) closeGameProfilePopup();
+});
+
+// Bind submit handler for server-rendered profile form: serialize selects and POST JSON
+document.addEventListener('DOMContentLoaded', () => {
+	const form = document.getElementById('profile-schema-form');
+	if (!form) return;
+
+	form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const endpoint = form.dataset.apiEndpoint;
+		const displayField = form.dataset.displayField;
+		const submitBtn = form.querySelector('button[type="submit"]');
+		const payload = {};
+
+		form.querySelectorAll('select[name]').forEach(sel => {
+			const name = sel.name;
+			if (sel.multiple) {
+				const vals = Array.from(sel.options).filter(o => o.selected).map(o => o.value);
+				if (vals.length) payload[name] = vals;
+			} else {
+				const v = sel.value;
+				if (v) payload[name] = v;
+			}
+		});
+
+		if (submitBtn) submitBtn.disabled = true;
+		try {
+			const res = await fetch(endpoint, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload),
+			});
+
+			if (res.status === 204) {
+				closeGameProfilePopup();
+				showPopup({ title: 'Profile updated', body: 'Your profile was updated.', variant: 'success' });
+
+				if (displayField && payload[displayField]) {
+					const main = document.querySelector('[data-game-slug]');
+					if (main) {
+						const btnCurrent = main.querySelector('.rank-btn-current');
+						const displayVal = main.querySelector('.rank-display-value');
+						const newVal = Array.isArray(payload[displayField]) ? payload[displayField].join(', ') : payload[displayField];
+						if (btnCurrent) btnCurrent.textContent = newVal;
+						if (displayVal) displayVal.textContent = newVal;
+					}
+				}
+			} else {
+				let errText = 'Could not update profile.';
+				try {
+					const body = await res.json();
+					errText = body.detail || errText;
+				} catch (err) {}
+				showPopup({ title: 'Update failed', body: errText, variant: 'muted' });
+			}
+		} catch (err) {
+			showPopup({ title: 'Update failed', body: 'Network error', variant: 'muted' });
+		} finally {
+			if (submitBtn) submitBtn.disabled = false;
+		}
+	});
 });
 
 function escapeHtml(str) {

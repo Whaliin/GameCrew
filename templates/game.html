@@ -5,7 +5,8 @@
 {% block content %}
 {% include "partials/navbar.html" %}
 
-<main id="page-spel" class="wrapper" data-game-slug="{{ game.slug }}">
+<main id="page-spel" class="wrapper" data-game-slug="{{ game.slug }}"
+	  {% if rank_options_json is defined %}data-rank-options='{{ rank_options_json | safe }}' data-rank-display-field='{{ rank_display_field_json | safe if rank_display_field_json is defined else "null" }}' data-user-rank='{{ user_rank_json | safe if user_rank_json is defined else "null" }}'{% endif %}>
 	<div class="spel-layout">
 		<div>
 			<button class="back-btn" onclick="goHome()">← Back</button>
@@ -30,7 +31,7 @@
 				</button>
 				{% endif %}
 
-				{% if current_user %}
+				{% if profile %}
 					{% if user_rank and user_rank_locked %}
 					<!-- Rank set + still on cooldown: show as static pill, no button -->
 					<div class="rank-display rank-locked" title="You can update your rank again in {{ user_rank_remaining_hours }}h">
@@ -39,16 +40,16 @@
 						<span class="rank-display-cooldown">{{ user_rank_remaining_hours }}h</span>
 					</div>
 					{% elif user_rank %}
-					<!-- Rank set, cooldown expired: show clickable button -->
-					<button class="rank-btn rank-btn-update" type="button" onclick="openRankPopup('{{ game.slug }}', '{{ user_rank }}')"> 
-						<span class="rank-btn-label">Update rank</span>
+					<!-- Rank set, cooldown expired: show server-rendered profile editor button -->
+					<button class="rank-btn rank-btn-update" type="button" onclick="openGameProfilePopup()"> 
+						<span class="rank-btn-label">Edit profile</span>
 						<span class="rank-btn-current">{{ user_rank }}</span>
 					</button>
 					{% else %}
 					<!-- No rank set yet -->
-					<button class="rank-btn rank-btn-set" type="button" onclick="openRankPopup('{{ game.slug }}', null)">
+					<button class="rank-btn rank-btn-set" type="button" onclick="openGameProfilePopup()">
 						<span class="rank-icon" aria-hidden="true"></span>
-						<span>Set my rank</span>
+						<span>Edit profile</span>
 					</button>
 					{% endif %}
 				{% endif %}
@@ -255,31 +256,35 @@
 		</div>
 
 		{% if game_form_schema and game_form_schema.fields %}
-		<form method="post" action="/game/{{ game.slug }}/profile" class="rank-popup-form">
+		<form id="profile-schema-form" method="post" action="/api/games/{{ game.slug }}/info" class="rank-popup-form" data-api-endpoint="/api/games/{{ game.slug }}/info" data-display-field="{{ game_form_schema.display_field if game_form_schema is defined else '' }}">
 			{% for field_name, field_meta in game_form_schema.fields.items() %}
 				{% set rules = field_meta.validation %}
+				{% set current = game_profile_data.get(field_name) if game_profile_data is defined else none %}
 				<div class="profile-form-group">
-					<label class="profile-form-label">{{ field_name|replace('_', ' ')|title }}</label>
+					<label class="profile-form-label" for="field-{{ field_name }}">{{ field_name|replace('_', ' ')|title }}</label>
 
 					{% if rules.allowedvalues %}
 					<div class="select-wrap">
-						<select name="{{ field_name }}">
-							<option value="" disabled selected>Choose {{ field_name|replace('_', ' ') }}…</option>
+						{% if rules.multi %}
+						<select id="field-{{ field_name }}" name="{{ field_name }}" multiple aria-label="{{ field_name|replace('_', ' ')|title }}">
 							{% for option in rules.allowedvalues %}
-							<option value="{{ option }}">{{ option }}</option>
+							<option value="{{ option }}" {% if current and option in current %}selected{% endif %}>{{ option }}</option>
 							{% endfor %}
 						</select>
+						{% else %}
+						<select id="field-{{ field_name }}" name="{{ field_name }}" aria-label="{{ field_name|replace('_', ' ')|title }}">
+							<option value="" {% if not current %}selected{% endif %} disabled>Choose {{ field_name|replace('_', ' ') }}…</option>
+							{% for option in rules.allowedvalues %}
+							<option value="{{ option }}" {% if current == option %}selected{% endif %}>{{ option }}</option>
+							{% endfor %}
+						</select>
+						{% endif %}
 					</div>
-
-					{% elif rules.max_length %}
-					<input type="text" name="{{ field_name }}" maxlength="{{ rules.max_length }}"
-						   placeholder="{{ field_name|replace('_', ' ')|title }}…"
-						   class="filter-search-input profile-form-input">
 					{% endif %}
 				</div>
 			{% endfor %}
 
-			<button type="submit" class="btn-primary rank-popup-submit">Save profile</button>
+			<button type="submit" class="btn-primary rank-popup-submit">Update profile</button>
 		</form>
 		{% else %}
 		<div class="info-popup-note">No profile fields configured for this game.</div>
