@@ -17,13 +17,13 @@
 					<span class="spel-name">{{ game.name }}</span>
 				</div>
 				<button id="fav-btn" class="fav-btn" data-fav-slug="{{ game.slug }}" type="button" aria-pressed="false" onclick="toggleFavorite(this)">
-					{% if game.is_favorite %}
-					<span class="fav-icon">★</span>
-					<span class="fav-label">Remove from favorites</span>
-					{% else %}
-					<span class="fav-icon">☆</span>
-					<span class="fav-label">Add to favorites</span>
-					{% endif %}
+					<span class="fav-icon{% if game.is_favorite %} is-filled{% endif %}" aria-hidden="true"></span>
+					<span class="fav-label">{% if game.is_favorite %}Remove from favorites{% else %}Add to favorites{% endif %}</span>
+				</button>
+
+				<button class="fav-btn" type="button" onclick="openGameProfilePopup()">
+					<span class="fav-icon fav-icon-profile" aria-hidden="true"></span>
+					<span class="fav-label">Set up profile</span>
 				</button>
 
 				{% if current_user %}
@@ -32,7 +32,7 @@
 					<div class="rank-display rank-locked" title="You can update your rank again in {{ user_rank_remaining_hours }}h">
 						<span class="rank-display-label">My rank</span>
 						<span class="rank-display-value">{{ user_rank }}</span>
-						<span class="rank-display-cooldown">🔒 {{ user_rank_remaining_hours }}h</span>
+						<span class="rank-display-cooldown">{{ user_rank_remaining_hours }}h</span>
 					</div>
 					{% elif user_rank %}
 					<!-- Rank set, cooldown expired: show clickable button -->
@@ -43,7 +43,7 @@
 					{% else %}
 					<!-- No rank set yet -->
 					<button class="rank-btn rank-btn-set" type="button" onclick="openRankPopup('{{ game.slug }}', null)">
-						<span class="rank-icon">◆</span>
+						<span class="rank-icon" aria-hidden="true"></span>
 						<span>Set my rank</span>
 					</button>
 					{% endif %}
@@ -89,7 +89,7 @@
 								data-username="{{ player.username }}"
 								onclick="showDiscord(event, this)"
 								aria-label="Show Discord for {{ player.username }}">
-							<svg class="p-action-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.099.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.029zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+							<span class="p-action-icon" aria-hidden="true"></span>
 							<span class="p-action-label">Discord</span>
 						</button>
 
@@ -98,11 +98,7 @@
 								data-username="{{ player.username }}"
 								onclick="showPlatform(event, this)"
 								aria-label="Show platform for {{ player.username }}">
-							<svg class="p-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-								<rect x="2" y="4" width="20" height="13" rx="2" ry="2"/>
-								<line x1="8" y1="21" x2="16" y2="21"/>
-								<line x1="12" y1="17" x2="12" y2="21"/>
-							</svg>
+							<span class="p-action-icon" aria-hidden="true"></span>
 							<span class="p-action-label">Platform</span>
 						</button>
 					</div>
@@ -248,6 +244,47 @@
 	</div>
 </main>
 {% include "partials/profile-modal.html" %}
+
+<!-- Game profile modal — fields filled in by backend via game_form_schema -->
+<div id="profile-schema-modal" class="info-popup-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
+	<div class="info-popup info-popup-rank">
+		<button type="button" class="info-popup-close" onclick="closeGameProfilePopup()" aria-label="Close"></button>
+		<div class="info-popup-title">
+			{% if game_form_schema %}{{ game_form_schema.game_name }} — Profile{% else %}Set game profile{% endif %}
+		</div>
+
+		{% if game_form_schema and game_form_schema.fields %}
+		<form method="post" action="/game/{{ game.slug }}/profile" class="rank-popup-form">
+			{% for field_name, field_meta in game_form_schema.fields.items() %}
+				{% set rules = field_meta.validation %}
+				<div class="profile-form-group">
+					<label class="profile-form-label">{{ field_name|replace('_', ' ')|title }}</label>
+
+					{% if rules.allowedvalues %}
+					<div class="select-wrap">
+						<select name="{{ field_name }}">
+							<option value="" disabled selected>Choose {{ field_name|replace('_', ' ') }}…</option>
+							{% for option in rules.allowedvalues %}
+							<option value="{{ option }}">{{ option }}</option>
+							{% endfor %}
+						</select>
+					</div>
+
+					{% elif rules.max_length %}
+					<input type="text" name="{{ field_name }}" maxlength="{{ rules.max_length }}"
+						   placeholder="{{ field_name|replace('_', ' ')|title }}…"
+						   class="filter-search-input profile-form-input">
+					{% endif %}
+				</div>
+			{% endfor %}
+
+			<button type="submit" class="btn-primary rank-popup-submit">Save profile</button>
+		</form>
+		{% else %}
+		<div class="info-popup-note">No profile fields configured for this game.</div>
+		{% endif %}
+	</div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
