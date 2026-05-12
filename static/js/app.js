@@ -45,48 +45,14 @@ function scrollNavGames(direction) {
 	track.scrollBy({ left: distance * direction, behavior: 'smooth' });
 }
 
-/* --- FAVORITE GAMES (localStorage-backed for now) --- */
-/*
-	Favorites are persisted client-side under "gamecrew:favorites".
-	When the backend gains a /api/me/favorites endpoint, swap the
-	read/write helpers below to fetch/PUT calls — the rest of the
-	UI logic stays the same.
-*/
-const FAV_STORAGE_KEY = 'gamecrew:favorites';
-
-function readFavorites() {
-	try {
-		const raw = localStorage.getItem(FAV_STORAGE_KEY);
-		const parsed = JSON.parse(raw || '[]');
-		return Array.isArray(parsed) ? parsed : [];
-	} catch (error) {
-		return [];
+/* --- FAVORITE GAMES --- */
+async function setFavoriteState(slug, active) {
+	const response = await fetch(`/api/games/${encodeURIComponent(slug)}/favorite`, {
+		method: active ? 'PUT' : 'DELETE',
+	});
+	if (!response.ok && response.status !== 204) {
+		throw new Error(`Favorite update failed with status ${response.status}`);
 	}
-}
-
-function writeFavorites(slugs) {
-	try {
-		localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(slugs));
-	} catch (error) {
-		console.warn('Could not persist favorites:', error);
-	}
-}
-
-function isFavorite(slug) {
-	return readFavorites().includes(slug);
-}
-
-function toggleFavorite(slug) {
-	const list = readFavorites();
-	const index = list.indexOf(slug);
-	if (index >= 0) {
-		list.splice(index, 1);
-		writeFavorites(list);
-		return false; // no longer a favorite
-	}
-	list.push(slug);
-	writeFavorites(list);
-	return true; // newly favorited
 }
 
 function paintFavoriteButton(button, active) {
@@ -97,7 +63,7 @@ function paintFavoriteButton(button, active) {
 	button.setAttribute('aria-pressed', active ? 'true' : 'false');
 
 	if (icon) {
-		icon.classList.toggle('is-filled', active);
+		icon.textContent = active ? '★' : '☆';
 	}
 	if (label) {
 		label.textContent = active ? 'Remove from favorites' : 'Add to favorites';
@@ -105,29 +71,37 @@ function paintFavoriteButton(button, active) {
 }
 
 function setupFavoriteButton() {
-	const button = document.getElementById('fav-btn');
-	if (!button) {
-		return;
+	// Support two explicit server-rendered buttons: add and remove.
+	const addBtn = document.getElementById('fav-add-btn');
+	const removeBtn = document.getElementById('fav-remove-btn');
+
+	if (!addBtn && !removeBtn) return;
+
+	const slug = (addBtn || removeBtn).dataset.favSlug;
+	if (!slug) return;
+
+	async function handleToggle(isAdd) {
+		try {
+			await setFavoriteState(slug, isAdd);
+			if (isAdd) {
+				if (addBtn) addBtn.hidden = true;
+				if (removeBtn) removeBtn.hidden = false;
+			} else {
+				if (addBtn) addBtn.hidden = false;
+				if (removeBtn) removeBtn.hidden = true;
+			}
+		} catch (error) {
+			console.error('Favorite toggle failed:', error);
+			alert('An error occurred while updating your favorites. Please try again.');
+		}
 	}
-	const slug = button.dataset.favSlug;
-	if (!slug) {
-		return;
+
+	if (addBtn) {
+		addBtn.addEventListener('click', event => { event.preventDefault(); handleToggle(true); });
 	}
-
-	paintFavoriteButton(button, isFavorite(slug));
-
-	button.addEventListener('click', () => {
-		/*
-		TODO: use fetch
-		*/
-		const nowActive = toggleFavorite(slug);
-		paintFavoriteButton(button, nowActive);
-
-		// short pulse so the user sees the state change
-		button.classList.remove('is-pulsing');
-		void button.offsetWidth; // force reflow to restart animation
-		button.classList.add('is-pulsing');
-	});
+	if (removeBtn) {
+		removeBtn.addEventListener('click', event => { event.preventDefault(); handleToggle(false); });
+	}
 }
 
 /* --- PROFILE CARD LOGIC --- */
