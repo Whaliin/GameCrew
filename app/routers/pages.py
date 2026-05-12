@@ -4,7 +4,6 @@
 # ==================================
 
 import json
-from urllib import request
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
