@@ -680,6 +680,32 @@ function openRankPopup(gameSlug, currentRank) {
 	setTimeout(() => select.focus(), 50);
 }
 
+/* ── Game profile modal — only open/close; HTML & fields come from template ── */
+function openGameProfilePopup() {
+	const modal = document.getElementById('profile-schema-modal');
+	if (!modal) return;
+	modal.classList.remove('hidden');
+	modal.setAttribute('aria-hidden', 'false');
+	document.body.classList.add('modal-open');
+}
+
+function closeGameProfilePopup() {
+	const modal = document.getElementById('profile-schema-modal');
+	if (!modal) return;
+	modal.classList.add('hidden');
+	modal.setAttribute('aria-hidden', 'true');
+	document.body.classList.remove('modal-open');
+}
+
+// Close on Esc and overlay click
+document.addEventListener('keydown', e => {
+	if (e.key === 'Escape') closeGameProfilePopup();
+});
+document.addEventListener('click', e => {
+	const modal = document.getElementById('profile-schema-modal');
+	if (modal && e.target === modal) closeGameProfilePopup();
+});
+
 function escapeHtml(str) {
 	const div = document.createElement('div');
 	div.textContent = String(str);
