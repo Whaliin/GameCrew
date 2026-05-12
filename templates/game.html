@@ -287,20 +287,3 @@
 	</div>
 </div>
 {% endblock %}
-
-{% block extra_scripts %}
-<script>
-	(function () {
-		'use strict';
-		const input = document.getElementById('filter-tag-search');
-		if (!input) return;
-		input.addEventListener('input', () => {
-			const q = input.value.toLowerCase().trim().replace(/^@/, '');
-			document.querySelectorAll('.player-card').forEach(card => {
-				const name = (card.querySelector('.p-name')?.textContent || '').toLowerCase();
-				card.style.display = (!q || name.includes(q)) ? '' : 'none';
-			});
-		});
-	})();
-</script>
-{% endblock %}

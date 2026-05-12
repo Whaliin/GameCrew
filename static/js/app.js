@@ -1107,3 +1107,215 @@ function setupGameFiltersSearch() {
 
 setupGameFiltersSearch();
 setupFavoriteButton();
+
+function setupHashTabs(options) {
+	const tabSelector = options.tabSelector;
+	const panelSelector = options.panelSelector;
+	const tabDataKey = options.tabDataKey;
+	const panelDataKey = options.panelDataKey;
+
+	const tabs = document.querySelectorAll(tabSelector);
+	const panels = document.querySelectorAll(panelSelector);
+	if (!tabs.length || !panels.length) {
+		return null;
+	}
+
+	function showTab(target) {
+		tabs.forEach(tab => {
+			tab.classList.toggle('active', tab.dataset[tabDataKey] === target);
+		});
+		panels.forEach(panel => {
+			panel.hidden = panel.dataset[panelDataKey] !== target;
+		});
+	}
+
+	tabs.forEach(tab => {
+		tab.addEventListener('click', event => {
+			event.preventDefault();
+			const target = tab.dataset[tabDataKey];
+			showTab(target);
+			history.replaceState(null, '', '#' + target);
+		});
+	});
+
+	const initial = window.location.hash.replace('#', '');
+	if (initial && document.querySelector(tabSelector + '[data-' + tabDataKey.replace(/[A-Z]/g, match => '-' + match.toLowerCase()) + '="' + initial + '"]')) {
+		showTab(initial);
+	}
+
+	return showTab;
+}
+
+function setupGameTagSearch() {
+	const input = document.getElementById('filter-tag-search');
+	if (!input) return;
+
+	input.addEventListener('input', () => {
+		const query = input.value.toLowerCase().trim().replace(/^@/, '');
+		document.querySelectorAll('.player-card').forEach(card => {
+			const name = (card.querySelector('.p-name')?.textContent || '').toLowerCase();
+			card.style.display = (!query || name.includes(query)) ? '' : 'none';
+		});
+	});
+}
+
+function setupFriendsPage() {
+	setupHashTabs({
+		tabSelector: '[data-tab]',
+		panelSelector: '[data-panel]',
+		tabDataKey: 'tab',
+		panelDataKey: 'panel',
+	});
+
+	const searchInput = document.getElementById('friends-search-input');
+	if (searchInput) {
+		searchInput.addEventListener('input', () => {
+			const query = searchInput.value.toLowerCase().trim();
+			document.querySelectorAll('[data-panel="all"] .friend-card').forEach(card => {
+				const name = (card.dataset.username || '').toLowerCase();
+				card.style.display = (!query || name.includes(query)) ? '' : 'none';
+			});
+		});
+	}
+}
+
+function setupMultiSelect(root) {
+	const trigger = root.querySelector('.multi-select-trigger');
+	const dropdown = root.querySelector('.multi-select-dropdown');
+	const tagsEl = root.querySelector('[data-tags]');
+	const search = root.querySelector('.multi-select-search');
+	const options = Array.from(root.querySelectorAll('.multi-select-option'));
+	const empty = root.querySelector('.multi-select-empty');
+	const placeholder = '<span class="multi-select-placeholder">Select languages…</span>';
+
+	function escapeText(str) {
+		const div = document.createElement('div');
+		div.textContent = String(str);
+		return div.innerHTML;
+	}
+
+	function renderTags() {
+		const checked = options.filter(option => option.querySelector('input').checked);
+		if (!checked.length) {
+			tagsEl.innerHTML = placeholder;
+			return;
+		}
+
+		tagsEl.innerHTML = '';
+		checked.forEach(option => {
+			const value = option.dataset.value;
+			const chip = document.createElement('span');
+			chip.className = 'multi-select-chip';
+			chip.innerHTML = '<span>' + escapeText(value) + '</span><button type="button" class="multi-select-chip-x" aria-label="Remove ' + escapeText(value) + '">×</button>';
+			chip.querySelector('button').addEventListener('click', event => {
+				event.stopPropagation();
+				option.querySelector('input').checked = false;
+				renderTags();
+			});
+			tagsEl.appendChild(chip);
+		});
+	}
+
+	function openDropdown() {
+		dropdown.hidden = false;
+		trigger.setAttribute('aria-expanded', 'true');
+		root.classList.add('is-open');
+		if (search) {
+			search.value = '';
+			filterOptions('');
+			setTimeout(() => search.focus(), 50);
+		}
+	}
+
+	function closeDropdown() {
+		dropdown.hidden = true;
+		trigger.setAttribute('aria-expanded', 'false');
+		root.classList.remove('is-open');
+	}
+
+	function filterOptions(query) {
+		const normalizedQuery = (query || '').toLowerCase().trim();
+		let visibleCount = 0;
+		options.forEach(option => {
+			const value = (option.dataset.value || '').toLowerCase();
+			const match = !normalizedQuery || value.includes(normalizedQuery);
+			option.style.display = match ? '' : 'none';
+			if (match) visibleCount++;
+		});
+		if (empty) empty.hidden = visibleCount > 0;
+	}
+
+	trigger.addEventListener('click', event => {
+		event.stopPropagation();
+		if (dropdown.hidden) openDropdown();
+		else closeDropdown();
+	});
+
+	options.forEach(option => {
+		option.querySelector('input').addEventListener('change', renderTags);
+	});
+
+	if (search) {
+		search.addEventListener('input', () => filterOptions(search.value));
+		search.addEventListener('click', event => event.stopPropagation());
+		search.addEventListener('keydown', event => {
+			if (event.key === 'Escape') closeDropdown();
+		});
+	}
+
+	document.addEventListener('click', event => {
+		if (!root.contains(event.target)) closeDropdown();
+	});
+
+	renderTags();
+}
+
+function setupSettingsPage() {
+	setupHashTabs({
+		tabSelector: '[data-settings-link]',
+		panelSelector: '[data-settings-panel]',
+		tabDataKey: 'settingsLink',
+		panelDataKey: 'settingsPanel',
+	});
+
+	document.querySelectorAll('[data-multi-select]').forEach(setupMultiSelect);
+}
+
+function confirmDeleteAccount() {
+	const confirmation = prompt('This will permanently delete your account.\nType DELETE to confirm:');
+	if (confirmation === 'DELETE') {
+		alert('Account deletion not implemented yet');
+	}
+}
+
+function previewAvatar(input) {
+	const file = input.files && input.files[0];
+	const filenameEl = document.getElementById('avatar-filename');
+	const previewImg = document.getElementById('avatar-preview-img');
+	if (!file) return;
+
+	if (file.size > 2 * 1024 * 1024) {
+		alert('Image is too large. Max 2 MB.');
+		input.value = '';
+		return;
+	}
+
+	if (filenameEl) {
+		filenameEl.textContent = file.name;
+	}
+
+	const reader = new FileReader();
+	reader.onload = event => {
+		if (previewImg) {
+			previewImg.src = event.target.result;
+		}
+		if (input.form) {
+			input.form.submit();
+		}
+	};
+	reader.readAsDataURL(file);
+}
+
+setupGameTagSearch();
+setupFriendsPage();
+setupSettingsPage();
