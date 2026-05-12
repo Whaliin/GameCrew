@@ -97,7 +97,7 @@ function paintFavoriteButton(button, active) {
 	button.setAttribute('aria-pressed', active ? 'true' : 'false');
 
 	if (icon) {
-		icon.textContent = active ? '★' : '☆';
+		icon.classList.toggle('is-filled', active);
 	}
 	if (label) {
 		label.textContent = active ? 'Remove from favorites' : 'Add to favorites';
