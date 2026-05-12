@@ -242,7 +242,8 @@ def seed_player_profiles() -> None:
 			platforms_sample = sample(platforms, k=_pick_sample_size(len(platforms)))
 			player.platforms.extend(platforms_sample)
 
-			languages_sample = sample(languages, k=_pick_sample_size(len(languages)))
+			# Limit max languages to 3
+			languages_sample = sample(languages, k=_pick_sample_size(3))
 			player.languages.extend(languages_sample)
 
 			playtimes_sample = sample(playtimes, k=_pick_sample_size(len(playtimes)))
