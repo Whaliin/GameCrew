@@ -47,61 +47,51 @@ function scrollNavGames(direction) {
 
 /* --- FAVORITE GAMES --- */
 async function setFavoriteState(slug, active) {
-	const response = await fetch(`/api/games/${encodeURIComponent(slug)}/favorite`, {
-		method: active ? 'PUT' : 'DELETE',
-	});
-	if (!response.ok && response.status !== 204) {
-		throw new Error(`Favorite update failed with status ${response.status}`);
-	}
-}
-
-function paintFavoriteButton(button, active) {
-	const icon  = button.querySelector('.fav-icon');
-	const label = button.querySelector('.fav-label');
-
-	button.classList.toggle('active', active);
-	button.setAttribute('aria-pressed', active ? 'true' : 'false');
-
-	if (icon) {
-		icon.textContent = active ? '★' : '☆';
-	}
-	if (label) {
-		label.textContent = active ? 'Remove from favorites' : 'Add to favorites';
+    const response = await fetch(`/api/games/${encodeURIComponent(slug)}/favorite`, {
+        method: active ? 'PUT' : 'DELETE',
+    });
+    if (!response.ok && response.status !== 204) {
+		throw new Error('Failed to update favorite state: status ' + response.status);
 	}
 }
 
 function setupFavoriteButton() {
-	const addBtn = document.getElementById('fav-add-btn');
-	const removeBtn = document.getElementById('fav-remove-btn');
+    const btn = document.getElementById('fav-btn');
 
-	if (!addBtn && !removeBtn) return;
+    btn.addEventListener('click', async (e) => {
+        e.preventDefault();
 
-	const slug = (addBtn || removeBtn).dataset.favSlug;
-	if (!slug) return;
+		if (btn.disabled) return; // prevent multiple clicks while processing
+        
+        const slug = btn.dataset.favSlug;
+        const isCurrentlyActive = btn.classList.contains('active');
+        const newState = !isCurrentlyActive; // toggle the state
 
-	async function handleToggle(isAdd) {
-		try {
-			await setFavoriteState(slug, isAdd);
-			if (isAdd) {
-				if (addBtn) addBtn.hidden = true;
-				if (removeBtn) removeBtn.hidden = false;
-			} else {
-				if (addBtn) addBtn.hidden = false;
-				if (removeBtn) removeBtn.hidden = true;
-			}
-		} catch (error) {
-			console.error('Favorite toggle failed:', error);
-			alert('An error occurred while updating your favorites. Please try again.');
+        // add pulsing animation
+		btn.disabled = true; // disable button while processing
+        btn.classList.add('is-pulsing');
+        btn.addEventListener('animationend', () => btn.classList.remove('is-pulsing'), { once: true });
+
+        try {
+            await setFavoriteState(slug, newState);
+
+            // update the UI
+            btn.classList.toggle('active', newState);
+            const label = btn.querySelector('.fav-label');
+            if (label) {
+                label.textContent = newState ? 'Remove from favorites' : 'Add to favorites';
+            }
+        } catch (error) {
+            alert('Something went wrong. Please try again.');
+        } finally {
+			// re-enable the button
+			btn.disabled = false;
 		}
-	}
-
-	if (addBtn) {
-		addBtn.addEventListener('click', event => { event.preventDefault(); handleToggle(true); });
-	}
-	if (removeBtn) {
-		removeBtn.addEventListener('click', event => { event.preventDefault(); handleToggle(false); });
-	}
+    });
 }
+
+// Initialize favorite buttons on page load
+setupFavoriteButton();
 
 /* --- PROFILE CARD LOGIC --- */
 function createInfoRow(infobox, label, value) {
