@@ -32,7 +32,24 @@ async function fetchProfile(username) {
 }
 
 async function addFriend(username) {
-	alert('Feature not implemented yet');
+	/*
+		/api/players/{username}/friend: 
+		POST add, 
+		DELETE to remove. 
+		PATCH with param accept set to true/false to accept.
+	*/
+	const response = await fetch(`/api/friends/${encodeURIComponent(username)}`, {
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		if (response.status === 400) {
+			alert("Error: " + (await response.json()).detail);
+		} else {
+			throw new Error('Failed to add friend: status ' + response.status);
+			alert('An unexpected error occurred. Please try again later.');
+		}
+	}
 }
 
 /* --- NAVIGATION SCROLLING --- */
