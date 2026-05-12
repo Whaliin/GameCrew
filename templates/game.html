@@ -16,14 +16,15 @@
 					<div class="spel-title-eyebrow">// Game · {{ game.slug }}</div>
 					<span class="spel-name">{{ game.name }}</span>
 				</div>
-				<button id="fav-btn" class="fav-btn" data-fav-slug="{{ game.slug }}" type="button" aria-pressed="false" onclick="toggleFavorite(this)">
-					<span class="fav-icon{% if game.is_favorite %} is-filled{% endif %}" aria-hidden="true"></span>
-					<span class="fav-label">{% if game.is_favorite %}Remove from favorites{% else %}Add to favorites{% endif %}</span>
+				
+				<button id="fav-add-btn" class="fav-btn fav-add" data-fav-slug="{{ game.slug }}" type="button" {% if game.is_favorite %}hidden{% endif %}>
+					<span class="fav-icon">☆</span>
+					<span class="fav-label">Add to favorites</span>
 				</button>
 
-				<button class="fav-btn" type="button" onclick="openGameProfilePopup()">
-					<span class="fav-icon fav-icon-profile" aria-hidden="true"></span>
-					<span class="fav-label">Set up profile</span>
+				<button id="fav-remove-btn" class="fav-btn fav-remove" data-fav-slug="{{ game.slug }}" type="button" {% if not game.is_favorite %}hidden{% endif %}>
+					<span class="fav-icon">★</span>
+					<span class="fav-label">Remove from favorites</span>
 				</button>
 
 				{% if current_user %}
