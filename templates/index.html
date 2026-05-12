@@ -6,60 +6,36 @@
 {% include "partials/navbar.html" %}
 
 <main class="wrapper">
-	<!-- Hero strip — gives the home page a heartbeat -->
+
+	<!-- Hero strip -->
 	<section class="hero-strip">
 		<div>
 			<div class="hero-tag">System online · Matchmaking active</div>
 			<h1 class="hero-title">Find your <em>crew.</em> Drop into the next match.</h1>
 		</div>
-		<div class="hero-stats">
-			<div class="hero-stat">
-				<div class="hero-stat-value">{{ player_count|default(0)|int }}</div>
-				<div class="hero-stat-label">Online</div>
-			</div>
-			<div class="hero-stat">
-				<div class="hero-stat-value">{{ squad_count|default(0)|int }}</div>
-				<div class="hero-stat-label">Squads</div>
-			</div>
+		<div class="hero-search">
+			<span class="hero-search-icon">⌕</span>
+			<input
+				id="hero-search"
+				class="hero-search-input"
+				type="search"
+				placeholder="Search games…"
+				autocomplete="off"
+				aria-label="Search games"
+			>
 		</div>
 	</section>
 
-	<!-- Your favorites — replaces "Your most played", no playtime shown -->
-	<section>
-		<div class="hud-header">
-			<h2>Your favorites</h2>
-			<div class="hud-line"></div>
-			<div class="hud-count">{{ favorite_games|length }} titles</div>
-		</div>
-		<div class="game-row">
-			{% if not favorite_games %}
-			<p>You don't have any favorites!</p>
-			{% else %}
-			{% for game in favorite_games %}
-			<div class="game-card">
-				<span class="game-btn-wrap">
-					<span class="corner-tr"></span>
-					<span class="corner-bl"></span>
-					<button class="game-btn" onclick="goGame('{{ game.slug }}')" aria-label="Open {{ game.name }}">
-						<img src="{{ game.image_url }}" alt="{{ game.name }}">
-					</button>
-				</span>
-				<div class="game-label">{{ game.name }}</div>
-			</div>
-			{% endfor %}
-			{% endif %}
-		</div>
-	</section>
-
+	<!-- Match your age group -->
 	<section>
 		<div class="hud-header">
 			<h2>Match your age group</h2>
 			<div class="hud-line"></div>
 			<div class="hud-count">{{ agegroup_games|length }} titles</div>
 		</div>
-		<div class="game-row">
+		<div class="game-row" id="row-age">
 			{% for game in agegroup_games %}
-			<div class="game-card">
+			<div class="game-card" data-name="{{ game.name|lower }}">
 				<span class="game-btn-wrap">
 					<span class="corner-tr"></span>
 					<span class="corner-bl"></span>
@@ -77,16 +53,16 @@
 		</div>
 	</section>
 
-	<!-- Most played — replaces "Trending now", shows global player counts, no badge -->
+	<!-- Most played -->
 	<section>
 		<div class="hud-header">
 			<h2>Most played</h2>
 			<div class="hud-line"></div>
 			<div class="hud-count">{{ trending_games|length }} titles</div>
 		</div>
-		<div class="game-row">
+		<div class="game-row" id="row-trending">
 			{% for game in trending_games %}
-			<div class="game-card">
+			<div class="game-card" data-name="{{ game.name|lower }}">
 				<span class="game-btn-wrap">
 					<span class="corner-tr"></span>
 					<span class="corner-bl"></span>
@@ -96,12 +72,124 @@
 				</span>
 				<div class="game-label">{{ game.name }}</div>
 				<div>
-					<div class="game-stat">{{ game.player_count|default(game.hours_played) }}</div>
+					<div class="game-stat">{{ game.player_count }}</div>
 					<div class="game-stat-label">Players</div>
 				</div>
 			</div>
 			{% endfor %}
 		</div>
 	</section>
+
+	<!-- All games -->
+	<section>
+		<div class="hud-header">
+			<h2>All games</h2>
+			<div class="hud-line"></div>
+			<div class="hud-count">{{ all_games|length }} titles</div>
+		</div>
+		<div class="game-row" id="row-all">
+			{% for game in all_games %}
+			<div class="game-card" data-name="{{ game.name|lower }}">
+				<span class="game-btn-wrap">
+					<span class="corner-tr"></span>
+					<span class="corner-bl"></span>
+					<button class="game-btn" onclick="goGame('{{ game.slug }}')" aria-label="Open {{ game.name }}">
+						<img src="{{ game.image_url }}" alt="{{ game.name }}">
+					</button>
+				</span>
+				<div class="game-label">{{ game.name }}</div>
+			</div>
+			{% endfor %}
+		</div>
+		<div class="section-footer" id="footer-all">
+			<button class="see-all-btn" onclick="showAllGames()">
+				See all {{ all_games|length }} games
+			</button>
+		</div>
+	</section>
+	<footer class="lp-footer">
+		// GameCrew · Group 8 · 2026
+	</footer>
+
 </main>
+
+<script>
+(function () {
+	/* How many cards to show per row on initial load */
+	var LIMIT = 8;
+	var allExpanded = false;
+	var searching   = false;
+
+	function getCards(rowId) {
+		var row = document.getElementById(rowId);
+		return row ? Array.prototype.slice.call(row.children) : [];
+	}
+
+	/* Hide cards beyond LIMIT in a row */
+	function applyLimit(rowId) {
+		getCards(rowId).forEach(function (card, i) {
+			card.style.display = i < LIMIT ? '' : 'none';
+		});
+	}
+
+	/* Show every card in a row */
+	function showAll(rowId) {
+		getCards(rowId).forEach(function (card) { card.style.display = ''; });
+	}
+
+	/* On load: limit all three rows */
+	applyLimit('row-age');
+	applyLimit('row-trending');
+	applyLimit('row-all');
+
+	/* "See all N games" button */
+	window.showAllGames = function () {
+		allExpanded = true;
+		showAll('row-all');
+		var footer = document.getElementById('footer-all');
+		if (footer) footer.style.display = 'none';
+	};
+
+	/* Hero search */
+	var input = document.getElementById('hero-search');
+	if (!input) return;
+
+	input.addEventListener('input', function () {
+		var q = this.value.toLowerCase().trim();
+
+		if (!q) {
+			/* Clear search — restore limits */
+			searching = false;
+			showAll('row-age');
+			showAll('row-trending');
+			showAll('row-all');
+			applyLimit('row-age');
+			applyLimit('row-trending');
+			if (!allExpanded) {
+				applyLimit('row-all');
+				var footer = document.getElementById('footer-all');
+				if (footer) footer.style.display = '';
+			}
+			return;
+		}
+
+		/* First keystroke: expand all so every game is searchable */
+		if (!searching) {
+			searching = true;
+			showAll('row-age');
+			showAll('row-trending');
+			showAll('row-all');
+			var footer = document.getElementById('footer-all');
+			if (footer) footer.style.display = 'none';
+		}
+
+		/* Filter by name */
+		document.querySelectorAll('.game-card').forEach(function (card) {
+			var name = card.getAttribute('data-name') || '';
+			card.style.display = name.indexOf(q) !== -1 ? '' : 'none';
+		});
+	});
+}());
+</script>
+
 {% endblock %}
