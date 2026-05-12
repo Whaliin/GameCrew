@@ -18,12 +18,12 @@
 				</div>
 				
 				{% if profile %}
-				<button id="fav-add-btn" class="fav-btn fav-add" data-fav-slug="{{ game.slug }}" type="button" {% if game.is_favorite %}hidden{% endif %}>
+				<button id="fav-add-btn" class="fav-btn" data-fav-slug="{{ game.slug }}" type="button" {% if game.is_favorite %}hidden{% endif %}>
 					<span class="fav-icon">☆</span>
 					<span class="fav-label">Add to favorites</span>
 				</button>
 
-				<button id="fav-remove-btn" class="fav-btn fav-remove" data-fav-slug="{{ game.slug }}" type="button" {% if not game.is_favorite %}hidden{% endif %}>
+				<button id="fav-remove-btn" class="fav-btn active" data-fav-slug="{{ game.slug }}" type="button" {% if not game.is_favorite %}hidden{% endif %}>
 					<span class="fav-icon">★</span>
 					<span class="fav-label">Remove from favorites</span>
 				</button>
