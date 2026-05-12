@@ -843,7 +843,8 @@ section { margin-bottom: 48px; }
 }
 
 .fav-btn.active .fav-icon {
-    -webkit-mask-image: url('/static/img/icons/icon-star-filled.svg');
+	-webkit-mask-image: url('/static/img/icons/icon-star-filled.svg');
+	mask-image: url('/static/img/icons/icon-star-filled.svg');
 }
 
 /* Hover States */
