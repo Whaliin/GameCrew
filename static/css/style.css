@@ -1793,30 +1793,6 @@ section { margin-bottom: 48px; }
 .info-row .lbl { font-family: 'Orbitron', sans-serif; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
 .info-row .val { font-family: 'Share Tech Mono', monospace; color: var(--cyan); font-size: 12px; text-align: right; max-width: 60%; word-break: break-word; }
 
-.info-row.info-row-highlight {
-	margin: 0 -14px 12px;
-	padding: 12px 14px;
-	background: linear-gradient(135deg, rgba(157, 0, 255, .15), rgba(0, 240, 255, .08));
-	border: 1px solid rgba(157, 0, 255, .35);
-	border-radius: 8px;
-	box-shadow: 0 0 16px rgba(157, 0, 255, .15);
-}
-
-.info-row.info-row-highlight .lbl {
-	color: var(--purple);
-	font-size: 11px;
-	letter-spacing: .14em;
-}
-
-.info-row.info-row-highlight .val-rank {
-	font-family: 'Orbitron', sans-serif;
-	font-weight: 700;
-	font-size: 14px;
-	color: #fff;
-	letter-spacing: .04em;
-	text-shadow: 0 0 8px rgba(157, 0, 255, .5);
-}
-
 .bio-text { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--text-secondary); line-height: 1.7; margin-top: 12px; }
 
 .profile-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; }

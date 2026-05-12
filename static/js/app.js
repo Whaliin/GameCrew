@@ -340,22 +340,6 @@ function setProfileAvatar(elements, data) {
 }
 
 function renderProfileInfoRows(elements, data) {
-	// If we're on a game page (/game/{slug}), show that game's rank prominently
-	const gameSlugMatch = window.location.pathname.match(/^\/game\/([^/]+)/);
-	const currentGameSlug = gameSlugMatch ? gameSlugMatch[1] : null;
-
-	if (currentGameSlug && Array.isArray(data.game_ranks)) {
-		const gameRank = data.game_ranks.find(r => r.game_slug === currentGameSlug);
-		if (gameRank) {
-			const highlight = document.createElement('div');
-			highlight.className = 'info-row info-row-highlight';
-			highlight.innerHTML =
-				'<span class="lbl">' + escapeHtmlText(gameRank.game_name || currentGameSlug) + ' rank</span>' +
-				'<span class="val val-rank">' + escapeHtmlText(gameRank.rank_name) + '</span>';
-			elements.infoBox.appendChild(highlight);
-		}
-	}
-
 	const rows = [
 		['Username',   withFallback(data.username, 'Unknown')],
 		['Region',     withFallback(data.region ? data.region.toUpperCase() : null, 'N/A')],
