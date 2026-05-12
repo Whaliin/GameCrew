@@ -57,6 +57,7 @@ async function setFavoriteState(slug, active) {
 
 function setupFavoriteButton() {
     const btn = document.getElementById('fav-btn');
+	if (!btn) return;
 
     btn.addEventListener('click', async (e) => {
         e.preventDefault();
@@ -89,9 +90,6 @@ function setupFavoriteButton() {
 		}
     });
 }
-
-// Initialize favorite buttons on page load
-setupFavoriteButton();
 
 /* --- PROFILE CARD LOGIC --- */
 function createInfoRow(infobox, label, value) {
