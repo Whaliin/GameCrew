@@ -1408,7 +1408,18 @@ function setupSettingsPage() {
 function confirmDeleteAccount() {
 	const confirmation = prompt('This will permanently delete your account.\nType DELETE to confirm:');
 	if (confirmation === 'DELETE') {
-		alert('Account deletion not implemented yet');
+		fetch('/api/profile/delete-account', {
+			method: 'DELETE',
+			credentials: 'same-origin',
+		}).then(res => {
+			if (res.status === 204) {
+				window.location.href = '/';
+			} else {
+				alert('Account deletion failed.');
+			}
+		}).catch(() => {
+			alert('Network error. Account deletion failed.');
+		});
 	}
 }
 
