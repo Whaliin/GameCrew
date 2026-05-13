@@ -127,7 +127,7 @@ class PlayerProfile(Base):
 	# The last time the player's profile was updated.
 	last_update: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now())
 	# A bio or description that the player can write about themselves.
-	bio: Mapped[str] = mapped_column(Text, nullable=True)
+	bio: Mapped[str] = mapped_column(String(500), nullable=True)
 	# TODO: how do we store this? full steampowered url, or just the username/id?
 	steam_url: Mapped[str] = mapped_column(String(255), nullable=True)
 	# TODO: is there a way we can validate discord usernames?
