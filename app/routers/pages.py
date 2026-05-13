@@ -15,19 +15,14 @@ from sqlalchemy.orm import Session
 from app.auth.sessions import get_user
 from app.database import SessionLocal, get_db
 from app.models import Friendship, Game, Language, Platform, Player, PlayerGameProfile, PlayerProfile, Playtime, Region
+from app.utils.assets import get_avatar_url, get_game_image_url
+from app.utils.formatters import map_age_range
 from app.schemas import GameProfileSpec
 
 router = APIRouter(tags=["pages"])
 templates = Jinja2Templates(directory="templates")
 
-def get_avatar_url(player_id: int) -> str:
-	"""Get the avatar URL for a given player ID. If no custom avatar exists, returns the default avatar URL."""
-	avatar_path = f"static/img/profiles/{player_id}.jpg"
 
-	if Path(avatar_path).exists():
-		return "/" + avatar_path
-	
-	return "/static/img/profiles/default.jpg"
 
 def create_profile_context(db: Session, request: Request, user_session: Player | None = None) -> dict | None:
 	"""Create a consistent context for rendering the navbar across different pages."""
@@ -57,23 +52,6 @@ def create_profile_context(db: Session, request: Request, user_session: Player |
 	}
 
 	return profile_context
-
-IMG_EXTENSIONS = ("jpg", "png", "webp", "jpeg")
-
-from pathlib import Path
-
-STATIC_GAMES_DIR = Path("static/img/games/")
-
-def get_game_image_url(game_slug: str) -> str:
-	"""Get the image URL for a given game slug."""
-	# check if the slug exists in file path
-	for ext in IMG_EXTENSIONS:
-		image_path = STATIC_GAMES_DIR / f"{game_slug}.{ext}"
-		if image_path.exists():
-			return "/" + str(image_path)
-		
-	# If not found, return a default image URL
-	return "/static/img/games/default.jpg"
 
 AGE_MARK_LABELS: list[str] = ["18", "25", "35", "45", "45+"]
 
@@ -341,7 +319,8 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 		"username": player.username,
 		"avatar_url": get_avatar_url(player.id),
 		"region": player.profile.region.name if player.profile.region else None,
-		"birth_year": player.profile.birth_year,
+		"age": map_age_range(player.profile.birth_year) if player.profile.birth_year else None,
+		# "birth_year": player.profile.birth_year,
 		"bio": player.profile.bio or "",
 		"playtime": " / ".join([pt.name for pt in player.playtimes]) if player.playtimes else None,
 		"platforms": [pf.name for pf in player.platforms] if player.platforms else [],

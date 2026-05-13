@@ -10,10 +10,10 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.auth.hashing import hash_password, verify_password
-from app.auth.sessions import create_session, delete_session, get_user
+from app.auth.sessions import create_session, delete_session
 from app.auth.validation import validate_birth_year, validate_password, validate_region, validate_username
 from app.database import get_db
-from app.models import Player, PlayerGameProfile, PlayerProfile, Region
+from app.models import Player, PlayerProfile, Region
 
 router = APIRouter(prefix="", tags=["auth"])
 templates = Jinja2Templates(directory="templates")
