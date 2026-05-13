@@ -40,8 +40,6 @@ def create_profile_object(db: Session, username: str) -> dict | None:
 	if not player:
 		return None
 	
-	print("player ID:", player.id)
-	
 	# build the profile object
 	profile = {
 		"username": player.username,
