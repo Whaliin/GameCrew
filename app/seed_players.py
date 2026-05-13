@@ -33,8 +33,8 @@ def seed_player_profiles() -> None:
 	db = SessionLocal()
 	try:
 		# Check if there are any existing player profiles to avoid duplicates
-		if db.query(PlayerProfile).first() is not None:
-			return
+		# if db.query(PlayerProfile).first() is not None:
+		# 	return
 		
 		# Get the existing values available for selection in the player profiles so we can assign valid values
 		regions = db.query(Region).all()
@@ -62,7 +62,15 @@ def seed_player_profiles() -> None:
 		# generate a single password hash to use for all the dummy profiles
 		dummy_password_hash = hash_password("1")
 
+		# check the highest dummy player username to avoid conflicts
+		existing_dummy_players = db.query(Player).filter(Player.username.like("player%")).all()
+		existing_dummy_indices = [int(player.username[6:]) for player in existing_dummy_players if player.username[6:].isdigit()]
+
 		for i in range(1000):
+			# skip creating a profile if it would conflict with an existing player
+			if i in existing_dummy_indices:
+				continue 
+
 			player = Player(
 				username=f"player{i}",
 				password_hash=dummy_password_hash
@@ -73,7 +81,7 @@ def seed_player_profiles() -> None:
 			profile = PlayerProfile(
 				player_id=player.id,
 				region_id=choice(regions).id,
-				birth_year=randint(1950, 2005),
+				birth_year=randint(1975, 2005),
 				private=choice([True, False]),
 				bio=f"This is the bio of player{i}. I am a gamer who loves playing games and making friends. Looking for people to play with!",
 				steam_url=choice([f"https://steamcommunity.com/id/player{i}", None]),
@@ -160,3 +168,6 @@ def seed_player_profiles() -> None:
 	finally:
 		# Always close the database connection
 		db.close()
+
+if __name__ == "__main__":
+	seed_player_profiles()
