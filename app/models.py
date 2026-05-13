@@ -1,6 +1,7 @@
-# ============================================================================= 
-# Database models for the app. These classes represent the tables in the DB and are used by SQLAlchemy.
-# =============================================================================
+"""
+Database models for the app. 
+These classes represent the tables in the DB and are used by SQLAlchemy ORM.
+"""
 
 from datetime import datetime
 

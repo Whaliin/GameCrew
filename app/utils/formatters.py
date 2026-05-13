@@ -1,3 +1,7 @@
+"""
+Utility functions for formatting data for templates and API responses.
+"""
+
 from datetime import datetime
 
 def map_age_range(birth_year: int) -> str:

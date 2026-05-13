@@ -1,8 +1,10 @@
-# ===========================
-# API endpoints related to games and user game profiles.
+"""
+API endpoints related to games and user game profiles.
+"""
+
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-import json
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
@@ -11,7 +13,7 @@ from app.database import get_db
 from app.models import Game, PlayerGameProfile
 from app.schemas import GameProfileSpec
 
-router = APIRouter(prefix="/api/games", tags=["favorites"])
+router = APIRouter(prefix="/games", tags=["games"])
 
 def _get_game_or_404(db: Session, slug: str) -> Game:
 	game = db.query(Game).filter(Game.slug == slug).first()

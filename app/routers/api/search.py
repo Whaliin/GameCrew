@@ -1,3 +1,7 @@
+"""
+API endpoints related to searching
+"""
+
 import json
 from datetime import datetime
 from typing import Any
@@ -13,8 +17,7 @@ from app.utils.assets import get_avatar_url
 from app.utils.formatters import map_age_range
 from app.schemas import GameProfileSpec
 
-router = APIRouter(prefix="/api/search", tags=["search"])
-
+router = APIRouter(prefix="/search", tags=["search"])
 
 class PlayerSearchRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
@@ -79,8 +82,6 @@ def _matches_rule_value(actual_value: Any, selected_value: Any, rules: dict[str,
 
 	return str(actual_value).lower() in {value.lower() for value in selected_values}
 
-# Check if the profile data matches the schema filters. If a filter is not present for a field, it is considered a match.
-# If a filter is present, the value must match according to the rules defined in the schema for that field.
 def _parse_profile_data(raw_data: str | None) -> dict[str, object]:
 	"""
 	Parse the raw JSON profile data for a player's game profile. If there is no data or if the data is not valid JSON, return an empty dict.
@@ -88,7 +89,7 @@ def _parse_profile_data(raw_data: str | None) -> dict[str, object]:
 	:param str | None raw_data: The raw JSON string from the PlayerGameProfile.data field.
 	:return: A dictionary of the parsed profile data, or an empty dict if there is no data or if the data is invalid.
 	"""
-	# If there is no data, return an empty dict. If the data is not valid JSON, also return an empty dict.
+
 	if not raw_data:
 		return {}
 	try:
@@ -215,4 +216,3 @@ def search_players_for_game(
 			"schema_fields": list(schema_fields.keys()),
 		},
 	}
-

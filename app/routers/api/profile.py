@@ -1,3 +1,6 @@
+"""
+API endpoints related to a players profile (such as updating profile info)
+"""
 
 from typing import List
 
@@ -11,8 +14,7 @@ from app.auth.validation import validate_birth_year, validate_languages, validat
 from app.database import get_db
 from app.models import Language, Platform, Player, Playtime, Region
 
-
-router = APIRouter(prefix="/api/profile", tags=["profile"])
+router = APIRouter(prefix="/profile", tags=["profile"])
 
 @router.post("/settings/account")
 def update_player_account(

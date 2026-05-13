@@ -1,4 +1,7 @@
-import datetime
+"""
+API endpoints related to player profiles, game profiles, and friendships.
+"""
+
 import json
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
@@ -9,7 +12,7 @@ from app.utils.assets import get_game_image_url, get_avatar_url
 from app.utils.formatters import map_age_range
 from app.schemas import GameProfileSpec
 
-router = APIRouter(prefix="/api/players", tags=["players"])
+router = APIRouter(prefix="/players", tags=["players"])
 
 def create_profile_object(db: Session, username: str) -> dict | None:
 	"""

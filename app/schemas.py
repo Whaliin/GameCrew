@@ -1,3 +1,11 @@
+"""
+Pydantic schemas for game profiles.
+
+Each game profile schema extends the base GameProfileSpec,
+which defines the common interface and metadata for all game profiles.
+"""
+
+
 from typing import Any, ClassVar, Literal, List, Annotated, get_args, get_origin
 
 from pydantic import BaseModel, Field

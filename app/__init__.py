@@ -1,11 +1,21 @@
+"""
+Application factory and setup for the API
+"""
+
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.database import init_database
-from app.routers import auth, pages, search
-from app.routers.api import players, profile, games
+
+from app.routers.pages import router as pages_router
+from app.routers.pages import exception as exc_handler
+from app.routers.auth import router as auth_router
+
+from app.routers.api import router as api_router
+
+from starlette.exceptions import HTTPException
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,17 +32,17 @@ def create_app() -> FastAPI:
 	# Mount static files for CSS/JS assets
 	app.mount("/static", StaticFiles(directory="static"), name="static")
 	
-	# Include routers for different API sections
-	app.include_router(pages.router)
-	app.include_router(auth.router)
-	app.include_router(search.router)
+	# Include page router
+	app.include_router(pages_router)
 
-	# api routers
-	app.include_router(players.router)
-	app.include_router(profile.router)
-	app.include_router(games.router)
+	# Include api router
+	app.include_router(api_router)
 
-	app.add_exception_handler(HTTPException, pages.http_exception_handler)
+	# Include auth router
+	app.include_router(auth_router)
+
+	app.add_exception_handler(HTTPException, exc_handler.http_exception_handler)
+	app.add_exception_handler(Exception, exc_handler.http_exception_handler)
 
 	return app
 

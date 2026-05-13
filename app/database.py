@@ -1,3 +1,7 @@
+"""
+Database setup and initialization
+"""
+
 from collections.abc import Generator
 
 from sqlalchemy import create_engine

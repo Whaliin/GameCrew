@@ -1,3 +1,7 @@
+"""
+Utility functions for handling assets (avatars and game images)
+"""
+
 from pathlib import Path
 
 def get_avatar_url(player_id: int) -> str:

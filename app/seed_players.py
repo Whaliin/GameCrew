@@ -1,3 +1,10 @@
+"""
+This script seeds the database with dummy player profiles for testing purposes.
+
+To run:
+python -m app.seed_players
+"""
+
 # Seeding player profiles
 
 import json
