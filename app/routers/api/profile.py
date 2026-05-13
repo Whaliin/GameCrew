@@ -1,7 +1,7 @@
 
 from typing import List
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -275,4 +275,4 @@ async def delete_player_account(request: Request, db: Session = Depends(get_db))
 	if session_id:
 		delete_session(session_id)
 
-	return RedirectResponse(url="/", status_code=303)
+	return Response(status_code=204)
