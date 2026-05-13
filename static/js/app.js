@@ -349,7 +349,7 @@ function renderProfileInfoRows(elements, data) {
 		['Age',        withFallback(data.age ? data.age + ' yrs' : data.age_range, 'N/A')],
 		['Platform',   withFallback(data.platform, 'N/A')],
 		['Languages',  Array.isArray(data.languages) ? data.languages.join(', ') : withFallback(data.languages, 'N/A')],
-		['Playtimes', Array.isArray(data.playtimes) ? data.playtimes.join(', ') : withFallback(data.playtimes, 'N/A')],
+		['Availability', Array.isArray(data.playtimes) ? data.playtimes.join(', ') : withFallback(data.playtimes, 'N/A')],
 	];
 	rows.forEach(([label, value]) => createInfoRow(elements.infoBox, label, value));
 }
