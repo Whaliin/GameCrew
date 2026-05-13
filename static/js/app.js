@@ -209,6 +209,8 @@ function setupFavoriteButton() {
         try {
             await setFavoriteState(slug, newState);
 
+			// TODO: set the visibility of the "edit profile" for the game
+
             // update the UI
             btn.classList.toggle('active', newState);
             const label = btn.querySelector('.fav-label');

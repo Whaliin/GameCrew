@@ -157,7 +157,7 @@ def get_login(request: Request):
 	return templates.TemplateResponse(request=request, name="auth/login.html")
 
 # NOAUTH flag to bypass auth for dev mode
-NOAUTH = True
+NOAUTH = False
 
 @router.post("/login", response_class=HTMLResponse)
 def post_login(
