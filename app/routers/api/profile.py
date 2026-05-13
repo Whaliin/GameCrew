@@ -206,7 +206,6 @@ async def update_player_avatar(request: Request, avatar: UploadFile = File(...),
 	:return: A redirect response to the profile settings page on success.
 	"""
 	
-	print("Received avatar upload request")
 	# validate the user is authenticated
 	user = get_user(request, db)
 	if not user:
@@ -223,10 +222,6 @@ async def update_player_avatar(request: Request, avatar: UploadFile = File(...),
 		# parse image with PIL
 		img = Image.open(io.BytesIO(content))
 		img = ImageOps.exif_transpose(img)  # handle orientation based on EXIF data
-
-		print("Image format:", img.format)
-		print("Image size:", img.size)
-		print("Image mode:", img.mode)
 
 		#square crop and resize to 128x128
 		width, height = img.size

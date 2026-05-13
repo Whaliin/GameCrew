@@ -530,7 +530,6 @@ function createPlayerCard(player) {
 
 	const avatar = document.createElement('img');
 	avatar.className = 'p-avatar';
-	console.log('Player avatar URL:', player.avatar_url);
 	avatar.src = withFallback(player.avatar_url, '/static/img/profiles/default.jpg');
 	avatar.alt = `${withFallback(player.username, 'Player')} avatar`;
 
