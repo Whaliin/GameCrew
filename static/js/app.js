@@ -361,14 +361,6 @@ function escapeHtmlText(str) {
 }
 
 function renderProfileGames(gamePanel, games) {
-	if (!Array.isArray(games) || games.length === 0) {
-		games = [
-			{ slug: 'cs2', name: 'Counter-Strike 2', image_url: '/static/img/games/cs2.jpg', rank: 'Master Guardian II' },
-			{ slug: 'valorant', name: 'Valorant', image_url: '/static/img/games/valorant.jpg', rank: 'Diamond 1' },
-			{ slug: 'lol', name: 'League of Legends', image_url: '/static/img/games/lol.jpg', rank: null },
-			{ slug: 'arcraiders', name: 'ARC Raiders', image_url: '/static/img/games/arcraiders.jpg', rank: 'Veteran' }
-		];
-	}
 	games.forEach(game => createGameIcon(gamePanel, game));
 }
 
