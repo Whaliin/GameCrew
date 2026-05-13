@@ -1,80 +1,106 @@
 # GameCrew
 
-GameCrew GitHub page
+A social gaming platform to help players find teammates and connect across different games.
+
+## Project Overview
+
+GameCrew is a **FastAPI-based web application** that lets gamers discover teammates, manage game profiles, and build friendships across multiple titles. The platform features server-side rendering with Jinja2, session-based authentication, and SQLite-backed persistence.
+
+## Tech Stack
+
+- **Framework**: FastAPI + Uvicorn
+- **ORM**: SQLAlchemy
+- **Database**: SQLite
+- **Templates**: Jinja2 (server-side rendering)
+- **Authentication**: Session-based (cookies) with bcrypt password hashing
+- **Validation**: Pydantic
 
 ## Project Structure
 
-### OBS: Outdated
-
-```text
+```
 GameCrew/
-|-- app/
-|   |-- __init__.py
-|   |-- database.py
-|   |-- models.py
-|   |-- schemas.py
-|   `-- routers/
-|       |-- __init__.py
-|       |-- auth.py
-|       |-- games.py
-|       |-- pages.py
-|       |-- players.py
-|       `-- search.py
-|-- static/
-|   `-- css/site.css
-|-- templates/
-|   |-- base.html
-|   |-- game.html
-|   `-- index.html
-|-- tests/
-|   `-- test_app_stubs.py
-|-- main.py
-|-- requirements.txt
-`-- README.md
+├── app/
+│   ├── __init__.py           # App factory and router registration
+│   ├── database.py           # SQLite setup and database initialization
+│   ├── models.py             # SQLAlchemy ORM models
+│   ├── schemas.py            # Pydantic request/response schemas
+│   ├── auth/
+│   │   ├── hashing.py        # bcrypt password utilities
+│   │   ├── sessions.py       # Session management and auth middleware
+│   │   └── validation.py     # Input validation (username, password, etc.)
+│   └── routers/
+│       ├── auth.py           # Register, login, logout endpoints
+│       ├── pages.py          # Server-rendered HTML page routes
+│       ├── search.py         # Player search endpoints
+│       └── api/
+│           ├── games.py      # Game catalog and favorite management
+│           ├── players.py    # Player profiles and game stats
+│           └── profile.py    # Current user profile endpoints
+├── static/
+│   ├── css/style.css         # Application styling
+│   ├── img/                  # Game thumbnails, icons, profile pictures
+│   └── js/app.js             # Client-side interactivity
+├── templates/
+│   ├── base.html             # Base template wrapper
+│   ├── index.html            # Homepage
+│   ├── game.html             # Game detail page
+│   ├── profile.html          # User profile page
+│   ├── friends.html          # Friends list
+│   ├── settings.html         # User settings
+│   ├── auth/                 # Login and registration pages
+│   └── partials/             # Reusable template fragments (navbar, modals)
+├── main.py                   # Application entry point
+├── requirements.txt          # Python dependencies
+└── README.md
 ```
 
-### What Goes Where
+## Database & Models
 
-### OBS: Outdated
+GameCrew uses SQLite with SQLAlchemy ORM. Key entities:
 
-- `main.py`: Entry point only. Keep this minimal and avoid feature logic here.
-- `app/__init__.py`: App factory and global app wiring (router registration, middleware setup, startup wiring).
-- `app/database.py`: Database engine/session setup and database-related bootstrapping.
-- `app/models.py`: SQLAlchemy persistence models (tables and relationships).
-- `app/schemas.py`: Pydantic request/response contracts used by routes.
-- `app/routers/pages.py`: HTML page routes that render Jinja2 templates.
-- `app/routers/auth.py`: Auth HTTP endpoints (register/login/logout and session-related handlers).
-- `app/routers/players.py`: Player profile and player game-stats endpoints.
-- `app/routers/games.py`: Game catalog and single-game endpoints.
-- `app/routers/search.py`: Per-game player search endpoints only.
-- `templates/`: Server-rendered HTML templates. Add new page templates here.
-- `static/`: Frontend assets such as CSS/JS/images used by templates.
-- `tests/`: Automated tests for routes, responses, and logic.
+- **Player**: User account (username, password hash, created_at)
+- **PlayerProfile**: Extended profile (region, birth year, platforms, languages, playtimes)
+- **Game**: Game catalog entry (name, slug, custom schema fields)
+- **PlayerGameProfile**: Join table linking players to their game-specific profiles
+- **Friendship**: Player-to-player relationships
+- **Supporting**: Language, Platform, Playtime, Region lookups
 
-### Feature Placement Guide
+The database auto-seeds on startup with default games and configurations.
 
-### OBS: Outdated
+## Authentication
 
-When adding a new feature, follow this sequence:
+GameCrew uses **session-based authentication** backed by cookies:
 
-1. Define or update request/response schemas in `app/schemas.py`.
-2. Add or update persistence entities in `app/models.py` if database storage is needed.
-3. Add endpoint handlers in the correct router under `app/routers/`.
-4. If the feature is page-based, add/update templates in `templates/` and static assets in `static/`.
-5. Register new router modules in `app/__init__.py` if you create a new router file.
-6. Add tests in `tests/`.
+- **Registration**: Username, password, birth year, region validation
+- **Login/Logout**: Secure session handling via middleware
+- **Password Hashing**: bcrypt for secure password storage
+- **Session Middleware**: Automatic user injection into request state
 
-### Domain Routing Conventions
+Register and login pages are served at `/auth/register` and `/auth/login`.
 
-### OBS: Outdated
+## Development
 
-- API endpoints should stay under `/api/...`.
-- Page routes should remain non-API routes (for example `/` and `/game/{game_slug}`).
-- Search stays per-game (for example `/api/search/games/{game_slug}/players`).
+**Run the development server:**
+
+```bash
+uvicorn main:app --reload
+```
+
+**View API documentation:**
+
+Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) in your browser.
+
+## Static Assets & Templates
+
+- **CSS**: Edit `static/css/style.css` for styling changes.
+- **Images**: Place game thumbnails, icons, and profile pictures in `static/img/`.
+- **JavaScript**: Client-side logic in `static/js/app.js`.
+- **Page Templates**: Add new pages in `templates/` and corresponding routes in `app/routers/pages.py`.
+- **Reusable Partials**: Shared components like the navbar are in `templates/partials/`.
 
 ## Local Setup (Windows + macOS)
 
-1. Create a virtual environment:
+1. Create a virtual environment [(What is a virtual environment?)](https://docs.python.org/3/library/venv.html):
 
 ```bash
 # Windows
@@ -111,3 +137,24 @@ uvicorn main:app --reload
 - Home page: `http://127.0.0.1:8000/`
 - Example game page: `http://127.0.0.1:8000/game/counterstrike`
 - API docs: `http://127.0.0.1:8000/docs`
+
+---
+
+## Contributing
+
+### Feature Checklist
+
+When adding a new feature, follow this sequence:
+
+1. **Schemas**: Define or update request/response schemas in `app/schemas.py`.
+2. **Models**: Add or update persistence entities in `app/models.py` if database storage is needed.
+3. **Handlers**: Add endpoint handlers in the correct router under `app/routers/` or `app/routers/api/`.
+4. **Templates**: For page-based features, add/update templates in `templates/` and static assets in `static/`.
+5. **Registration**: Register new router modules in `app/__init__.py` if you create a new router file.
+
+### Routing Conventions
+
+- **API endpoints**: Keep under `/api/...` (e.g., `/api/games/favorite`, `/api/players/search`).
+- **Page routes**: Keep as non-API routes (e.g., `/`, `/game/{game_slug}`, `/profile/{username}`).
+- **Search**: Namespace search endpoints per-game (e.g., `/api/search/games/{game_slug}/players`).
+

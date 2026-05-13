@@ -31,8 +31,141 @@ async function fetchProfile(username) {
 	return response.json();
 }
 
-async function addFriend(username) {
-	alert('Feature not implemented yet');
+async function friendAction(username, action) {
+    // map "action" to HTTP method and needed query params
+    const actionMap = {
+        "add":    { method: "POST" },
+        "remove": { method: "DELETE" },
+        "accept": { method: "PATCH", accept: true },
+        "ignore": { method: "PATCH", accept: false }
+    };
+
+    const config = actionMap[action];
+    if (!config) return;
+
+    // define the base URL for all friend actions
+    let url = `/api/players/${encodeURIComponent(username)}/friend`;
+
+    // append the query param for PATCH requests (accept/ignore)
+    if (config.method === "PATCH") {
+        url += `?accept=${config.accept}`;
+    }
+
+    try {
+        const response = await fetch(url, { method: config.method });
+
+        if (!response.ok) {
+            // extract error message from response if available
+            const errorData = await response.json().catch(() => ({}));
+            alert(errorData.detail || `Error: ${response.status}`);
+            return;
+        }
+
+        // Success
+		return true;
+
+    } catch (err) {
+        console.error("Connection error:", err);
+        alert("Failed to reach the server. Please check your connection.");
+    }
+
+	return false;
+}
+
+/* --- FRIEND ACTION HANDLERS --- */
+async function handleAddFriendClick(username, button) {
+	if (!button) return;
+	if (button.dataset.sent) return;
+	button.dataset.sent = '1';
+	button.querySelector('.p-action-label').textContent = 'Sent!';
+	button.classList.add('p-action-btn-active');
+	button.disabled = true;
+	try {
+		const success = await friendAction(username, 'add');
+		if (!success) {
+			button.querySelector('.p-action-label').textContent = 'Add friend';
+			button.classList.remove('p-action-btn-active');
+			button.disabled = false;
+			delete button.dataset.sent;
+		}
+	} catch (err) {
+		button.querySelector('.p-action-label').textContent = 'Add friend';
+		button.classList.remove('p-action-btn-active');
+		button.disabled = false;
+		delete button.dataset.sent;
+	}
+}
+
+async function handleAcceptRequest(button) {
+	const username = button.dataset.username;
+	const card = button.closest('.friend-card');
+	if (!card) return;
+	try {
+		const success = await friendAction(username, 'accept');
+		if (success) {
+			card.classList.add('is-accepted');
+			const actions = card.querySelector('.friend-card-actions');
+			if (actions) {
+				actions.innerHTML = '<div class="friend-action-result accepted">✓ Friend added</div>';
+			}
+			decrementPendingBadge();
+		}
+	} catch (err) {
+		console.error('Error accepting request:', err);
+	}
+}
+
+async function handleIgnoreRequest(button) {
+	const username = button.dataset.username;
+	const card = button.closest('.friend-card');
+	if (!card) return;
+	try {
+		const success = await friendAction(username, 'ignore');
+		if (success) {
+			card.style.transition = 'opacity .3s ease, transform .3s ease, max-height .3s ease, margin .3s ease, padding .3s ease';
+			card.style.opacity = '0';
+			card.style.transform = 'scale(.95)';
+			setTimeout(() => card.remove(), 300);
+			decrementPendingBadge();
+		}
+	} catch (err) {
+		console.error('Error ignoring request:', err);
+	}
+}
+
+async function handleRemoveFriend(button) {
+	const username = button.dataset.username;
+	if (!confirm('Remove ' + username + ' from your friends?')) return;
+	const card = button.closest('.friend-card');
+	if (!card) return;
+	try {
+		const success = await friendAction(username, 'remove');
+		if (success) {
+			card.style.transition = 'opacity .3s ease, transform .3s ease';
+			card.style.opacity = '0';
+			card.style.transform = 'scale(.95)';
+			setTimeout(() => card.remove(), 300);
+		}
+	} catch (err) {
+		console.error('Error removing friend:', err);
+	}
+}
+
+function decrementPendingBadge() {
+	const badge = document.querySelector('.nav-friends-badge');
+	if (!badge) return;
+	const current = parseInt(badge.textContent, 10) || 0;
+	const next = Math.max(0, current - 1);
+	if (next === 0) {
+		badge.remove();
+	} else {
+		badge.textContent = next;
+	}
+	const tabBadge = document.querySelector('[data-tab="pending"] .friends-tab-count');
+	if (tabBadge) {
+		tabBadge.textContent = next;
+		if (next === 0) tabBadge.classList.remove('has-pending');
+	}
 }
 
 /* --- NAVIGATION SCROLLING --- */
@@ -45,89 +178,50 @@ function scrollNavGames(direction) {
 	track.scrollBy({ left: distance * direction, behavior: 'smooth' });
 }
 
-/* --- FAVORITE GAMES (localStorage-backed for now) --- */
-/*
-	Favorites are persisted client-side under "gamecrew:favorites".
-	When the backend gains a /api/me/favorites endpoint, swap the
-	read/write helpers below to fetch/PUT calls — the rest of the
-	UI logic stays the same.
-*/
-const FAV_STORAGE_KEY = 'gamecrew:favorites';
-
-function readFavorites() {
-	try {
-		const raw = localStorage.getItem(FAV_STORAGE_KEY);
-		const parsed = JSON.parse(raw || '[]');
-		return Array.isArray(parsed) ? parsed : [];
-	} catch (error) {
-		return [];
-	}
-}
-
-function writeFavorites(slugs) {
-	try {
-		localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(slugs));
-	} catch (error) {
-		console.warn('Could not persist favorites:', error);
-	}
-}
-
-function isFavorite(slug) {
-	return readFavorites().includes(slug);
-}
-
-function toggleFavorite(slug) {
-	const list = readFavorites();
-	const index = list.indexOf(slug);
-	if (index >= 0) {
-		list.splice(index, 1);
-		writeFavorites(list);
-		return false; // no longer a favorite
-	}
-	list.push(slug);
-	writeFavorites(list);
-	return true; // newly favorited
-}
-
-function paintFavoriteButton(button, active) {
-	const icon  = button.querySelector('.fav-icon');
-	const label = button.querySelector('.fav-label');
-
-	button.classList.toggle('active', active);
-	button.setAttribute('aria-pressed', active ? 'true' : 'false');
-
-	if (icon) {
-		icon.classList.toggle('is-filled', active);
-	}
-	if (label) {
-		label.textContent = active ? 'Remove from favorites' : 'Add to favorites';
+/* --- FAVORITE GAMES --- */
+async function setFavoriteState(slug, active) {
+    const response = await fetch(`/api/games/${encodeURIComponent(slug)}/favorite`, {
+        method: active ? 'PUT' : 'DELETE',
+    });
+    if (!response.ok && response.status !== 204) {
+		throw new Error('Failed to update favorite state: status ' + response.status);
 	}
 }
 
 function setupFavoriteButton() {
-	const button = document.getElementById('fav-btn');
-	if (!button) {
-		return;
-	}
-	const slug = button.dataset.favSlug;
-	if (!slug) {
-		return;
-	}
+    const btn = document.getElementById('fav-btn');
+	if (!btn) return;
 
-	paintFavoriteButton(button, isFavorite(slug));
+    btn.addEventListener('click', async (e) => {
+        e.preventDefault();
 
-	button.addEventListener('click', () => {
-		/*
-		TODO: use fetch
-		*/
-		const nowActive = toggleFavorite(slug);
-		paintFavoriteButton(button, nowActive);
+		if (btn.disabled) return; // prevent multiple clicks while processing
+        
+        const slug = btn.dataset.favSlug;
+        const isCurrentlyActive = btn.classList.contains('active');
+        const newState = !isCurrentlyActive; // toggle the state
 
-		// short pulse so the user sees the state change
-		button.classList.remove('is-pulsing');
-		void button.offsetWidth; // force reflow to restart animation
-		button.classList.add('is-pulsing');
-	});
+        // add pulsing animation
+		btn.disabled = true; // disable button while processing
+        btn.classList.add('is-pulsing');
+        btn.addEventListener('animationend', () => btn.classList.remove('is-pulsing'), { once: true });
+
+        try {
+            await setFavoriteState(slug, newState);
+
+            // update the UI
+            btn.classList.toggle('active', newState);
+            const label = btn.querySelector('.fav-label');
+            if (label) {
+                label.textContent = newState ? 'Remove from favorites' : 'Add to favorites';
+            }
+        } catch (error) {
+            alert('Something went wrong. Please try again.');
+        } finally {
+			// re-enable the button
+			btn.disabled = false;
+		}
+    });
 }
 
 /* --- PROFILE CARD LOGIC --- */
@@ -157,12 +251,13 @@ function createGameIcon(gamePanel, game) {
 	info.appendChild(nameEl);
 
 	const rankEl = document.createElement('div');
-	if (game.rank) {
+	const displayValue = game.display_value || game.rank;
+	if (displayValue) {
 		rankEl.className = 'game-tile-rank';
-		rankEl.textContent = game.rank;
+		rankEl.textContent = displayValue;
 	} else {
 		rankEl.className = 'game-tile-rank unranked';
-		rankEl.textContent = 'Unranked';
+		rankEl.textContent = 'Unknown';
 	}
 	info.appendChild(rankEl);
 
@@ -224,7 +319,11 @@ function renderProfileData(elements, data) {
 	renderProfileInfoRows(elements, data);
 	elements.bioText.textContent = withFallback(data.bio, 'No bio available.');
 	renderProfileGames(elements.gamePanel, data.games);
-	addActionButton(elements.profileButtons, 'Add as friend', () => addFriend(data.username));
+	const friendBtn = document.createElement('button');
+	friendBtn.className = 'action-button';
+	friendBtn.textContent = 'Add as friend';
+	friendBtn.addEventListener('click', () => handleAddFriendClick(data.username, friendBtn));
+	elements.profileButtons.appendChild(friendBtn);
 	addActionButton(elements.profileButtons, 'Open full profile', () => goProfile(data.username));
 	elements.loading.style.display = 'none';
 }
@@ -242,28 +341,13 @@ function setProfileAvatar(elements, data) {
 }
 
 function renderProfileInfoRows(elements, data) {
-	// If we're on a game page (/game/{slug}), show that game's rank prominently
-	const gameSlugMatch = window.location.pathname.match(/^\/game\/([^/]+)/);
-	const currentGameSlug = gameSlugMatch ? gameSlugMatch[1] : null;
-
-	if (currentGameSlug && Array.isArray(data.game_ranks)) {
-		const gameRank = data.game_ranks.find(r => r.game_slug === currentGameSlug);
-		if (gameRank) {
-			const highlight = document.createElement('div');
-			highlight.className = 'info-row info-row-highlight';
-			highlight.innerHTML =
-				'<span class="lbl">' + escapeHtmlText(gameRank.game_name || currentGameSlug) + ' rank</span>' +
-				'<span class="val val-rank">' + escapeHtmlText(gameRank.rank_name) + '</span>';
-			elements.infoBox.appendChild(highlight);
-		}
-	}
-
 	const rows = [
 		['Username',   withFallback(data.username, 'Unknown')],
 		['Region',     withFallback(data.region ? data.region.toUpperCase() : null, 'N/A')],
 		['Age',        withFallback(data.age ? data.age + ' yrs' : data.age_range, 'N/A')],
 		['Platform',   withFallback(data.platform, 'N/A')],
 		['Languages',  Array.isArray(data.languages) ? data.languages.join(', ') : withFallback(data.languages, 'N/A')],
+		['Playtimes', Array.isArray(data.playtimes) ? data.playtimes.join(', ') : withFallback(data.playtimes, 'N/A')],
 	];
 	rows.forEach(([label, value]) => createInfoRow(elements.infoBox, label, value));
 }
@@ -421,7 +505,6 @@ function setupAgeRangeFilter(onChange) {
 }
 
 /* --- PLAYER CARDS --- */
-const DISCORD_SVG_PATH = 'M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.099.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.029zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z';
 
 function createPlayerCard(player) {
 	const card = document.createElement('div');
@@ -503,34 +586,34 @@ function createPlayerCard(player) {
 	actions.addEventListener('click', e => e.stopPropagation());
 	actions.addEventListener('keydown', e => e.stopPropagation());
 
-	const discordBtn = document.createElement('button');
-	discordBtn.type = 'button';
-	discordBtn.className = 'p-action-btn p-action-btn-discord';
-	discordBtn.dataset.discord = player.discord || '';
-	discordBtn.dataset.username = player.username || '';
-	discordBtn.setAttribute('aria-label', `Show Discord for ${player.username || 'player'}`);
-	discordBtn.innerHTML =
-		`<svg class="p-action-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="${DISCORD_SVG_PATH}"/></svg>` +
-		`<span class="p-action-label">Discord</span>`;
-	discordBtn.addEventListener('click', e => showDiscord(e, discordBtn));
+	const friendBtn = document.createElement('button');
+	friendBtn.type = 'button';
+	friendBtn.className = 'p-action-btn p-action-btn-friend';
+	friendBtn.dataset.username = player.username || '';
+	friendBtn.setAttribute('aria-label', `Add ${player.username || 'player'} as friend`);
+	friendBtn.innerHTML =
+		`<span class="p-action-icon" aria-hidden="true"></span>` +
+		`<span class="p-action-label">Add friend</span>`;
+	friendBtn.addEventListener('click', async e => {
+		e.stopPropagation();
+		await handleAddFriendClick(friendBtn.dataset.username, friendBtn);
+	});
 
-	const platformBtn = document.createElement('button');
-	platformBtn.type = 'button';
-	platformBtn.className = 'p-action-btn p-action-btn-platform';
-	platformBtn.dataset.platform = player.platform || '';
-	platformBtn.dataset.username = player.username || '';
-	platformBtn.setAttribute('aria-label', `Show platform for ${player.username || 'player'}`);
-	platformBtn.innerHTML =
-		`<svg class="p-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
-			`<rect x="2" y="4" width="20" height="13" rx="2" ry="2"/>` +
-			`<line x1="8" y1="21" x2="16" y2="21"/>` +
-			`<line x1="12" y1="17" x2="12" y2="21"/>` +
-		`</svg>` +
-		`<span class="p-action-label">Platform</span>`;
-	platformBtn.addEventListener('click', e => showPlatform(e, platformBtn));
+	const profileBtn = document.createElement('button');
+	profileBtn.type = 'button';
+	profileBtn.className = 'p-action-btn p-action-btn-profile';
+	profileBtn.dataset.username = player.username || '';
+	profileBtn.setAttribute('aria-label', `Show full profile for ${player.username || 'player'}`);
+	profileBtn.innerHTML =
+		`<span class="p-action-icon" aria-hidden="true"></span>` +
+		`<span class="p-action-label">Show profile</span>`;
+	profileBtn.addEventListener('click', e => {
+		e.stopPropagation();
+		goProfile(profileBtn.dataset.username);
+	});
 
-	actions.appendChild(discordBtn);
-	actions.appendChild(platformBtn);
+	actions.appendChild(friendBtn);
+	actions.appendChild(profileBtn);
 
 	card.appendChild(top);
 	card.appendChild(actions);
@@ -586,7 +669,24 @@ function showPlatform(event, btn) {
 
 /* ── Rank picker popup — opens from rank button on game page ── */
 function openRankPopup(gameSlug, currentRank) {
-	const ranks = (window.GameCrewRanks && window.GameCrewRanks[gameSlug]) || null;
+	// Read rank metadata from the DOM to avoid embedding globals
+	const pageEl = document.querySelector('[data-game-slug="' + gameSlug + '"]');
+	let ranks = null;
+	let displayField = null;
+	if (pageEl) {
+		const opts = pageEl.getAttribute('data-rank-options');
+		const df = pageEl.getAttribute('data-rank-display-field');
+		try {
+			ranks = opts ? JSON.parse(opts) : null;
+		} catch (err) {
+			ranks = null;
+		}
+		try {
+			displayField = df && df !== 'null' ? JSON.parse(df) : null;
+		} catch (err) {
+			displayField = df && df !== 'null' ? df : null;
+		}
+	}
 
 	if (!ranks || !ranks.length) {
 		showPopup({
@@ -630,10 +730,8 @@ function openRankPopup(gameSlug, currentRank) {
 	box.appendChild(title);
 	box.appendChild(note);
 
-	// Form with select + submit
+	// Form with select + submit (we handle submit via fetch JSON)
 	const form = document.createElement('form');
-	form.method = 'post';
-	form.action = '/game/' + encodeURIComponent(gameSlug) + '/rank';
 	form.className = 'rank-popup-form';
 
 	const selectWrap = document.createElement('div');
@@ -663,7 +761,7 @@ function openRankPopup(gameSlug, currentRank) {
 	const submitBtn = document.createElement('button');
 	submitBtn.type = 'submit';
 	submitBtn.className = 'btn-primary rank-popup-submit';
-	submitBtn.textContent = currentRank ? 'Update rank' : 'Save rank';
+	submitBtn.textContent = 'Update rank';
 	form.appendChild(submitBtn);
 
 	box.appendChild(form);
@@ -678,6 +776,51 @@ function openRankPopup(gameSlug, currentRank) {
 
 	// Focus the select for keyboard users
 	setTimeout(() => select.focus(), 50);
+
+	// Handle submission via fetch to backend API
+	form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		if (!displayField) {
+			showPopup({ title: 'Update failed', body: 'No display field configured for this game.', variant: 'muted' });
+			return;
+		}
+		const value = select.value;
+		if (!value) return;
+
+		submitBtn.disabled = true;
+		try {
+			const res = await fetch('/api/games/' + encodeURIComponent(gameSlug) + '/info', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ [displayField]: value }),
+			});
+
+			if (res.status === 204) {
+				closePopup();
+				showPopup({ title: 'Rank updated', body: 'Your rank was updated.', variant: 'success' });
+
+				// Update in-page displays for this game (if present)
+				const main = document.querySelector('[data-game-slug="' + gameSlug + '"]');
+				if (main) {
+					const btnCurrent = main.querySelector('.rank-btn-current');
+					if (btnCurrent) btnCurrent.textContent = value;
+					const displayVal = main.querySelector('.rank-display-value');
+					if (displayVal) displayVal.textContent = value;
+				}
+			} else {
+				let errText = 'Could not update rank.';
+				try {
+					const body = await res.json();
+					errText = body.detail || errText;
+				} catch (err) {}
+				showPopup({ title: 'Update failed', body: errText, variant: 'muted' });
+			}
+		} catch (err) {
+			showPopup({ title: 'Update failed', body: 'Network error', variant: 'muted' });
+		} finally {
+			submitBtn.disabled = false;
+		}
+	});
 }
 
 /* ── Game profile modal — only open/close; HTML & fields come from template ── */
@@ -704,6 +847,68 @@ document.addEventListener('keydown', e => {
 document.addEventListener('click', e => {
 	const modal = document.getElementById('profile-schema-modal');
 	if (modal && e.target === modal) closeGameProfilePopup();
+});
+
+// Bind submit handler for server-rendered profile form: serialize selects and POST JSON
+document.addEventListener('DOMContentLoaded', () => {
+	const form = document.getElementById('profile-schema-form');
+	if (!form) return;
+
+	form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const endpoint = form.dataset.apiEndpoint;
+		const displayField = form.dataset.displayField;
+		const submitBtn = form.querySelector('button[type="submit"]');
+		const payload = {};
+
+		form.querySelectorAll('select[name]').forEach(sel => {
+			const name = sel.name;
+			if (sel.multiple) {
+				const vals = Array.from(sel.options).filter(o => o.selected).map(o => o.value);
+				if (vals.length) payload[name] = vals;
+			} else {
+				const v = sel.value;
+				if (v) payload[name] = v;
+			}
+		});
+
+		if (submitBtn) submitBtn.disabled = true;
+		try {
+			const res = await fetch(endpoint, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload),
+			});
+
+			if (res.status === 204) {
+				closeGameProfilePopup();
+				showPopup({ title: 'Profile updated', body: 'Your profile was updated.', variant: 'success' });
+
+				if (displayField && payload[displayField]) {
+					const main = document.querySelector('[data-game-slug]');
+					if (main) {
+						const btnCurrent = main.querySelector('.rank-btn-current');
+						const displayVal = main.querySelector('.rank-display-value');
+						const newVal = Array.isArray(payload[displayField]) ? payload[displayField].join(', ') : payload[displayField];
+						if (btnCurrent) btnCurrent.textContent = newVal;
+						if (displayVal) displayVal.textContent = newVal;
+					}
+				}
+			} else {
+				let errText = 'Could not update profile.';
+				try {
+					const body = await res.json();
+					errText = body.detail || errText;
+				} catch (err) {}
+				showPopup({ title: 'Update failed', body: errText, variant: 'muted' });
+			}
+		} catch (err) {
+			showPopup({ title: 'Update failed', body: 'Network error', variant: 'muted' });
+		} finally {
+			if (submitBtn) submitBtn.disabled = false;
+		}
+	});
 });
 
 function escapeHtml(str) {
@@ -761,9 +966,7 @@ function showPopup(opts) {
 	} else if (opts.variant === 'discord') {
 		const icon = document.createElement('div');
 		icon.className = 'info-popup-symbol info-popup-symbol-discord';
-		icon.innerHTML =
-			`<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">` +
-			`<path d="${DISCORD_SVG_PATH}"/></svg>`;
+		icon.innerHTML = `<span class="info-popup-symbol-icon" aria-hidden="true"></span>`;
 		box.appendChild(icon);
 	}
 
@@ -1026,3 +1229,215 @@ function setupGameFiltersSearch() {
 
 setupGameFiltersSearch();
 setupFavoriteButton();
+
+function setupHashTabs(options) {
+	const tabSelector = options.tabSelector;
+	const panelSelector = options.panelSelector;
+	const tabDataKey = options.tabDataKey;
+	const panelDataKey = options.panelDataKey;
+
+	const tabs = document.querySelectorAll(tabSelector);
+	const panels = document.querySelectorAll(panelSelector);
+	if (!tabs.length || !panels.length) {
+		return null;
+	}
+
+	function showTab(target) {
+		tabs.forEach(tab => {
+			tab.classList.toggle('active', tab.dataset[tabDataKey] === target);
+		});
+		panels.forEach(panel => {
+			panel.hidden = panel.dataset[panelDataKey] !== target;
+		});
+	}
+
+	tabs.forEach(tab => {
+		tab.addEventListener('click', event => {
+			event.preventDefault();
+			const target = tab.dataset[tabDataKey];
+			showTab(target);
+			history.replaceState(null, '', '#' + target);
+		});
+	});
+
+	const initial = window.location.hash.replace('#', '');
+	if (initial && document.querySelector(tabSelector + '[data-' + tabDataKey.replace(/[A-Z]/g, match => '-' + match.toLowerCase()) + '="' + initial + '"]')) {
+		showTab(initial);
+	}
+
+	return showTab;
+}
+
+function setupGameTagSearch() {
+	const input = document.getElementById('filter-tag-search');
+	if (!input) return;
+
+	input.addEventListener('input', () => {
+		const query = input.value.toLowerCase().trim().replace(/^@/, '');
+		document.querySelectorAll('.player-card').forEach(card => {
+			const name = (card.querySelector('.p-name')?.textContent || '').toLowerCase();
+			card.style.display = (!query || name.includes(query)) ? '' : 'none';
+		});
+	});
+}
+
+function setupFriendsPage() {
+	setupHashTabs({
+		tabSelector: '[data-tab]',
+		panelSelector: '[data-panel]',
+		tabDataKey: 'tab',
+		panelDataKey: 'panel',
+	});
+
+	const searchInput = document.getElementById('friends-search-input');
+	if (searchInput) {
+		searchInput.addEventListener('input', () => {
+			const query = searchInput.value.toLowerCase().trim();
+			document.querySelectorAll('[data-panel="all"] .friend-card').forEach(card => {
+				const name = (card.dataset.username || '').toLowerCase();
+				card.style.display = (!query || name.includes(query)) ? '' : 'none';
+			});
+		});
+	}
+}
+
+function setupMultiSelect(root) {
+	const trigger = root.querySelector('.multi-select-trigger');
+	const dropdown = root.querySelector('.multi-select-dropdown');
+	const tagsEl = root.querySelector('[data-tags]');
+	const search = root.querySelector('.multi-select-search');
+	const options = Array.from(root.querySelectorAll('.multi-select-option'));
+	const empty = root.querySelector('.multi-select-empty');
+	const placeholder = '<span class="multi-select-placeholder">Select languages…</span>';
+
+	function escapeText(str) {
+		const div = document.createElement('div');
+		div.textContent = String(str);
+		return div.innerHTML;
+	}
+
+	function renderTags() {
+		const checked = options.filter(option => option.querySelector('input').checked);
+		if (!checked.length) {
+			tagsEl.innerHTML = placeholder;
+			return;
+		}
+
+		tagsEl.innerHTML = '';
+		checked.forEach(option => {
+			const value = option.dataset.value;
+			const chip = document.createElement('span');
+			chip.className = 'multi-select-chip';
+			chip.innerHTML = '<span>' + escapeText(value) + '</span><button type="button" class="multi-select-chip-x" aria-label="Remove ' + escapeText(value) + '">×</button>';
+			chip.querySelector('button').addEventListener('click', event => {
+				event.stopPropagation();
+				option.querySelector('input').checked = false;
+				renderTags();
+			});
+			tagsEl.appendChild(chip);
+		});
+	}
+
+	function openDropdown() {
+		dropdown.hidden = false;
+		trigger.setAttribute('aria-expanded', 'true');
+		root.classList.add('is-open');
+		if (search) {
+			search.value = '';
+			filterOptions('');
+			setTimeout(() => search.focus(), 50);
+		}
+	}
+
+	function closeDropdown() {
+		dropdown.hidden = true;
+		trigger.setAttribute('aria-expanded', 'false');
+		root.classList.remove('is-open');
+	}
+
+	function filterOptions(query) {
+		const normalizedQuery = (query || '').toLowerCase().trim();
+		let visibleCount = 0;
+		options.forEach(option => {
+			const value = (option.dataset.value || '').toLowerCase();
+			const match = !normalizedQuery || value.includes(normalizedQuery);
+			option.style.display = match ? '' : 'none';
+			if (match) visibleCount++;
+		});
+		if (empty) empty.hidden = visibleCount > 0;
+	}
+
+	trigger.addEventListener('click', event => {
+		event.stopPropagation();
+		if (dropdown.hidden) openDropdown();
+		else closeDropdown();
+	});
+
+	options.forEach(option => {
+		option.querySelector('input').addEventListener('change', renderTags);
+	});
+
+	if (search) {
+		search.addEventListener('input', () => filterOptions(search.value));
+		search.addEventListener('click', event => event.stopPropagation());
+		search.addEventListener('keydown', event => {
+			if (event.key === 'Escape') closeDropdown();
+		});
+	}
+
+	document.addEventListener('click', event => {
+		if (!root.contains(event.target)) closeDropdown();
+	});
+
+	renderTags();
+}
+
+function setupSettingsPage() {
+	setupHashTabs({
+		tabSelector: '[data-settings-link]',
+		panelSelector: '[data-settings-panel]',
+		tabDataKey: 'settingsLink',
+		panelDataKey: 'settingsPanel',
+	});
+
+	document.querySelectorAll('[data-multi-select]').forEach(setupMultiSelect);
+}
+
+function confirmDeleteAccount() {
+	const confirmation = prompt('This will permanently delete your account.\nType DELETE to confirm:');
+	if (confirmation === 'DELETE') {
+		alert('Account deletion not implemented yet');
+	}
+}
+
+function previewAvatar(input) {
+	const file = input.files && input.files[0];
+	const filenameEl = document.getElementById('avatar-filename');
+	const previewImg = document.getElementById('avatar-preview-img');
+	if (!file) return;
+
+	if (file.size > 2 * 1024 * 1024) {
+		alert('Image is too large. Max 2 MB.');
+		input.value = '';
+		return;
+	}
+
+	if (filenameEl) {
+		filenameEl.textContent = file.name;
+	}
+
+	const reader = new FileReader();
+	reader.onload = event => {
+		if (previewImg) {
+			previewImg.src = event.target.result;
+		}
+		if (input.form) {
+			input.form.submit();
+		}
+	};
+	reader.readAsDataURL(file);
+}
+
+setupGameTagSearch();
+setupFriendsPage();
+setupSettingsPage();

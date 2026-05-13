@@ -4,7 +4,6 @@
 # ==================================
 
 import json
-from urllib import request
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -118,9 +117,11 @@ def get_friends(db: Session, user: Player) -> list[Player]:
 	# query for players
 	# join on friendships where (sender_id or receiver_id is the user) and accepted is true
 	# distinct to deduplicate
+	# exclude the user themselves from results
 	return db.query(Player).join(Friendship, ((Friendship.receiver_id == Player.id) | (Friendship.sender_id == Player.id))).filter(
 		((Friendship.sender_id == user.id) | (Friendship.receiver_id == user.id)),
-		Friendship.accepted == True
+		Friendship.accepted == True,
+		Player.id != user.id
 	).distinct().all()
 
 # ==================================
@@ -236,16 +237,19 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 	if not game:
 		raise HTTPException(status_code=404, detail="Game not found")
 	
+	user = get_user(request, db)
+	
 	context["game"] = {
 		"name": game.name,
 		"slug": game.slug,
-		"image_url": get_game_image_url(game.slug)
+		"image_url": get_game_image_url(game.slug),
+		"is_favorite": db.query(PlayerGameProfile).filter(PlayerGameProfile.game_id == game.id, PlayerGameProfile.player_id == user.id).first() is not None if user else False
 	}
 
 	context["age_marks"] = AGE_MARK_LABELS
 
 	game_schema = GameProfileSpec.get_schema(game.schema_spec)
-
+	# attach filter options
 	context["filter_options"] = {
 		"playtimes": [pt.name for pt in db.query(Playtime).distinct()],
 		"platforms": [pf.name for pf in db.query(Platform).distinct()],
@@ -255,6 +259,48 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 			for field_name, field_spec in game_schema.to_form_schema()["fields"].items()
 		} if game_schema else {}
 	}
+
+	# If this game has a schema, expose rank options and current user rank for the frontend popup
+	if game_schema:
+		# Build a lightweight form schema and pull the display field + allowed values (if any)
+		try:
+			form_schema = game_schema.to_form_schema()
+			display_field = form_schema.get("display_field")
+			options = []
+			if display_field:
+				field_meta = form_schema.get("fields", {}).get(display_field, {})
+				options = field_meta.get("validation", {}).get("allowedvalues") or []
+			context["rank_display_field"] = display_field
+			context["rank_options_json"] = json.dumps(options)
+			context["rank_display_field_json"] = json.dumps(display_field) if display_field is not None else json.dumps(None)
+		except Exception:
+			context["rank_display_field"] = None
+			context["rank_options_json"] = json.dumps([])
+
+	# Determine current user's rank display value (if logged in and profile exists)
+	user = get_user(request, db)
+	user_rank = None
+	game_profile_data = {}
+	if user and game_schema:
+		pgp = db.query(PlayerGameProfile).filter(PlayerGameProfile.game_id == game.id, PlayerGameProfile.player_id == user.id).first()
+		if pgp and pgp.data:
+			try:
+				game_profile_data = json.loads(pgp.data)
+				user_rank = game_schema.get_display_value(game_profile_data)
+			except Exception:
+				user_rank = None
+
+		# Provide full form schema and current profile data for server-rendered modal (combobox-only)
+		try:
+			form_schema = game_schema.to_form_schema()
+			context["game_form_schema"] = form_schema
+			# attach parsed profile data (dict) for pre-selecting options
+			context["game_profile_data"] = game_profile_data
+		except Exception:
+			context["game_form_schema"] = None
+			context["game_profile_data"] = {}
+	context["user_rank"] = user_rank
+	context["user_rank_json"] = json.dumps(user_rank) if user_rank is not None else json.dumps(None)
 
 	context["profile"] = create_profile_context(db, request)
 
@@ -279,6 +325,7 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 	
 	# Check if viewing own profile
 	is_own_profile = current_user and current_user.id == player.id
+	my_friend = is_friend(db, current_user, player) if current_user else False
 	
 	# Build profile context
 	profile = {
@@ -292,12 +339,13 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 		"languages": [lang.name for lang in player.languages] if player.languages else [],
 		"discord": player.profile.discord,
 		"steam": player.profile.steam_url,
+		"is_friend": my_friend,
 	}
 
 	# add privacy settings:
 	# if the profile is private and the current user is not a friend,
 	# hide the external links and other profile information until they become friends.
-	if player.profile.private == True and not is_own_profile and not is_friend(db, current_user, player):
+	if player.profile.private == True and not is_own_profile and not my_friend:
 		profile["discord"] = "Private"
 		profile["steam"] = "Private"
 		# profile["bio"] = "This profile is private. Send a friend request to view more information about this player."

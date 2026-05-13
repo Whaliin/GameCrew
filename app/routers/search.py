@@ -2,10 +2,11 @@ import json
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
+from app.auth.sessions import get_user
 from app.database import get_db
 from app.models import Game, Player, PlayerGameProfile, PlayerProfile
 from app.routers.api.players import map_age_range
@@ -97,6 +98,7 @@ def _parse_profile_data(raw_data: str | None) -> dict[str, object]:
 
 @router.post("/games/{game_slug}/players")
 def search_players_for_game(
+	request: Request,
 	game_slug: str,
 	search_request: PlayerSearchRequest,
 	limit: int = 50,
@@ -105,6 +107,7 @@ def search_players_for_game(
 	"""
 	Search for player profiles based on the specified criteria for a given game.
 
+	:param Request request: The HTTP request object.
 	:param str game_slug: The slug identifier for the game to search within.
 	:param PlayerSearchRequest search_request: The search criteria including age range, playtime, platform, language, and any game-specific schema filters.
 	:param int limit: The maximum number of results to return (default is 50, max is 50).
@@ -119,6 +122,7 @@ def search_players_for_game(
 		print(f"Received schema filters for game '{game_slug}': {search_request.schema_filters}")
 
 	"""Search for player profiles based on the specified criteria for a given game."""
+	current_user = get_user(request, db)
 	current_year = datetime.now().year
 
 	# Get the game
@@ -147,13 +151,16 @@ def search_players_for_game(
 		.filter(PlayerGameProfile.game_id == game.id)
 	)
 
+	if current_user:
+		# If the user is authenticated, remove them from the results
+		player_rows = player_rows.filter(Player.id != current_user.id)
+
 	# filter player rows by name_contains if specified
 	if search_request.name_contains:
 		player_rows = player_rows.filter(Player.username.ilike(f"%{search_request.name_contains}%"))
 
 	# convert player rows to a list
 	player_rows = player_rows.all()
-
 
 	results: list[dict[str, object]] = []
 	for player, profile, game_profile in player_rows:

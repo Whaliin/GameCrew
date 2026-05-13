@@ -5,7 +5,8 @@
 {% block content %}
 {% include "partials/navbar.html" %}
 
-<main id="page-spel" class="wrapper" data-game-slug="{{ game.slug }}">
+<main id="page-spel" class="wrapper" data-game-slug="{{ game.slug }}"
+	  {% if rank_options_json is defined %}data-rank-options='{{ rank_options_json | safe }}' data-rank-display-field='{{ rank_display_field_json | safe if rank_display_field_json is defined else "null" }}' data-user-rank='{{ user_rank_json | safe if user_rank_json is defined else "null" }}'{% endif %}>
 	<div class="spel-layout">
 		<div>
 			<button class="back-btn" onclick="goHome()">← Back</button>
@@ -16,17 +17,21 @@
 					<div class="spel-title-eyebrow">// Game · {{ game.slug }}</div>
 					<span class="spel-name">{{ game.name }}</span>
 				</div>
-				<button id="fav-btn" class="fav-btn" data-fav-slug="{{ game.slug }}" type="button" aria-pressed="false" onclick="toggleFavorite(this)">
-					<span class="fav-icon{% if game.is_favorite %} is-filled{% endif %}" aria-hidden="true"></span>
-					<span class="fav-label">{% if game.is_favorite %}Remove from favorites{% else %}Add to favorites{% endif %}</span>
+				
+				{% if profile %}
+				<button id="fav-btn" 
+						class="fav-btn {% if game.is_favorite %}active{% endif %}" 
+						data-fav-slug="{{ game.slug }}" 
+						type="button"
+						title="Toggle Favorite">
+					<span class="fav-icon"></span>
+					<span class="fav-label">
+						{% if game.is_favorite %}Remove from favorites{% else %}Add to favorites{% endif %}
+					</span>
 				</button>
+				{% endif %}
 
-				<button class="fav-btn" type="button" onclick="openGameProfilePopup()">
-					<span class="fav-icon fav-icon-profile" aria-hidden="true"></span>
-					<span class="fav-label">Set up profile</span>
-				</button>
-
-				{% if current_user %}
+				{% if profile %}
 					{% if user_rank and user_rank_locked %}
 					<!-- Rank set + still on cooldown: show as static pill, no button -->
 					<div class="rank-display rank-locked" title="You can update your rank again in {{ user_rank_remaining_hours }}h">
@@ -35,16 +40,16 @@
 						<span class="rank-display-cooldown">{{ user_rank_remaining_hours }}h</span>
 					</div>
 					{% elif user_rank %}
-					<!-- Rank set, cooldown expired: show clickable button -->
-					<button class="rank-btn rank-btn-update" type="button" onclick="openRankPopup('{{ game.slug }}', '{{ user_rank }}')"> 
-						<span class="rank-btn-label">Update rank</span>
+					<!-- Rank set, cooldown expired: show server-rendered profile editor button -->
+					<button class="rank-btn rank-btn-update" type="button" onclick="openGameProfilePopup()"> 
+						<span class="rank-btn-label">Edit profile</span>
 						<span class="rank-btn-current">{{ user_rank }}</span>
 					</button>
 					{% else %}
 					<!-- No rank set yet -->
-					<button class="rank-btn rank-btn-set" type="button" onclick="openRankPopup('{{ game.slug }}', null)">
+					<button class="rank-btn rank-btn-set" type="button" onclick="openGameProfilePopup()">
 						<span class="rank-icon" aria-hidden="true"></span>
-						<span>Set my rank</span>
+						<span>Edit profile</span>
 					</button>
 					{% endif %}
 				{% endif %}
@@ -53,7 +58,6 @@
 			<div class="hud-header">
 				<h2>Available players</h2>
 				<div class="hud-line"></div>
-				<div class="hud-count">{{ found_players|length }} found</div>
 			</div>
 
 			<div class="players-grid">
@@ -84,22 +88,20 @@
 					</div>
 
 					<div class="p-actions" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">
-						<button type="button" class="p-action-btn p-action-btn-discord"
-								data-discord="{{ player.discord|default('') }}"
+						<button type="button" class="p-action-btn p-action-btn-friend"
 								data-username="{{ player.username }}"
-								onclick="showDiscord(event, this)"
-								aria-label="Show Discord for {{ player.username }}">
+							onclick="handleAddFriendClick(this.dataset.username, this)"
+								aria-label="Add {{ player.username }} as friend">
 							<span class="p-action-icon" aria-hidden="true"></span>
-							<span class="p-action-label">Discord</span>
+							<span class="p-action-label">Add friend</span>
 						</button>
 
-						<button type="button" class="p-action-btn p-action-btn-platform"
-								data-platform="{{ player.platform|default('') }}"
+						<button type="button" class="p-action-btn p-action-btn-profile"
 								data-username="{{ player.username }}"
-								onclick="showPlatform(event, this)"
-								aria-label="Show platform for {{ player.username }}">
+								onclick="goProfile('{{ player.username }}')"
+								aria-label="Show full profile for {{ player.username }}">
 							<span class="p-action-icon" aria-hidden="true"></span>
-							<span class="p-action-label">Platform</span>
+							<span class="p-action-label">Show profile</span>
 						</button>
 					</div>
 				</div>
@@ -254,52 +256,39 @@
 		</div>
 
 		{% if game_form_schema and game_form_schema.fields %}
-		<form method="post" action="/game/{{ game.slug }}/profile" class="rank-popup-form">
+		<form id="profile-schema-form" method="post" action="/api/games/{{ game.slug }}/info" class="rank-popup-form" data-api-endpoint="/api/games/{{ game.slug }}/info" data-display-field="{{ game_form_schema.display_field if game_form_schema is defined else '' }}">
 			{% for field_name, field_meta in game_form_schema.fields.items() %}
 				{% set rules = field_meta.validation %}
+				{% set current = game_profile_data.get(field_name) if game_profile_data is defined else none %}
 				<div class="profile-form-group">
-					<label class="profile-form-label">{{ field_name|replace('_', ' ')|title }}</label>
+					<label class="profile-form-label" for="field-{{ field_name }}">{{ field_name|replace('_', ' ')|title }}</label>
 
 					{% if rules.allowedvalues %}
 					<div class="select-wrap">
-						<select name="{{ field_name }}">
-							<option value="" disabled selected>Choose {{ field_name|replace('_', ' ') }}…</option>
+						{% if rules.multi %}
+						<select id="field-{{ field_name }}" name="{{ field_name }}" multiple aria-label="{{ field_name|replace('_', ' ')|title }}">
 							{% for option in rules.allowedvalues %}
-							<option value="{{ option }}">{{ option }}</option>
+							<option value="{{ option }}" {% if current and option in current %}selected{% endif %}>{{ option }}</option>
 							{% endfor %}
 						</select>
+						{% else %}
+						<select id="field-{{ field_name }}" name="{{ field_name }}" aria-label="{{ field_name|replace('_', ' ')|title }}">
+							<option value="" {% if not current %}selected{% endif %} disabled>Choose {{ field_name|replace('_', ' ') }}…</option>
+							{% for option in rules.allowedvalues %}
+							<option value="{{ option }}" {% if current == option %}selected{% endif %}>{{ option }}</option>
+							{% endfor %}
+						</select>
+						{% endif %}
 					</div>
-
-					{% elif rules.max_length %}
-					<input type="text" name="{{ field_name }}" maxlength="{{ rules.max_length }}"
-						   placeholder="{{ field_name|replace('_', ' ')|title }}…"
-						   class="filter-search-input profile-form-input">
 					{% endif %}
 				</div>
 			{% endfor %}
 
-			<button type="submit" class="btn-primary rank-popup-submit">Save profile</button>
+			<button type="submit" class="btn-primary rank-popup-submit">Update profile</button>
 		</form>
 		{% else %}
 		<div class="info-popup-note">No profile fields configured for this game.</div>
 		{% endif %}
 	</div>
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-	(function () {
-		'use strict';
-		const input = document.getElementById('filter-tag-search');
-		if (!input) return;
-		input.addEventListener('input', () => {
-			const q = input.value.toLowerCase().trim().replace(/^@/, '');
-			document.querySelectorAll('.player-card').forEach(card => {
-				const name = (card.querySelector('.p-name')?.textContent || '').toLowerCase();
-				card.style.display = (!q || name.includes(q)) ? '' : 'none';
-			});
-		});
-	})();
-</script>
 {% endblock %}

@@ -3,8 +3,5 @@ uvicorn
 jinja2
 sqlalchemy
 pydantic
-pytest
-httpx
 python-multipart
 bcrypt
-hypothesis
