@@ -5,27 +5,11 @@ from sqlalchemy.orm import Session
 from app.auth.sessions import get_user
 from app.database import get_db
 from app.models import Friendship, Game, Player, PlayerGameProfile
-from app.routers.pages import get_game_image_url, get_avatar_url
+from app.utils.assets import get_game_image_url, get_avatar_url
+from app.utils.formatters import map_age_range
 from app.schemas import GameProfileSpec
 
 router = APIRouter(prefix="/api/players", tags=["players"])
-
-def map_age_range(birth_year: int) -> str:
-	"""Map birth year to a coarse age range used in templates.
-	
-	:param birth_year: The birth year to map.
-	:return: A string representing the age range category.
-	"""
-	age = datetime.datetime.now().year - birth_year
-	if age < 18:
-		return "Under 18" # This case should be prevented by validation
-	if age <= 25:
-		return "18-25"
-	if age <= 35:
-		return "26-35"
-	if age <= 45:
-		return "36-45"
-	return "45+"
 
 def create_profile_object(db: Session, username: str) -> dict | None:
 	"""

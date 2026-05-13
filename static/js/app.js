@@ -349,7 +349,7 @@ function renderProfileInfoRows(elements, data) {
 		['Age',        withFallback(data.age ? data.age + ' yrs' : data.age_range, 'N/A')],
 		['Platform',   withFallback(data.platform, 'N/A')],
 		['Languages',  Array.isArray(data.languages) ? data.languages.join(', ') : withFallback(data.languages, 'N/A')],
-		['Playtimes', Array.isArray(data.playtimes) ? data.playtimes.join(', ') : withFallback(data.playtimes, 'N/A')],
+		['Availability', Array.isArray(data.playtimes) ? data.playtimes.join(', ') : withFallback(data.playtimes, 'N/A')],
 	];
 	rows.forEach(([label, value]) => createInfoRow(elements.infoBox, label, value));
 }
@@ -361,14 +361,6 @@ function escapeHtmlText(str) {
 }
 
 function renderProfileGames(gamePanel, games) {
-	if (!Array.isArray(games) || games.length === 0) {
-		games = [
-			{ slug: 'cs2', name: 'Counter-Strike 2', image_url: '/static/img/games/cs2.jpg', rank: 'Master Guardian II' },
-			{ slug: 'valorant', name: 'Valorant', image_url: '/static/img/games/valorant.jpg', rank: 'Diamond 1' },
-			{ slug: 'lol', name: 'League of Legends', image_url: '/static/img/games/lol.jpg', rank: null },
-			{ slug: 'arcraiders', name: 'ARC Raiders', image_url: '/static/img/games/arcraiders.jpg', rank: 'Veteran' }
-		];
-	}
 	games.forEach(game => createGameIcon(gamePanel, game));
 }
 
@@ -1408,7 +1400,18 @@ function setupSettingsPage() {
 function confirmDeleteAccount() {
 	const confirmation = prompt('This will permanently delete your account.\nType DELETE to confirm:');
 	if (confirmation === 'DELETE') {
-		alert('Account deletion not implemented yet');
+		fetch('/api/profile/delete-account', {
+			method: 'DELETE',
+			credentials: 'same-origin',
+		}).then(res => {
+			if (res.status === 204) {
+				window.location.href = '/';
+			} else {
+				alert('Account deletion failed.');
+			}
+		}).catch(() => {
+			alert('Network error. Account deletion failed.');
+		});
 	}
 }
 

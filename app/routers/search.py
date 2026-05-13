@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 from app.auth.sessions import get_user
 from app.database import get_db
 from app.models import Game, Player, PlayerGameProfile, PlayerProfile
-from app.routers.api.players import map_age_range
-from app.routers.pages import get_avatar_url
+from app.utils.assets import get_avatar_url
+from app.utils.formatters import map_age_range
 from app.schemas import GameProfileSpec
 
 router = APIRouter(prefix="/api/search", tags=["search"])

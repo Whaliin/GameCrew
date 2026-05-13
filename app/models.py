@@ -11,20 +11,20 @@ from app.database import Base
 
 player_platforms = Table(
     "player_platforms", Base.metadata,
-    Column("player_id", Integer, ForeignKey("players.id"), primary_key=True),
-    Column("platform_id", Integer, ForeignKey("platforms.id"), primary_key=True),
+	Column("player_id", Integer, ForeignKey("players.id", ondelete="CASCADE"), primary_key=True),
+	Column("platform_id", Integer, ForeignKey("platforms.id", ondelete="CASCADE"), primary_key=True),
 )
 
 player_languages = Table(
     "player_languages", Base.metadata,
-    Column("player_id", Integer, ForeignKey("players.id"), primary_key=True),
-    Column("language_id", Integer, ForeignKey("languages.id"), primary_key=True),
+	Column("player_id", Integer, ForeignKey("players.id", ondelete="CASCADE"), primary_key=True),
+	Column("language_id", Integer, ForeignKey("languages.id", ondelete="CASCADE"), primary_key=True),
 )
 
 player_playtimes = Table(
     "player_playtimes", Base.metadata,
-    Column("player_id", Integer, ForeignKey("players.id"), primary_key=True),
-    Column("playtime_id", Integer, ForeignKey("playtimes.id"), primary_key=True),
+	Column("player_id", Integer, ForeignKey("players.id", ondelete="CASCADE"), primary_key=True),
+	Column("playtime_id", Integer, ForeignKey("playtimes.id", ondelete="CASCADE"), primary_key=True),
 )
 
 class Game(Base):
@@ -38,6 +38,12 @@ class Game(Base):
 	# The typename of the corresponding GameProfileSpec subclass (e.g "CounterStrikeSpec", "LeagueOfLegendsSpec", etc).
 	# This way we can easily determine for each game which fields the player profiles should have, and how to validate them.
 	schema_spec: Mapped[str] = mapped_column(Text, nullable=True)
+
+	game_profiles: Mapped[list["PlayerGameProfile"]] = relationship(
+		"PlayerGameProfile",
+		back_populates="game",
+		cascade="all, delete",
+	)
 
 class Language(Base):
 	__tablename__ = "languages"
@@ -97,7 +103,30 @@ class Player(Base):
 	username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 	password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
 
-	profile: Mapped["PlayerProfile"] = relationship("PlayerProfile", uselist=False, back_populates="player")
+	profile: Mapped["PlayerProfile"] = relationship(
+		"PlayerProfile",
+		uselist=False,
+		back_populates="player",
+		cascade="all, delete-orphan",
+		single_parent=True,
+	)
+	game_profiles: Mapped[list["PlayerGameProfile"]] = relationship(
+		"PlayerGameProfile",
+		back_populates="player",
+		cascade="all, delete",
+	)
+	sent_friendships: Mapped[list["Friendship"]] = relationship(
+		"Friendship",
+		foreign_keys="Friendship.sender_id",
+		back_populates="sender",
+		cascade="all, delete",
+	)
+	received_friendships: Mapped[list["Friendship"]] = relationship(
+		"Friendship",
+		foreign_keys="Friendship.receiver_id",
+		back_populates="receiver",
+		cascade="all, delete",
+	)
 	platforms: Mapped[list["Platform"]] = relationship(
 		"Platform",
 		secondary="player_platforms",
@@ -117,7 +146,7 @@ class Player(Base):
 # Player profile data
 class PlayerProfile(Base):
 	__tablename__ = "player_profiles"
-	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id", ondelete="CASCADE"), primary_key=True)
 	region_id: Mapped[int] = mapped_column(Integer, ForeignKey("regions.id"), nullable=False)
 	# Year of birth (e.g 2001, 1995). We don't want to store full birthdates for privacy reasons
 	birth_year: Mapped[int] = mapped_column(Integer)
@@ -140,15 +169,15 @@ class PlayerProfile(Base):
 class PlayerGameProfile(Base):
 	__tablename__ = "player_games"
 
-	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
-	game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"), primary_key=True)
+	player_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id", ondelete="CASCADE"), primary_key=True)
+	game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id", ondelete="CASCADE"), primary_key=True)
 
 	# The actual profile data will be stored as a JSON string, since different games can have different fields.
 	# The schema_spec field in the Game table will tell us how to validate and interpret this JSON data for each game.
 	data: Mapped[str] = mapped_column(Text, nullable=True)
 
-	player: Mapped["Player"] = relationship("Player")
-	game: Mapped["Game"] = relationship("Game")
+	player: Mapped["Player"] = relationship("Player", back_populates="game_profiles")
+	game: Mapped["Game"] = relationship("Game", back_populates="game_profiles")
 
 # Friendship table to represent friend relationships between players.
 class Friendship(Base):
@@ -162,11 +191,11 @@ class Friendship(Base):
 		Index("idx_receiver_sender", "receiver_id", "sender_id")
 	)
 
-	sender_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
-	receiver_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id"), primary_key=True)
+	sender_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id", ondelete="CASCADE"), primary_key=True)
+	receiver_id: Mapped[int] = mapped_column(Integer, ForeignKey("players.id", ondelete="CASCADE"), primary_key=True)
 	accepted: Mapped[bool] = mapped_column(default=False, nullable=False)
 	sent_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now())
 	accepted_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
-	sender: Mapped["Player"] = relationship("Player", foreign_keys=[sender_id])
-	receiver: Mapped["Player"] = relationship("Player", foreign_keys=[receiver_id])
+	sender: Mapped["Player"] = relationship("Player", foreign_keys=[sender_id], back_populates="sent_friendships")
+	receiver: Mapped["Player"] = relationship("Player", foreign_keys=[receiver_id], back_populates="received_friendships")

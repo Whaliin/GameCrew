@@ -1,12 +1,12 @@
 
 from typing import List
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.auth.hashing import hash_password, verify_password
-from app.auth.sessions import get_session, get_session_id, get_user
+from app.auth.sessions import delete_session, get_session, get_session_id, get_user
 from app.auth.validation import validate_birth_year, validate_languages, validate_password, validate_username
 from app.database import get_db
 from app.models import Language, Platform, Player, Playtime, Region
@@ -254,3 +254,25 @@ async def update_player_avatar(request: Request, avatar: UploadFile = File(...),
 
 	return RedirectResponse(url="/settings#profile", status_code=303)
 
+@router.delete("/delete-account")
+async def delete_player_account(request: Request, db: Session = Depends(get_db)):
+	"""
+	Delete the current player's account and all associated data.
+
+	:param request: The incoming request to delete the account.
+	:param db: The database session for querying and deleting the player's data.
+	:raises HTTPException: 401 if not authenticated.
+	:return: A redirect response to the homepage after successful deletion.
+	"""
+	user = get_user(request, db)
+	if not user:
+		raise HTTPException(status_code=401, detail="Not authenticated")
+	
+	db.delete(user)
+	db.commit()
+
+	session_id = get_session_id(request)
+	if session_id:
+		delete_session(session_id)
+
+	return Response(status_code=204)
