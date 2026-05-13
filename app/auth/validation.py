@@ -54,7 +54,7 @@ def validate_region(db: Session, region_id: int) -> str | None:
 	# For each region, get the name but since the query returns a list of tuples we need to loop again
 	valid_regions = [r[0] for r in db.query(Region.id).all()]
 	if region_id not in valid_regions:
-		return f"Invalid region. Choose a valid region ID from the dropdown."
+		return "Invalid region. Choose a valid region ID from the dropdown."
 	return None
 
 # Check User's language is valid and less or equal to 3
@@ -73,6 +73,8 @@ def validate_languages(db: Session, languages: list[str]) -> str | None:
 # Checks if the platform is valid 
 def validate_hardware(db: Session, hardware: str) -> str | None:
 	valid_platforms = [p[0] for p in db.query(Platform.name).all()]
-	if hardware not in valid_platforms:
-		return f"Invalid platform. Choose from: {', '.join(sorted(valid_platforms))}"
+
+	invalid = [h for h in hardware if h not in valid_platforms]
+	if invalid:
+		return f"Invalid platform(s): {', '.join(invalid)}"
 	return None
