@@ -14,6 +14,7 @@ GameCrew is a **FastAPI-based web application** that lets gamers discover teamma
 - **Templates**: Jinja2 (server-side rendering)
 - **Authentication**: Session-based (cookies) with bcrypt password hashing
 - **Validation**: Pydantic
+- **Image Handling**: Pillow
 
 ## Project Structure
 
