@@ -1,17 +1,11 @@
 import datetime
 import json
-from random import random
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, Form
-from fastapi.responses import RedirectResponse
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
-from app.auth.hashing import hash_password, verify_password
 from app.auth.sessions import get_user
-from app.auth.validation import validate_birth_year, validate_username
 from app.database import get_db
-from app.models import Friendship, Game, Language, Platform, Player, PlayerProfile, PlayerGameProfile, Playtime
-from app.routers.pages import get_game_image_url
+from app.models import Friendship, Game, Player, PlayerGameProfile
+from app.routers.pages import get_game_image_url, get_avatar_url
 from app.schemas import GameProfileSpec
 
 router = APIRouter(prefix="/api/players", tags=["players"])
@@ -46,13 +40,12 @@ def create_profile_object(db: Session, username: str) -> dict | None:
 	if not player:
 		return None
 	
-	# TODO: Add the avatar stuff
-	# Check if the player has an avatar (check file path based on player_id)
-
+	print("player ID:", player.id)
+	
 	# build the profile object
 	profile = {
 		"username": player.username,
-		"avatar_url": "/static/img/profiles/default.jpg",
+		"avatar_url": get_avatar_url(player.id),
 		"discord": player.profile.discord if player.profile.discord else "Not set",
 		"steam": player.profile.steam_url if player.profile.steam_url else "Not set",
 		"age_range": map_age_range(player.profile.birth_year),

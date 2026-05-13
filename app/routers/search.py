@@ -10,6 +10,7 @@ from app.auth.sessions import get_user
 from app.database import get_db
 from app.models import Game, Player, PlayerGameProfile, PlayerProfile
 from app.routers.api.players import map_age_range
+from app.routers.pages import get_avatar_url
 from app.schemas import GameProfileSpec
 
 router = APIRouter(prefix="/api/search", tags=["search"])
@@ -196,7 +197,7 @@ def search_players_for_game(
 		results.append(
 			{
 				"username": player.username,
-				"avatar_url": "/static/img/profiles/default.jpg",
+				"avatar_url": get_avatar_url(player.id),
 				"age": map_age_range(profile.birth_year) if profile.birth_year else "Unknown",
 				"display_value": profile_schema.get_display_value(profile_data) if profile_schema else None,
 				"platform": ", ".join(item.name for item in player.platforms) or None,

@@ -129,10 +129,15 @@
 						</div>
 						<div class="settings-avatar-controls">
 							<label for="set-avatar-file" class="settings-avatar-label">Profile picture</label>
-							<small class="settings-help">JPG, PNG or WebP. Max 2 MB.</small>
+							<small class="settings-help">JPG, PNG or WebP. Max 5 MB.</small>
 							<div class="settings-avatar-buttons">
 								<label class="btn-primary settings-avatar-btn">
-									<input type="file" id="set-avatar-file" name="avatar" accept="image/jpeg,image/png,image/webp" hidden onchange="previewAvatar(this)">
+									<input 	type="file" 
+											id="set-avatar-file" 
+											name="avatar" 
+											accept="image/jpeg,image/png,image/webp" 
+											hidden 
+											onchange="validateProfilePictureUpload(this)">
 									<span>Choose image</span>
 								</label>
 							</div>

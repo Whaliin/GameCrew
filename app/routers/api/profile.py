@@ -1,7 +1,7 @@
 
 from typing import List
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -192,13 +192,70 @@ def update_player_privacy(
 
 	return RedirectResponse(url="/settings#privacy", status_code=303)
 	
+import io
+from PIL import Image, ImageOps
+
 @router.post("/settings/avatar")
-def update_player_avatar():
-	# TODO: avatar upload handling
-	# - receive the uploaded file
-	# - validate file type and size
-	# - 128x128 cropping/resizing (if necessary) and convert to JPG
-	# - save the file to static/img/profiles/{player_id}.jpg (overwrite if exists)
-	# - update the player's profile to reference the new avatar path
-	pass
+async def update_player_avatar(request: Request, avatar: UploadFile = File(...), db: Session = Depends(get_db)):
+	"""Update the current player's profile avatar.
+	
+	:param request: The incoming request containing the avatar file upload.
+	:param avatar: The uploaded avatar image file. Must be a valid image format (e.g. JPEG, PNG) and not exceed the maximum size limit.
+	:param db: The database session for querying the player.
+	:raises HTTPException: 401 if not authenticated, 400 if the uploaded file is not a valid image or exceeds size limits.
+	:return: A redirect response to the profile settings page on success.
+	"""
+	
+	print("Received avatar upload request")
+	# validate the user is authenticated
+	user = get_user(request, db)
+	if not user:
+		raise HTTPException(status_code=401, detail="Not authenticated")
+	
+	# check the file size
+	# max size in bytes
+	MAX_SIZE = 5 * 1024 * 1024
+	content = await avatar.read()
+	if len(content) > MAX_SIZE:
+		raise HTTPException(status_code=400, detail="Image is too large. Max 5 MB.")
+	
+	try:
+		# parse image with PIL
+		img = Image.open(io.BytesIO(content))
+		img = ImageOps.exif_transpose(img)  # handle orientation based on EXIF data
+
+		print("Image format:", img.format)
+		print("Image size:", img.size)
+		print("Image mode:", img.mode)
+
+		#square crop and resize to 128x128
+		width, height = img.size
+		side = min(width, height)
+
+		# crop the image to a centered square
+		# calculate the left, upper, right, and lower pixel coordinates for cropping
+		# for example, if the image is 400x300, the side will be 300, and the crop box will be:
+		# left = (400 - 300) // 2 = 50
+		# upper = (300 - 300) // 2 = 0
+		# right = (400 + 300) // 2 = 350
+		# lower = (300 + 300) // 2 = 300
+		img = img.crop(((width - side) // 2, (height - side) // 2, (width + side) // 2, (height + side) // 2))
+		
+		# ensure it's in RGB mode for JPEG output
+		img = img.convert("RGB")
+		
+		# convert to thumbnail
+		img.thumbnail((128, 128), Image.Resampling.LANCZOS)
+	except Exception:
+		# if anything goes wrong during image processing, reject the upload
+		raise HTTPException(status_code=400, detail="Invalid image file")
+	
+	if img is None:
+		raise HTTPException(status_code=400, detail="Could not process image")
+
+	# save the avatar to disk
+	avatar_path = f"static/img/profiles/{user.id}.jpg"
+	img.save(avatar_path, format="JPEG")
+
+	return RedirectResponse(url="/settings#profile", status_code=303)
 

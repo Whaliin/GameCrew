@@ -530,6 +530,7 @@ function createPlayerCard(player) {
 
 	const avatar = document.createElement('img');
 	avatar.className = 'p-avatar';
+	console.log('Player avatar URL:', player.avatar_url);
 	avatar.src = withFallback(player.avatar_url, '/static/img/profiles/default.jpg');
 	avatar.alt = `${withFallback(player.username, 'Player')} avatar`;
 
@@ -1412,32 +1413,29 @@ function confirmDeleteAccount() {
 	}
 }
 
-function previewAvatar(input) {
+function validateProfilePictureUpload(input) {
 	const file = input.files && input.files[0];
-	const filenameEl = document.getElementById('avatar-filename');
-	const previewImg = document.getElementById('avatar-preview-img');
 	if (!file) return;
 
-	if (file.size > 2 * 1024 * 1024) {
-		alert('Image is too large. Max 2 MB.');
+	// file size check — max 5 MB
+	// 				 MB, KB,    BYTE
+	const MAX_SIZE = 5 * 1024 * 1024;
+	if (file.size > MAX_SIZE) {
+		alert('Image is too large. Max 5 MB.');
+		input.value = '';
+		return;
+	}
+	
+	// file type check
+	const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+	if (!allowedTypes.includes(file.type)) {
+		alert('Invalid file type. Please upload a JPEG, PNG, or WEBP image.');
 		input.value = '';
 		return;
 	}
 
-	if (filenameEl) {
-		filenameEl.textContent = file.name;
-	}
-
-	const reader = new FileReader();
-	reader.onload = event => {
-		if (previewImg) {
-			previewImg.src = event.target.result;
-		}
-		if (input.form) {
-			input.form.submit();
-		}
-	};
-	reader.readAsDataURL(file);
+	// trigger auto submit
+	input.form.submit();
 }
 
 setupGameTagSearch();

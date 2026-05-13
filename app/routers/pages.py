@@ -20,6 +20,15 @@ from app.schemas import GameProfileSpec
 router = APIRouter(tags=["pages"])
 templates = Jinja2Templates(directory="templates")
 
+def get_avatar_url(player_id: int) -> str:
+	"""Get the avatar URL for a given player ID. If no custom avatar exists, returns the default avatar URL."""
+	avatar_path = f"static/img/profiles/{player_id}.jpg"
+
+	if Path(avatar_path).exists():
+		return "/" + avatar_path
+	
+	return "/static/img/profiles/default.jpg"
+
 def create_profile_context(db: Session, request: Request, user_session: Player | None = None) -> dict | None:
 	"""Create a consistent context for rendering the navbar across different pages."""
 	# If user_session is not provided, attempt to get it from the request. This allows us to reuse this function in contexts where we may already have the session data available, such as within the auth router after login.
@@ -38,7 +47,7 @@ def create_profile_context(db: Session, request: Request, user_session: Player |
 
 	profile_context = {
 		"username": user_session.username,
-		"avatar_url": "/static/img/profiles/default.jpg",  # TODO: Replace
+		"avatar_url": get_avatar_url(user_session.id),
 		"pending_requests": get_friend_requests_count(db, user_session),
 		"favorite_games": user_favorite_games,
 		"platforms": [pf.name for pf in user_session.platforms] if user_session.platforms else [],
@@ -330,7 +339,7 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 	# Build profile context
 	profile = {
 		"username": player.username,
-		"avatar_url": "/static/img/profiles/default.jpg",  # TODO: Replace with actual avatar
+		"avatar_url": get_avatar_url(player.id),
 		"region": player.profile.region.name if player.profile.region else None,
 		"birth_year": player.profile.birth_year,
 		"bio": player.profile.bio or "",
@@ -441,6 +450,9 @@ def friends_page(request: Request, db: Session = Depends(get_db)):
 	friends = get_friends(db, current_user)
 	friendships_pending = get_pending_friend_requests(db, current_user)
 
+	for friend in friends:
+		friend.avatar_url = get_avatar_url(friend.id)
+
 	pending_requests = []
 	for friendship in friendships_pending:
 		# get the player profile of each sender of the pending requests (Friendship)
@@ -448,7 +460,7 @@ def friends_page(request: Request, db: Session = Depends(get_db)):
 		if sender_profile:
 			pending_requests.append({
 				"username": sender_profile.player.username,
-				"avatar_url": "/static/img/profiles/default.jpg",
+				"avatar_url": get_avatar_url(sender_profile.player_id),
 				"platform": ", ".join([pf.name for pf in sender_profile.player.platforms]) if sender_profile.player.platforms else "N/A",
 			})
 

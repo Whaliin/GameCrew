@@ -2,6 +2,12 @@
 # Ignore the database file
 gamecrew.db
 
+# Ignore all files in the profile avatar folder
+static/img/profiles/*
+
+# Include the default avatar image
+!static/img/profiles/default.jpg
+
 # ---- Windows ----
 # Windows thumbnail cache files
 Thumbs.db
