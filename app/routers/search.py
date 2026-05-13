@@ -117,11 +117,7 @@ def search_players_for_game(
 	# Clamp the limit to a reasonable number to prevent abuse.
 	limit = max(1, min(limit, 50))
 
-	# Log the schema filters
-	if search_request.schema_filters:
-		print(f"Received schema filters for game '{game_slug}': {search_request.schema_filters}")
-
-	"""Search for player profiles based on the specified criteria for a given game."""
+	#Search for player profiles based on the specified criteria for a given game.
 	current_user = get_user(request, db)
 	current_year = datetime.now().year
 
