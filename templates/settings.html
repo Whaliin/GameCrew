@@ -36,6 +36,12 @@
 					<span>Visibility</span>
 				</a>
 			</nav>
+			<form method="post" action="/logout" class="settings-sidebar-signout">
+				<button type="submit" class="settings-signout-btn">
+					<img src="/static/img/icons/icon-signout.svg" alt="" aria-hidden="true" width="16" height="16">
+					<span>Sign out</span>
+				</button>
+			</form>
 		</aside>
 
 		<!-- PANELS -->
@@ -88,20 +94,10 @@
 					<summary class="settings-collapse-summary">
 						<span class="settings-collapse-icon">▸</span>
 						<span class="settings-collapse-title">Account actions</span>
-						<span class="settings-collapse-hint">Sign out · delete account</span>
+						<span class="settings-collapse-hint">Delete account</span>
 					</summary>
 
 					<div class="settings-collapse-body">
-						<div class="settings-action-row">
-							<div>
-								<div class="settings-action-title">Sign out</div>
-								<div class="settings-action-sub">End your session on this device.</div>
-							</div>
-							<form method="post" action="/logout" style="margin: 0;">
-								<button type="submit" class="btn-ghost">Sign out</button>
-							</form>
-						</div>
-
 						<div class="settings-action-row severe">
 							<div>
 								<div class="settings-action-title danger-text">Delete account</div>
@@ -289,4 +285,5 @@
 		</div>
 	</div>
 </main>
+
 {% endblock %}
