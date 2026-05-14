@@ -7,9 +7,12 @@
 
 <main id="page-spel" class="wrapper" data-game-slug="{{ game.slug }}"
 	  {% if rank_options_json is defined %}data-rank-options='{{ rank_options_json | safe }}' data-rank-display-field='{{ rank_display_field_json | safe if rank_display_field_json is defined else "null" }}' data-user-rank='{{ user_rank_json | safe if user_rank_json is defined else "null" }}'{% endif %}>
+
+	<button class="back-btn" onclick="goHome()">← Back</button>
+
 	<div class="spel-layout">
-		<div>
-			<button class="back-btn" onclick="goHome()">← Back</button>
+
+		<div class="spel-main">
 
 			<div class="spel-title">
 				<img src="{{ game.image_url }}" alt="{{ game.name }}">
@@ -17,11 +20,11 @@
 					<div class="spel-title-eyebrow">// Game · {{ game.slug }}</div>
 					<span class="spel-name">{{ game.name }}</span>
 				</div>
-				
+
 				{% if profile %}
-				<button id="fav-btn" 
-						class="fav-btn {% if game.is_favorite %}active{% endif %}" 
-						data-fav-slug="{{ game.slug }}" 
+				<button id="fav-btn"
+						class="fav-btn {% if game.is_favorite %}active{% endif %}"
+						data-fav-slug="{{ game.slug }}"
 						type="button"
 						title="Toggle Favorite">
 					<span class="fav-icon"></span>
@@ -29,32 +32,150 @@
 						{% if game.is_favorite %}Remove from favorites{% else %}Add to favorites{% endif %}
 					</span>
 				</button>
-				{% endif %}
 
-				{% if profile %}
-					{% if user_rank and user_rank_locked %}
-					<!-- Rank set + still on cooldown: show as static pill, no button -->
-					<div class="rank-display rank-locked" title="You can update your rank again in {{ user_rank_remaining_hours }}h">
-						<span class="rank-display-label">My rank</span>
-						<span class="rank-display-value">{{ user_rank }}</span>
-						<span class="rank-display-cooldown">{{ user_rank_remaining_hours }}h</span>
-					</div>
-					{% elif user_rank %}
-					<!-- Rank set, cooldown expired: show server-rendered profile editor button -->
-					<button class="rank-btn rank-btn-update" type="button" onclick="openGameProfilePopup()"> 
-						<span class="rank-btn-label">Edit profile</span>
-						<span class="rank-btn-current">{{ user_rank }}</span>
-					</button>
-					{% else %}
-					<!-- No rank set yet -->
-					<button class="rank-btn rank-btn-set" type="button" onclick="openGameProfilePopup()">
-						<span class="rank-icon" aria-hidden="true"></span>
-						<span>Edit profile</span>
-					</button>
-					{% endif %}
+				{% if user_rank and user_rank_locked %}
+				<div class="rank-display rank-locked" title="You can update your rank again in {{ user_rank_remaining_hours }}h">
+					<span class="rank-display-label">My rank</span>
+					<span class="rank-display-value">{{ user_rank }}</span>
+					<span class="rank-display-cooldown">{{ user_rank_remaining_hours }}h</span>
+				</div>
+				{% elif user_rank %}
+				<button class="rank-btn rank-btn-update" type="button" onclick="openGameProfilePopup()">
+					<span class="rank-btn-label">Edit profile</span>
+					<span class="rank-btn-current">{{ user_rank }}</span>
+				</button>
+				{% else %}
+				<button class="rank-btn rank-btn-set" type="button" onclick="openGameProfilePopup()">
+					<span class="rank-icon" aria-hidden="true"></span>
+					<span>Edit profile</span>
+				</button>
+				{% endif %}
 				{% endif %}
 			</div>
 
+			<!-- HAMBURGER (mobil only) -->
+			<button class="filter-hamburger" id="filter-hamburger" type="button"
+					onclick="toggleFilterPanel()" aria-expanded="false" aria-controls="filter-panel-aside">
+				<span class="fh-label">Filters</span>
+			</button>
+
+			<!-- FILTER PANEL — inline här, CSS placerar den till höger på desktop -->
+			<aside class="filter-panel" id="filter-panel-aside" aria-label="Player filters">
+				<header class="filter-header">
+					<div class="filter-header-title">Filters</div>
+					<button type="button" class="filter-reset-btn" id="filter-reset" aria-label="Reset all filters">Reset</button>
+				</header>
+				<div class="filter-body">
+
+					<div class="filter-group">
+						<div class="filter-group-label">Search by tag</div>
+						<div class="filter-search-wrap">
+							<input type="text" id="filter-tag-search" class="filter-search-input" placeholder="@username" autocomplete="off" aria-label="Search players by tag">
+						</div>
+					</div>
+
+					<div class="filter-group age-range-filter" data-age-range-filter>
+						<div class="filter-group-label">Age range</div>
+						<div class="age-range-values">
+							<span data-age-low>{{ age_marks[0] }}</span>
+							<span>to</span>
+							<span data-age-high>{{ age_marks[-1] }}</span>
+						</div>
+						<div class="age-range-slider-wrap">
+							<div class="age-range-track" aria-hidden="true"></div>
+							<div class="age-range-progress" data-age-progress aria-hidden="true"></div>
+							<input type="range" class="age-range-slider age-range-slider-low"
+								   min="0" max="{{ age_marks|length - 1 }}" step="1" value="0"
+								   data-age-input="low" aria-label="Minimum age">
+							<input type="range" class="age-range-slider age-range-slider-high"
+								   min="0" max="{{ age_marks|length - 1 }}" step="1" value="{{ age_marks|length - 1 }}"
+								   data-age-input="high" aria-label="Maximum age">
+						</div>
+						<div class="age-range-marks" aria-hidden="true">
+							{% for mark in age_marks %}<span>{{ mark }}</span>{% endfor %}
+						</div>
+					</div>
+
+					<div class="filter-group">
+						<div class="filter-group-label">Language</div>
+						<div class="select-wrap">
+							<select id="filter-language" data-filter-group="language" aria-label="Filter by language">
+								<option value="">Any language</option>
+								{% for option in filter_options.languages %}
+								<option value="{{ option }}">{{ option }}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+
+					{% if filter_options.playtimes %}
+					<div class="filter-group">
+						<div class="filter-group-label">Availability</div>
+						<div class="filter-options">
+							{% for option in filter_options.playtimes %}
+							<button type="button" class="filter-btn" data-filter-group="playtime" data-filter-value="{{ option }}">{{ option }}</button>
+							{% endfor %}
+						</div>
+					</div>
+					{% endif %}
+
+					{% if filter_options.platforms %}
+					<div class="filter-group">
+						<div class="filter-group-label">Platform</div>
+						<div class="filter-options">
+							{% for option in filter_options.platforms %}
+							<button type="button" class="filter-btn" data-filter-group="platform" data-filter-value="{{ option }}">{{ option }}</button>
+							{% endfor %}
+						</div>
+					</div>
+					{% endif %}
+
+					{% if filter_options.filter_specs %}
+					{% for field_name, field_rules in filter_options.filter_specs.items() %}
+					{% if field_rules.get('min') is not none and field_rules.get('max') is not none %}
+					<div class="filter-group">
+						<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
+						<div class="range-values">
+							<span data-range-low>{{ field_rules['min'] }}</span>
+							<span>to</span>
+							<span data-range-high>{{ field_rules['max'] }}</span>
+						</div>
+						<input type="range" class="filter-slider" data-filter-group="{{ field_name }}"
+							   min="{{ field_rules['min'] }}" max="{{ field_rules['max'] }}" value="{{ field_rules['min'] }}">
+					</div>
+					{% elif field_rules.get('allowedvalues') and field_rules.get('multi') %}
+					<div class="filter-group">
+						<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
+						<div class="filter-options" data-filter-group-container="{{ field_name }}">
+							{% for option in field_rules['allowedvalues'] %}
+							<label class="filter-checkbox">
+								<input type="checkbox" class="filter-checkbox-input"
+									   data-filter-group="{{ field_name }}" data-filter-value="{{ option }}" value="{{ option }}">
+								<span>{{ option }}</span>
+							</label>
+							{% endfor %}
+						</div>
+					</div>
+					{% elif field_rules.get('allowedvalues') %}
+					<div class="filter-group">
+						<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
+						<div class="select-wrap">
+							<select data-filter-group="{{ field_name }}" aria-label="Filter by {{ field_name }}">
+								<option value="">Any</option>
+								{% for option in field_rules['allowedvalues'] %}
+								<option value="{{ option }}">{{ option }}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+					{% endif %}
+					{% endfor %}
+					{% endif %}
+
+				</div>
+			</aside>
+
+			<!-- PLAYERS -->
 			<div class="hud-header">
 				<h2>Available players</h2>
 				<div class="hud-line"></div>
@@ -65,7 +186,6 @@
 				<div class="player-card" tabindex="0" role="button"
 					 onclick="openProfile('{{ player.username }}')"
 					 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProfile('{{ player.username }}')}">
-
 					<div class="p-top">
 						<div class="p-avatar-wrap">
 							<img class="p-avatar" src="{{ player.avatar_url }}" alt="{{ player.username }} avatar">
@@ -74,28 +194,20 @@
 						<div class="p-meta">
 							<div class="p-name">{{ player.username }}</div>
 							<div class="p-stats">
-								{% if player.rank %}
-								<span class="p-rank">{{ player.rank }}</span>
-								{% endif %}
-								{% if player.rank and player.age %}
-								<span class="p-stat-divider">·</span>
-								{% endif %}
-								{% if player.age %}
-								<span class="p-age">{{ player.age }} yrs</span>
-								{% endif %}
+								{% if player.rank %}<span class="p-rank">{{ player.rank }}</span>{% endif %}
+								{% if player.rank and player.age %}<span class="p-stat-divider">·</span>{% endif %}
+								{% if player.age %}<span class="p-age">{{ player.age }} yrs</span>{% endif %}
 							</div>
 						</div>
 					</div>
-
 					<div class="p-actions" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">
 						<button type="button" class="p-action-btn p-action-btn-friend"
 								data-username="{{ player.username }}"
-							onclick="handleAddFriendClick(this.dataset.username, this)"
+								onclick="handleAddFriendClick(this.dataset.username, this)"
 								aria-label="Add {{ player.username }} as friend">
 							<span class="p-action-icon" aria-hidden="true"></span>
 							<span class="p-action-label">Add friend</span>
 						</button>
-
 						<button type="button" class="p-action-btn p-action-btn-profile"
 								data-username="{{ player.username }}"
 								onclick="goProfile('{{ player.username }}')"
@@ -109,160 +221,28 @@
 				<p>No players found yet — try adjusting your filters.</p>
 				{% endfor %}
 			</div>
-		</div>
 
-		<aside class="filter-panel" aria-label="Player filters">
-			<header class="filter-header">
-				<div class="filter-header-title">Filters</div>
-				<button type="button" class="filter-reset-btn" id="filter-reset" aria-label="Reset all filters">Reset</button>
-			</header>
-
-			<div class="filter-body">
-				<!-- TAG SEARCH -->
-				<div class="filter-group">
-					<div class="filter-group-label">Search by tag</div>
-					<div class="filter-search-wrap">
-						<input type="text" id="filter-tag-search" class="filter-search-input" placeholder="@username" autocomplete="off" aria-label="Search players by tag">
-					</div>
-				</div>
-
-				<!-- AGE -->
-				<div class="filter-group age-range-filter" data-age-range-filter>
-					<div class="filter-group-label">Age range</div>
-
-					<div class="age-range-values">
-						<span data-age-low>{{ age_marks[0] }}</span>
-						<span>to</span>
-						<span data-age-high>{{ age_marks[-1] }}</span>
-					</div>
-
-					<div class="age-range-slider-wrap">
-						<div class="age-range-track" aria-hidden="true"></div>
-						<div class="age-range-progress" data-age-progress aria-hidden="true"></div>
-						<input type="range" class="age-range-slider age-range-slider-low"
-							   min="0" max="{{ age_marks|length - 1 }}" step="1" value="0"
-							   data-age-input="low" aria-label="Minimum age">
-						<input type="range" class="age-range-slider age-range-slider-high"
-							   min="0" max="{{ age_marks|length - 1 }}" step="1" value="{{ age_marks|length - 1 }}"
-							   data-age-input="high" aria-label="Maximum age">
-					</div>
-
-					<div class="age-range-marks" aria-hidden="true">
-						{% for mark in age_marks %}<span>{{ mark }}</span>{% endfor %}
-					</div>
-				</div>
-
-				<!-- LANGUAGE -->
-				<div class="filter-group">
-					<div class="filter-group-label">Language</div>
-					<div class="select-wrap">
-						<select id="filter-language" data-filter-group="language" aria-label="Filter by language">
-							<option value="">Any language</option>
-							{% for option in filter_options.languages %}
-							<option value="{{ option }}">{{ option }}</option>
-							{% endfor %}
-						</select>
-					</div>
-				</div>
-
-				<!-- TIME -->
-				{% if filter_options.playtimes %}
-				<div class="filter-group">
-					<div class="filter-group-label">Availability</div>
-					<div class="filter-options">
-							{% for option in filter_options.playtimes %}
-							<button type="button" class="filter-btn" data-filter-group="playtime" data-filter-value="{{ option }}">{{ option }}</button>
-							{% endfor %}
-						</div>
-					</div>
-				{% endif %}
-
-				<!-- PLATFORM -->
-				{% if filter_options.platforms %}
-				<div class="filter-group">
-					<div class="filter-group-label">Platform</div>
-					<div class="filter-options">
-							{% for option in filter_options.platforms %}
-							<button type="button" class="filter-btn" data-filter-group="platform" data-filter-value="{{ option }}">{{ option }}</button>
-							{% endfor %}
-						</div>
-					</div>
-				{% endif %}
-
-				{% if filter_options.filter_specs %}
-				{% for field_name, field_rules in filter_options.filter_specs.items() %}
-				
-				{% if field_rules.get('min') is not none and field_rules.get('max') is not none %}
-				<div class="filter-group">
-					<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
-					<div class="range-values">
-						<span data-range-low>{{ field_rules['min'] }}</span>
-						<span>to</span>
-						<span data-range-high>{{ field_rules['max'] }}</span>
-					</div>
-					<input type="range" 
-						   class="filter-slider" 
-						   data-filter-group="{{ field_name }}"
-						   min="{{ field_rules['min'] }}" 
-						   max="{{ field_rules['max'] }}" 
-						   value="{{ field_rules['min'] }}">
-				</div>
-				
-				{% elif field_rules.get('allowedvalues') and field_rules.get('multi') %}
-				<div class="filter-group">
-					<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
-					<div class="filter-options" data-filter-group-container="{{ field_name }}">
-						{% for option in field_rules['allowedvalues'] %}
-						<label class="filter-checkbox">
-							<input type="checkbox" 
-								   class="filter-checkbox-input" 
-								   data-filter-group="{{ field_name }}" 
-								   data-filter-value="{{ option }}"
-								   value="{{ option }}">
-							<span>{{ option }}</span>
-						</label>
-						{% endfor %}
-					</div>
-				</div>
-				
-				{% elif field_rules.get('allowedvalues') %}
-				<div class="filter-group">
-					<div class="filter-group-label">{{ field_name|replace('_', ' ')|title }}</div>
-					<div class="select-wrap">
-						<select data-filter-group="{{ field_name }}" aria-label="Filter by {{ field_name }}">
-							<option value="">Any</option>
-							{% for option in field_rules['allowedvalues'] %}
-							<option value="{{ option }}">{{ option }}</option>
-							{% endfor %}
-						</select>
-					</div>
-				</div>
-				{% endif %}
-				
-				{% endfor %}
-				{% endif %}
-			</div>
-		</aside>
-	</div>
+		</div><!-- /spel-main -->
+	</div><!-- /spel-layout -->
 </main>
+
 {% include "partials/profile-modal.html" %}
 
-<!-- Game profile modal — fields filled in by backend via game_form_schema -->
 <div id="profile-schema-modal" class="info-popup-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
 	<div class="info-popup info-popup-rank">
 		<button type="button" class="info-popup-close" onclick="closeGameProfilePopup()" aria-label="Close"></button>
 		<div class="info-popup-title">
 			{% if game_form_schema %}{{ game_form_schema.game_name }} — Profile{% else %}Set game profile{% endif %}
 		</div>
-
 		{% if game_form_schema and game_form_schema.fields %}
-		<form id="profile-schema-form" method="post" action="/api/games/{{ game.slug }}/info" class="rank-popup-form" data-api-endpoint="/api/games/{{ game.slug }}/info" data-display-field="{{ game_form_schema.display_field if game_form_schema is defined else '' }}">
+		<form id="profile-schema-form" method="post" action="/api/games/{{ game.slug }}/info" class="rank-popup-form"
+			  data-api-endpoint="/api/games/{{ game.slug }}/info"
+			  data-display-field="{{ game_form_schema.display_field if game_form_schema is defined else '' }}">
 			{% for field_name, field_meta in game_form_schema.fields.items() %}
 				{% set rules = field_meta.validation %}
 				{% set current = game_profile_data.get(field_name) if game_profile_data is defined else none %}
 				<div class="profile-form-group">
 					<label class="profile-form-label" for="field-{{ field_name }}">{{ field_name|replace('_', ' ')|title }}</label>
-
 					{% if rules.allowedvalues %}
 					<div class="select-wrap">
 						{% if rules.multi %}
@@ -283,7 +263,6 @@
 					{% endif %}
 				</div>
 			{% endfor %}
-
 			<button type="submit" class="btn-primary rank-popup-submit">Update profile</button>
 		</form>
 		{% else %}
@@ -291,4 +270,14 @@
 		{% endif %}
 	</div>
 </div>
+
+<script>
+function toggleFilterPanel() {
+	var panel = document.getElementById('filter-panel-aside');
+	var btn   = document.getElementById('filter-hamburger');
+	var open  = panel.classList.toggle('filter-panel--open');
+	btn.setAttribute('aria-expanded', String(open));
+}
+</script>
+
 {% endblock %}

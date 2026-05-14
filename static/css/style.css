@@ -366,7 +366,7 @@ nav,
 /* ============================================================
    HUD section headers
    ============================================================ */
-.hud-header { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+.hud-header { display: flex; align-items: center; gap: 14px; margin: 22px 0 22px 0; }
 
 .hud-header h2 {
 	font-size: 13px;
@@ -692,15 +692,6 @@ section { margin-bottom: 48px; }
 	border: 1px solid var(--border);
 	color: var(--text-secondary);
 	cursor: pointer;
-}
-
-.rank-btn .rank-icon {
-	width: 11px;
-	height: 11px;
-	display: inline-block;
-	flex-shrink: 0;
-	background: var(--purple);
-	        mask: url('/static/img/icons/icon-rank.svg') no-repeat center / contain;
 }
 
 .rank-btn-update .rank-btn-current {
@@ -1246,7 +1237,7 @@ section { margin-bottom: 48px; }
 
 .age-range-slider-wrap {
 	position: relative;
-	height: 28px;
+	height: 36px;
 	display: flex;
 	align-items: center;
 	padding: 0 8px;
@@ -1258,6 +1249,8 @@ section { margin-bottom: 48px; }
 	left: 8px;
 	right: 8px;
 	height: 3px;
+	top: 50%;
+	transform: translateY(-50%);
 	border-radius: 999px;
 	pointer-events: none;
 }
@@ -1266,18 +1259,18 @@ section { margin-bottom: 48px; }
 
 .age-range-progress {
 	background: var(--cyan);
-	left: 8px;
-	right: 8px;
+	box-shadow: 0 0 6px rgba(0,240,255,.4);
 }
 
 .age-range-slider {
 	position: absolute;
-	top: 50%;
 	left: 0;
 	width: 100%;
 	margin: 0;
 	padding: 0 8px;
-	height: 28px;
+	height: 36px;
+	top: 50%;
+	transform: translateY(-50%);
 	background: transparent !important;
 	pointer-events: none;
 	-webkit-appearance: none;
@@ -1285,10 +1278,8 @@ section { margin-bottom: 48px; }
 	appearance: none;
 	border: none;
 	outline: none;
+	box-sizing: border-box;
 }
-
-.age-range-slider:focus,
-.age-range-slider:active,
 
 .age-range-slider::-moz-focus-outer { border: 0; }
 
@@ -1309,50 +1300,41 @@ section { margin-bottom: 48px; }
 	height: 3px;
 }
 
-/*
-	Slider thumb — KEEP IDENTICAL IN ALL STATES.
-	No hover/active variations: no color shift, no glow change, no scale.
-	Only the cursor changes to communicate grabbing.
-*/
 .age-range-slider::-webkit-slider-thumb {
 	-webkit-appearance: none;
 	appearance: none;
-	width: 14px;
-	height: 14px;
-	margin-top: -5px;
+	width: 18px;
+	height: 18px;
+	margin-top: -7px;
 	border-radius: 50%;
 	border: 2px solid var(--cyan);
 	background: var(--bg);
+	box-shadow: 0 0 6px rgba(0,240,255,.5);
 	cursor: grab;
 	pointer-events: auto;
+	transition: box-shadow .15s;
 }
 
-.age-range-slider::-webkit-slider-thumb:active,
-.age-range-slider:focus::-webkit-slider-thumb {
-	width: 14px;
-	height: 14px;
-	border: 2px solid var(--cyan);
-	background: var(--bg);
+.age-range-slider::-webkit-slider-thumb:hover {
+	box-shadow: 0 0 10px rgba(0,240,255,.8);
 }
 
 .age-range-slider::-webkit-slider-thumb:active { cursor: grabbing; }
 
 .age-range-slider::-moz-range-thumb {
-	width: 14px;
-	height: 14px;
+	width: 18px;
+	height: 18px;
 	border-radius: 50%;
 	border: 2px solid var(--cyan);
 	background: var(--bg);
+	box-shadow: 0 0 6px rgba(0,240,255,.5);
 	cursor: grab;
 	pointer-events: auto;
+	transition: box-shadow .15s;
 }
 
-.age-range-slider::-moz-range-thumb:active,
-.age-range-slider:focus::-moz-range-thumb {
-	width: 14px;
-	height: 14px;
-	border: 2px solid var(--cyan);
-	background: var(--bg);
+.age-range-slider::-moz-range-thumb:hover {
+	box-shadow: 0 0 10px rgba(0,240,255,.8);
 }
 
 .age-range-slider::-moz-range-thumb:active { cursor: grabbing; }
@@ -2750,7 +2732,7 @@ section { margin-bottom: 48px; }
 }
 
 /* Logo → GC + game-row 4 kolumner — ≤ 700px */
-@media (max-width: 800px) {
+@media (max-width: 700px) {
 	.logo {
 		font-size: 0; /* göm full text */
 	}
@@ -3714,4 +3696,110 @@ section { margin-bottom: 48px; }
 .filter-search-input:focus {
 	outline: none;
 	border-color: var(--cyan);
+}
+
+
+
+
+/* ============================================================
+   GAME PAGE — desktop sidebar + mobil hamburger
+   ============================================================ */
+
+/* DESKTOP: filter flyter till höger via absolute positioning */
+.spel-main {
+	position: relative;
+	padding-right: 332px; /* 300px filter + 32px gap */
+}
+
+.spel-main .filter-panel {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 300px;
+}
+
+/* spel-layout behöver inga kolumner längre — spel-main hanterar det */
+.spel-layout {
+	display: block;
+	padding: 28px 0 80px;
+}
+
+/* Hamburger dold på desktop */
+.filter-hamburger { display: none; }
+
+/* ---- MOBIL ≤ 1000px ---- */
+@media (max-width: 1000px) {
+
+	/* Ta bort desktop-offset */
+	.spel-main {
+		position: static;
+		padding-right: 0;
+	}
+
+	/* spel-title: stapla vertikalt */
+	.spel-title {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 12px;
+	}
+
+	/* Fav + rank: full bredd */
+	.spel-title .fav-btn,
+	.spel-title .rank-btn,
+	.spel-title .rank-display {
+		width: 100%;
+		justify-content: center;
+		margin-left: 0;
+		box-sizing: border-box;
+		border-radius: 8px;
+		padding: 13px 18px;
+	}
+
+	/* Filter: dold tills hamburger klickas */
+	.spel-main .filter-panel {
+		position: static;
+		width: 100%;
+		display: none;
+		border-radius: 0 0 12px 12px;
+		margin-bottom: 24px;
+	}
+	.spel-main .filter-panel.filter-panel--open {
+		display: block;
+	}
+
+	/* Hamburger-knapp */
+	.filter-hamburger {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		width: 100%;
+		margin: 12px 0 0;
+		padding: 13px 18px;
+		background: var(--panel);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		color: var(--cyan);
+		font-family: 'Orbitron', sans-serif;
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: .2em;
+		text-transform: uppercase;
+		cursor: pointer;
+		transition: border-color .2s;
+	}
+	.filter-hamburger[aria-expanded="true"] {
+		border-radius: 10px 10px 0 0;}
+}
+.logo:hover {
+    transform: scale(1.06);
+    color: #4df4ff;
+    animation: logo-glitch .35s steps(2, end) 1;
+}
+
+@keyframes logo-glitch {
+    0%   { text-shadow: 0 0 14px rgba(0, 240, 255, .85), 0 0 28px rgba(0, 240, 255, .5); }
+    20%  { text-shadow: -2px 0 0 var(--pink), 2px 0 0 var(--cyan), 0 0 14px rgba(0, 240, 255, .85); }
+    40%  { text-shadow: 3px 0 0 var(--purple), -2px 0 0 var(--cyan), 0 0 18px rgba(0, 240, 255, .9); }
+    60%  { text-shadow: -1px 0 0 var(--cyan), 1px 0 0 var(--pink), 0 0 16px rgba(0, 240, 255, .85); }
+    100% { text-shadow: 0 0 14px rgba(0, 240, 255, .85), 0 0 28px rgba(0, 240, 255, .5); }
 }
