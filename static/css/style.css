@@ -388,12 +388,6 @@ nav,
 	min-width: 40px;
 }
 
-.hud-header .hud-count {
-	font-family: 'Share Tech Mono', monospace;
-	font-size: 11px;
-	color: var(--text-muted);
-	letter-spacing: .1em;
-}
 
 /* ============================================================
    Hero strip on home
@@ -464,7 +458,7 @@ nav,
 
 section { margin-bottom: 48px; }
 
-.game-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 26px; }
+.game-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 26px; }
 
 .section-footer {
 	display: flex;
@@ -523,7 +517,7 @@ section { margin-bottom: 48px; }
 	width: 300px;
 }
 
-.game-card { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 130px; }
+.game-card { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; }
 
 .badge-wrap { position: relative; display: inline-block; }
 
@@ -761,7 +755,7 @@ section { margin-bottom: 48px; }
 
 .players-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 	gap: 18px;
 }
 
@@ -2735,7 +2729,7 @@ section { margin-bottom: 48px; }
 	.players-grid { grid-template-columns: 1fr; }
 	.game-btn,
 	.game-btn-wrap { width: 86px; height: 86px; }
-	.game-row { gap: 18px; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); }
+	.game-row { gap: 16px; grid-template-columns: repeat(5, 1fr); }
 	.profile-avatar { width: 96px; height: 96px; }
 	.auth-card { padding: 24px 20px; }
 	.auth-form .field-row { grid-template-columns: 1fr; }
@@ -2755,8 +2749,85 @@ section { margin-bottom: 48px; }
 	.settings-danger-card .btn-danger { width: 100%; }
 }
 
+/* Logo → GC + game-row 4 kolumner — ≤ 700px */
+@media (max-width: 800px) {
+	.logo {
+		font-size: 0; /* göm full text */
+	}
+	.logo::after {
+		content: 'GC';
+		font-size: 38px;
+		font-family: 'Orbitron', sans-serif;
+		font-weight: 900;
+		color: var(--cyan);
+		letter-spacing: .04em;
+		margin-left: 10px;
+	}
+
+	/* 4 kolumner → max 2 rader med 4 spel = 8 synliga */
+	.game-row {
+		grid-template-columns: repeat(4, 1fr);
+		gap: 14px;
+	}
+
+	.game-btn,
+	.game-btn-wrap {
+		width: 100%;
+		height: auto;
+		aspect-ratio: 1;
+	}
+}
+
 @media (min-width: 769px) {
 	.nav-scroll-btn { display: inline-flex; }
+}
+
+@media (min-width: 1100px) {
+	/*  8 spel per rad på desktop */
+	.game-row { grid-template-columns: repeat(8, 1fr); }
+}
+
+/* ============================================================
+   Nav games second row + search below text — ≤ 1000px
+   ============================================================ */
+@media (max-width: 1000px) {
+	/* Nav wraps: logo + user-area on row 1, games on row 2 */
+	.nav-inner {
+		flex-wrap: wrap;
+	}
+
+	/* Keep user-area pushed to the right */
+	.user-area {
+		margin-left: auto;
+	}
+
+	.nav-games-shell {
+		order: 3;
+		flex: 0 0 100%;
+		min-width: 0;
+	}
+
+	/* Always show scroll arrows on the games row */
+	.nav-scroll-btn {
+		display: inline-flex;
+	}
+
+	/* Search bar drops below the hero text */
+	.hero-strip {
+		grid-template-columns: 1fr;
+	}
+
+	.hero-search {
+		width: 100%;
+	}
+
+	.hero-search-input {
+		width: 100%;
+	}
+
+	.hero-search-input:focus {
+		width: 100%;
+	}
 }
 
 
