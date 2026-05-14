@@ -75,8 +75,10 @@
 		<div class="lp-games-grid">
 			{% for game in trending_games %}
 			<a class="lp-game-tile" href="/game/{{ game.slug }}" aria-label="{{ game.name }}">
-				<span class="lp-game-online">{{ game.player_count }} online</span>
-				<img src="{{ game.image_url }}" alt="{{ game.name }}">
+				<div class="lp-game-tile-img-wrap">
+					<span class="lp-game-online">{{ game.player_count }} online</span>
+					<img src="{{ game.image_url }}" alt="{{ game.name }}">
+				</div>
 				<div class="lp-game-tile-name">{{ game.name }}</div>
 			</a>
 			{% endfor %}
