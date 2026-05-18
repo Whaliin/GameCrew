@@ -1869,13 +1869,6 @@ section { margin-bottom: 48px; }
 	overflow: hidden;
 }
 
-.lp-final::before {
-	content: '';
-	position: absolute;
-	inset: 0;
-	background-image: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0, 240, 255, .12), transparent 70%);
-	pointer-events: none;
-}
 
 .lp-final-inner { position: relative; z-index: 2; max-width: 720px; margin: 0 auto; }
 
