@@ -49,7 +49,16 @@
 				{% elif viewing.is_friend %}
 				<p>You are friends with {{ viewing.username }}</p>
 				{% else %}
-				<button type="button" class="btn-primary" onclick="handleAddFriendClick('{{ viewing.username }}', this)">Add friend</button>
+				<button type="button" class="p-action-btn p-action-btn-friend"
+						data-username="{{ viewing.username }}"
+						onclick="handleAddFriendClick(this.dataset.username, this)"
+						aria-label="Add {{ viewing.username }} as friend">
+					<span class="p-action-icon" aria-hidden="true"></span>
+					<span class="p-action-label">Add friend</span>
+				</button>
+				{% endif %}
+
+				{% if not viewing.is_self %}
 				{% if viewing.discord %}
 				<button type="button" class="btn-secondary"
 					data-discord="{{ viewing.discord }}"
