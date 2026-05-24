@@ -3469,6 +3469,27 @@ section { margin-bottom: 48px; }
 	text-transform: uppercase;
 	cursor: pointer;
 	text-decoration: none;
+	transition: border-color var(--dur-fast) var(--ease-out),
+		color var(--dur-fast) var(--ease-out),
+		background var(--dur-fast) var(--ease-out),
+		box-shadow var(--dur-base) var(--ease-out);
+}
+
+
+.friend-action-btn:hover { transform: none; }
+
+.friend-action-btn.primary:hover {
+	border-color: var(--cyan);
+	color: var(--cyan);
+	background: rgba(0, 240, 255, .1);
+	box-shadow: var(--glow-cyan);
+}
+
+.friend-action-btn.danger:hover {
+	border-color: var(--pink);
+	color: var(--pink);
+	background: rgba(255, 0, 144, .08);
+	box-shadow: 0 0 12px rgba(255, 0, 144, .2);
 }
 
 .friend-action-btn.accept {
