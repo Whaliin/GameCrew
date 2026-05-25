@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}GameCrew — Find your crew{% endblock %}
+{% block title %}GameCrew | Find your crew{% endblock %}
 
 {% block content %}
 {% include "partials/navbar.html" %}
@@ -31,7 +31,6 @@
 		<div class="hud-header">
 			<h2>Match your age group</h2>
 			<div class="hud-line"></div>
-			<div class="hud-count">{{ agegroup_games|length }} titles</div>
 		</div>
 		<div class="game-row" id="row-age">
 			{% for game in agegroup_games %}
@@ -58,7 +57,6 @@
 		<div class="hud-header">
 			<h2>Most played</h2>
 			<div class="hud-line"></div>
-			<div class="hud-count">{{ trending_games|length }} titles</div>
 		</div>
 		<div class="game-row" id="row-trending">
 			{% for game in trending_games %}
@@ -85,7 +83,6 @@
 		<div class="hud-header">
 			<h2>All games</h2>
 			<div class="hud-line"></div>
-			<div class="hud-count">{{ all_games|length }} titles</div>
 		</div>
 		<div class="game-row" id="row-all">
 			{% for game in all_games %}

@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Error {{ status_code }} | GameCrew{% endblock %}
+{% block title %}GameCrew | Error {{ status_code }}{% endblock %}
 
 {% block content %}
-{% if profile %}
-	{% include "partials/navbar.html" %}
-{% endif %}
+{% include "partials/navbar.html" %}
 
 <main class="wrapper">
 	<section>

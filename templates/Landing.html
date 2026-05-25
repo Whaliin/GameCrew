@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}GameCrew - Find your crew{% endblock %}
+{% block title %}GameCrew | Find your crew{% endblock %}
 
 {% block content %}
 <div class="lp">
@@ -9,8 +9,8 @@
 		<div class="lp-nav-inner">
 			<a href="/" class="logo">GAMECREW</a>
 			<div class="lp-nav-actions">
-				<a href="/login" class="lp-link-btn lp-link-btn-primary">Sign in</a>
 				<a href="/register" class="lp-link-btn lp-link-btn-secondary">Sign up</a>
+				<a href="/login" class="lp-link-btn lp-link-btn-primary">Sign in</a>
 			</div>
 		</div>
 	</header>
@@ -31,8 +31,8 @@
 			</p>
 
 			<div class="lp-cta-row">
-				<a href="/register" class="lp-link-btn lp-link-btn-primary lp-link-btn-large">Create free account</a>
-				<a href="/login" class="lp-link-btn lp-link-btn-secondary lp-link-btn-large">I already have one</a>
+				<a href="/register" class="lp-link-btn lp-link-btn-secondary lp-link-btn-large">Create free account</a>
+				<a href="/login" class="lp-link-btn lp-link-btn-primary lp-link-btn-large">I already have one</a>
 			</div>
 		</div>
 	</section>
@@ -75,8 +75,10 @@
 		<div class="lp-games-grid">
 			{% for game in trending_games %}
 			<a class="lp-game-tile" href="/game/{{ game.slug }}" aria-label="{{ game.name }}">
-				<span class="lp-game-online">{{ game.player_count }} online</span>
-				<img src="{{ game.image_url }}" alt="{{ game.name }}">
+				<div class="lp-game-tile-img-wrap">
+					<span class="lp-game-online">{{ game.player_count }} online</span>
+					<img src="{{ game.image_url }}" alt="{{ game.name }}">
+				</div>
 				<div class="lp-game-tile-name">{{ game.name }}</div>
 			</a>
 			{% endfor %}
@@ -89,7 +91,7 @@
 			<h2>Ready to <em>squad up?</em></h2>
 			<p>Free forever for players. No ads, no inbox spam, no shady tracking. Just better teammates.</p>
 			<div class="lp-cta-row">
-				<a href="/register" class="lp-link-btn lp-link-btn-primary lp-link-btn-large">Create free account</a>
+				<a href="/register" class="lp-link-btn lp-link-btn-secondary lp-link-btn-large">Create free account</a>
 			</div>
 		</div>
 	</section>

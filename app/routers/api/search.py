@@ -8,11 +8,12 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from app.auth.sessions import get_user
 from app.database import get_db
-from app.models import Game, Player, PlayerGameProfile, PlayerProfile
+from app.models import Friendship, Game, Player, PlayerGameProfile, PlayerProfile
 from app.utils.assets import get_avatar_url
 from app.utils.formatters import map_age_range
 from app.schemas import GameProfileSpec
@@ -160,6 +161,31 @@ def search_players_for_game(
 	# convert player rows to a list
 	player_rows = player_rows.all()
 
+	# get friendship states
+	candidate_ids = [player.id for player, _, _ in player_rows]
+	friendship_state_by_id = {}
+	if current_user:
+		friendships = (
+			db.query(Friendship)
+			.filter(
+				or_(
+					and_(
+						Friendship.sender_id == current_user.id,
+						Friendship.receiver_id.in_(candidate_ids)
+					),
+					and_(
+						Friendship.receiver_id == current_user.id,
+						Friendship.sender_id.in_(candidate_ids)
+					)
+				)
+			).all()
+		)
+		for friendship in friendships:
+			if friendship.sender_id == current_user.id:
+				friendship_state_by_id[friendship.receiver_id] = "friend" if friendship.accepted else "sent"
+			else:
+				friendship_state_by_id[friendship.sender_id] = "friend" if friendship.accepted else "received"
+
 	results: list[dict[str, object]] = []
 	for player, profile, game_profile in player_rows:
 		age = current_year - profile.birth_year if profile.birth_year else None
@@ -206,6 +232,7 @@ def search_players_for_game(
 				"languages": ", ".join(item.name for item in player.languages) or None,
 				"discord": profile.discord,
 				"bio": profile.bio,
+				"friend_state": friendship_state_by_id.get(player.id)
 			}
 		)
 

@@ -73,26 +73,56 @@ async function friendAction(username, action) {
 }
 
 /* --- FRIEND ACTION HANDLERS --- */
+async function setAddFriendButtonState(button, state) {
+	/*
+	possible states: friend, sent, received or None (else)
+	*/
+	if (!button) return;
+	const label = button.querySelector('.p-action-label');
+	if (state === 'sent') {
+		button.dataset.sent = '1';
+		if (label) label.textContent = 'Sent!';
+		button.classList.add('p-action-btn-active');
+		button.disabled = true;
+	}
+	else if (state === 'friend') {
+		if (label) label.textContent = 'Friends';
+		button.classList.add('p-action-btn-active');
+		button.disabled = true;
+	}
+	else if (state === 'received') {
+		if (label) label.textContent = 'Accept request';
+		button.classList.add('p-action-btn-active');
+		button.disabled = true;
+	}
+	else
+	{
+		if (label) label.textContent = 'Add friend'
+		if (button.dataset.sent) delete button.dataset.sent;
+		// remove the class (does nothing if it doesnt exist)		
+		if (button.classList) button.classList.remove('p-action-btn-active');
+		button.disabled = false;
+	}
+}
+
 async function handleAddFriendClick(username, button) {
 	if (!button) return;
-	if (button.dataset.sent) return;
-	button.dataset.sent = '1';
-	button.querySelector('.p-action-label').textContent = 'Sent!';
-	button.classList.add('p-action-btn-active');
-	button.disabled = true;
+	if (button.dataset.sent) 
+	{
+		alert('Friend request already sent. Please wait for a response.');
+		return
+	};
+
+	// Update button state immediately for UX
+	await setAddFriendButtonState(button, 'sent');
+
 	try {
 		const success = await friendAction(username, 'add');
 		if (!success) {
-			button.querySelector('.p-action-label').textContent = 'Add friend';
-			button.classList.remove('p-action-btn-active');
-			button.disabled = false;
-			delete button.dataset.sent;
+			await setAddFriendButtonState(button, null);
 		}
 	} catch (err) {
-		button.querySelector('.p-action-label').textContent = 'Add friend';
-		button.classList.remove('p-action-btn-active');
-		button.disabled = false;
-		delete button.dataset.sent;
+		await setAddFriendButtonState(button, null);
 	}
 }
 
@@ -305,7 +335,7 @@ function resetProfileCard(elements) {
 	elements.avatarImage.alt = 'Loading...';
 	elements.loading.textContent = 'Loading profile…';
 	elements.loading.style.display = 'block';
-	elements.profileButtons.querySelectorAll('.action-button').forEach(btn => btn.remove());
+	elements.profileButtons.querySelectorAll('button').forEach(btn => btn.remove());
 }
 
 function addActionButton(element, label, onClick) {
@@ -316,15 +346,42 @@ function addActionButton(element, label, onClick) {
 	element.appendChild(button);
 }
 
+function createFriendButton(username, friend_state) {
+	/*
+	<button type="button" class="p-action-btn p-action-btn-friend"
+						data-username="{{ viewing.username }}"
+						onclick="handleAddFriendClick(this.dataset.username, this)"
+						aria-label="Add {{ viewing.username }} as friend">
+					<span class="p-action-icon" aria-hidden="true"></span>
+					<span class="p-action-label">Add friend</span>
+				</button>
+	*/
+	const friendBtn = document.createElement('button');
+	friendBtn.type = 'button';
+	friendBtn.className = 'p-action-btn p-action-btn-friend';
+	friendBtn.dataset.username = username || '';
+	friendBtn.setAttribute('aria-label', `Add ${username || 'player'} as friend`);
+	iconSpan = document.createElement('span');
+	iconSpan.className = 'p-action-icon';
+	iconSpan.setAttribute('aria-hidden', 'true');
+	labelSpan = document.createElement('span');
+	labelSpan.className = 'p-action-label';
+	labelSpan.textContent = 'Add friend';
+	friendBtn.appendChild(iconSpan);
+	friendBtn.appendChild(labelSpan);
+	friendBtn.onclick = () => handleAddFriendClick(friendBtn.dataset.username, friendBtn);
+
+	setAddFriendButtonState(friendBtn, friend_state);
+
+	return friendBtn;
+}
+
 function renderProfileData(elements, data) {
 	setProfileAvatar(elements, data);
 	renderProfileInfoRows(elements, data);
 	elements.bioText.textContent = withFallback(data.bio, 'No bio available.');
 	renderProfileGames(elements.gamePanel, data.games);
-	const friendBtn = document.createElement('button');
-	friendBtn.className = 'action-button';
-	friendBtn.textContent = 'Add as friend';
-	friendBtn.addEventListener('click', () => handleAddFriendClick(data.username, friendBtn));
+	const friendBtn = createFriendButton(data.username, data.friend_state);
 	elements.profileButtons.appendChild(friendBtn);
 	addActionButton(elements.profileButtons, 'Open full profile', () => goProfile(data.username));
 	elements.loading.style.display = 'none';
@@ -580,14 +637,11 @@ function createPlayerCard(player) {
 	actions.addEventListener('click', e => e.stopPropagation());
 	actions.addEventListener('keydown', e => e.stopPropagation());
 
-	const friendBtn = document.createElement('button');
-	friendBtn.type = 'button';
-	friendBtn.className = 'p-action-btn p-action-btn-friend';
-	friendBtn.dataset.username = player.username || '';
-	friendBtn.setAttribute('aria-label', `Add ${player.username || 'player'} as friend`);
-	friendBtn.innerHTML =
-		`<span class="p-action-icon" aria-hidden="true"></span>` +
-		`<span class="p-action-label">Add friend</span>`;
+	// add friend button
+	const friendBtn = createFriendButton(player.username, player.friend_state);
+	// remove the default onclick handler since we set it in createFriendButton
+	// we need to handle propagation here to prevent the card click event from firing
+	friendBtn.onclick = null;
 	friendBtn.addEventListener('click', async e => {
 		e.stopPropagation();
 		await handleAddFriendClick(friendBtn.dataset.username, friendBtn);

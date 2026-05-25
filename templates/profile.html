@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ viewing.username }} — GameCrew{% endblock %}
+{% block title %}GameCrew | {{ viewing.username }}'s profile {% endblock %}
 
 {% block content %}
 {% include "partials/navbar.html" %}
@@ -8,7 +8,6 @@
 {% set is_self = is_own_profile or (current_user and current_user.username == viewing.username) %}
 {% set has_languages = viewing.languages is iterable and viewing.languages is not string and viewing.languages|length > 0 %}
 {% set has_platforms = viewing.platforms is iterable and viewing.platforms is not string and viewing.platforms|length > 0 %}
-
 
 <main class="profile-page">
 	<div class="back-row">
@@ -47,20 +46,35 @@
 				{% if is_self %}
 				<a href="/settings#profile" class="profile-edit-link">Edit profile</a>
 				{% elif viewing.is_friend %}
-				<p>You are friends with {{ viewing.username }}</p>
+				<p style="font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--green);">✓ Friends</p>
 				{% else %}
-				<button type="button" class="btn-primary" onclick="handleAddFriendClick('{{ viewing.username }}', this)">Add friend</button>
+				<button type="button" class="p-action-btn p-action-btn-friend"
+						data-username="{{ viewing.username }}"
+						onclick="handleAddFriendClick(this.dataset.username, this)"
+						aria-label="Add {{ viewing.username }} as friend">
+					<span class="p-action-icon" aria-hidden="true"></span>
+					<span class="p-action-label">Add friend</span>
+				</button>
+				{% endif %}
+
+				{% if not is_self %}
+				{% if viewing.steam %}
+				<button type="button" class="profile-contact-btn profile-contact-btn-steam"
+					data-steam="{{ viewing.steam }}"
+					data-username="{{ viewing.username }}"
+					onclick="showSteam(event, this)">Steam</button>
+				{% endif %}
 				{% if viewing.discord %}
-				<button type="button" class="btn-secondary"
+				<button type="button" class="profile-contact-btn profile-contact-btn-discord"
 					data-discord="{{ viewing.discord }}"
 					data-username="{{ viewing.username }}"
 					onclick="showDiscord(event, this)">Discord</button>
 				{% endif %}
-				{% if viewing.platform %}
-				<button type="button" class="btn-secondary"
-					data-platform="{{ viewing.platform }}"
+				{% if viewing.riot %}
+				<button type="button" class="profile-contact-btn profile-contact-btn-riot"
+					data-riot="{{ viewing.riot }}"
 					data-username="{{ viewing.username }}"
-					onclick="showPlatform(event, this)">Platform</button>
+					onclick="showRiot(event, this)">Riot ID</button>
 				{% endif %}
 				{% endif %}
 			</div>
@@ -111,6 +125,13 @@
 					</div>
 				</div>
 
+				{% if viewing.steam %}
+				<div class="profile-info-item">
+					<div class="profile-info-label">Steam</div>
+					<div class="profile-info-value">{{ viewing.steam }}</div>
+				</div>
+				{% endif %}
+
 				{% if viewing.discord %}
 				<div class="profile-info-item">
 					<div class="profile-info-label">Discord</div>
@@ -118,10 +139,10 @@
 				</div>
 				{% endif %}
 
-				{% if viewing.steam %}
+				{% if viewing.riot %}
 				<div class="profile-info-item">
-					<div class="profile-info-label">Steam</div>
-					<div class="profile-info-value">{{ viewing.steam }}</div>
+					<div class="profile-info-label">Riot ID</div>
+					<div class="profile-info-value">{{ viewing.riot }}</div>
 				</div>
 				{% endif %}
 			</div>
@@ -191,5 +212,17 @@
 		{% endif %}
 	</section>
 </main>
+
+<!-- Footer -->
+<footer class="settings-footer">
+	<div class="settings-footer-inner">
+		<span class="settings-footer-logo">GameCrew</span>
+		<span class="settings-footer-sep">·</span>
+		<span class="settings-footer-text">© 2026 GameCrew. All rights reserved.</span>
+		<span class="settings-footer-sep">·</span>
+		<a href="/" class="settings-footer-link">Home</a>
+	</div>
+</footer>
+
 {% include "partials/profile-modal.html" %}
 {% endblock %}
