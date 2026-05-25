@@ -3956,3 +3956,87 @@ section { margin-bottom: 48px; }
 	color: var(--text-muted);
 	opacity: .4;
 }
+
+/* ── Settings — mobile nav ── */
+.settings-mobile-nav {
+	display: none;
+	gap: 6px;
+	margin-bottom: 20px;
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	padding: 6px;
+}
+
+.settings-mobile-tab {
+	flex: 1;
+	text-align: center;
+	padding: 10px 6px;
+	border-radius: 7px;
+	font-family: 'Orbitron', sans-serif;
+	font-weight: 700;
+	font-size: 10px;
+	letter-spacing: .12em;
+	text-transform: uppercase;
+	color: var(--text-secondary);
+	text-decoration: none;
+	border: 1px solid transparent;
+	transition: color .15s, background .15s, border-color .15s;
+}
+
+.settings-mobile-tab.active {
+	background: rgba(0, 240, 255, .1);
+	color: var(--cyan);
+	border-color: rgba(0, 240, 255, .35);
+}
+
+@media (max-width: 768px) {
+	.settings-mobile-nav { display: flex; }
+	.settings-sidebar { display: none; }
+	.settings-layout { grid-template-columns: 1fr !important; }
+}
+
+/* ── Settings — sign out ── */
+.settings-sidebar-signout {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border-soft);
+}
+
+.settings-signout-btn {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 10px 12px;
+	font-family: 'Rajdhani', sans-serif;
+	font-weight: 600;
+	font-size: 13px;
+	letter-spacing: .12em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: 8px;
+	cursor: pointer;
+	text-align: left;
+	transition: color .15s, background .15s, border-color .15s;
+}
+
+.settings-signout-btn:hover {
+	color: var(--pink);
+	background: rgba(255, 0, 144, .06);
+	border-color: rgba(255, 0, 144, .3);
+	transform: none;
+	box-shadow: none;
+}
+
+.settings-signout-icon {
+	font-size: 16px;
+	line-height: 1;
+	transition: transform .15s;
+}
+
+.settings-signout-btn:hover .settings-signout-icon {
+	transform: translateX(3px);
+}
