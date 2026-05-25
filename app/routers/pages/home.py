@@ -31,7 +31,7 @@ def home(request: Request, db: Session = Depends(get_db)):
 		.join(PlayerGameProfile, PlayerGameProfile.game_id == Game.id)
 		.group_by(Game.id)
 		.order_by(desc("player_count"))
-		.limit(10)
+		.limit(14)
 		.all()
 	)
 
