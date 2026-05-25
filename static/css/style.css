@@ -3850,3 +3850,45 @@ section { margin-bottom: 48px; }
 	cursor: pointer;
 	text-decoration: none;
 }
+/* ── Profile — contact buttons (Steam, Discord, Riot) ── */
+.profile-contact-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 9px 16px;
+	font-family: 'Rajdhani', sans-serif;
+	font-weight: 600;
+	font-size: 12px;
+	letter-spacing: .12em;
+	text-transform: uppercase;
+	border-radius: 8px;
+	border: 1px solid var(--border);
+	background: var(--card);
+	color: var(--text-secondary);
+	cursor: pointer;
+	transition: border-color .15s, color .15s, background .15s, box-shadow .25s;
+}
+
+.profile-contact-btn:hover { transform: none; }
+
+.profile-contact-btn-steam:hover {
+	border-color: var(--cyan);
+	color: var(--cyan);
+	box-shadow: 0 0 12px rgba(0, 240, 255, .25);
+	box-shadow: 0 0 12px rgba(0, 240, 255, .25);
+}
+
+.profile-contact-btn-discord:hover {
+	border-color: #5865F2;
+	color: #7c87ff;
+	background: rgba(88, 101, 242, .1);
+	box-shadow: 0 0 12px rgba(88, 101, 242, .3);
+}
+
+.profile-contact-btn-riot:hover {
+	border-color: #FF4655;
+	color: #FF4655;
+	background: rgba(255, 70, 85, .08);
+	box-shadow: 0 0 12px rgba(255, 70, 85, .25);
+}
+
