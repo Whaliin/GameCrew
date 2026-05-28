@@ -9,11 +9,30 @@
 	<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="/static/css/style.css">
 	<link rel="icon" type="image/svg+xml" href="/static/img/icons/favicon.svg">
+	<script>
+		(function() {
+			var t = localStorage.getItem('theme') || 'dark';
+			if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+		})();
+	</script>
 	{% block extra_head %}{% endblock %}
 </head>
 <body>
 	{% block content %}{% endblock %}
 	<script src="/static/js/app.js"></script>
+	<script>
+		function toggleTheme() {
+			var html = document.documentElement;
+			var current = html.getAttribute('data-theme');
+			var next = current === 'light' ? 'dark' : 'light';
+			if (next === 'dark') {
+				html.removeAttribute('data-theme');
+			} else {
+				html.setAttribute('data-theme', 'light');
+			}
+			localStorage.setItem('theme', next);
+		}
+	</script>
 	{% block extra_scripts %}{% endblock %}
 </body>
 </html>

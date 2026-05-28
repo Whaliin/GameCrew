@@ -3,7 +3,7 @@
 		<a href="/" class="logo" aria-label="GameCrew home">GAMECREW</a>
 
 		<div class="nav-games-shell">
-			<button type="button" class="nav-scroll-btn nav-scroll-left" onclick="scrollNavGames(-1.1)" aria-label="Scroll games left">‹</button>
+			<button type="button" class="nav-scroll-btn nav-scroll-left" onclick="scrollNavGames(-1.1)" aria-label="Scroll games left"><img src="/static/img/icons/nav-arrow-left.svg" alt="" aria-hidden="true" width="16" height="16"></button>
 
 			<div class="nav-games-track" id="nav-games-track" aria-label="Game shortcuts">
 				{% if profile and profile.favorite_games %}
@@ -15,7 +15,7 @@
 				{% endif %}
 			</div>
 
-			<button type="button" class="nav-scroll-btn nav-scroll-right" onclick="scrollNavGames(1.1)" aria-label="Scroll games right">›</button>
+			<button type="button" class="nav-scroll-btn nav-scroll-right" onclick="scrollNavGames(1.1)" aria-label="Scroll games right"><img src="/static/img/icons/nav-arrow-right.svg" alt="" aria-hidden="true" width="16" height="16"></button>
 		</div>
 
 		<div class="user-area">
@@ -34,10 +34,14 @@
 				<span class="nav-friends-badge" aria-label="{{ profile.pending_requests }} pending requests">{{ profile.pending_requests }}</span>
 				{% endif %}
 			</a>
-			<a href="/settings" class="nav-cog-btn" aria-label="Open settings" title="Settings">⚙</a>
+			<a href="/settings" class="nav-cog-btn" aria-label="Open settings" title="Settings"></a>
 			{% else %}
 			<button type="button" class="login-btn" onclick="goLogin()">Sign in</button>
 			{% endif %}
+		<button type="button" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+			<img class="theme-icon-moon" src="/static/img/icons/icon-moon.svg" alt="" aria-hidden="true" width="18" height="18">
+			<img class="theme-icon-sun" src="/static/img/icons/icon-sun.svg" alt="" aria-hidden="true" width="18" height="18">
+		</button>
 		</div>
 	</div>
 </nav>

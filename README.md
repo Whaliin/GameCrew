@@ -139,7 +139,7 @@ python3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
 # macOS
-source .venv/bin/activate
+python3 -m venv .venv
 ```
 
 3. Install dependencies:
