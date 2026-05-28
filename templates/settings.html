@@ -8,7 +8,7 @@
 
 <main class="settings-wrapper">
 	<div class="settings-header-row">
-		<button type="button" class="back-btn" onclick="history.back()">← Back</button>
+<button type="button" class="back-btn" onclick="history.back()"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
 		<h1 class="settings-title">Settings</h1>
 	</div>
 
@@ -19,41 +19,33 @@
 	<div class="settings-banner error">{{ error }}</div>
 	{% endif %}
 
-	<!-- Mobile nav tabs -->
-	<div class="settings-mobile-nav">
-		<a href="#account" class="settings-mobile-tab active" data-settings-link="account">⚙ Account</a>
-		<a href="#profile" class="settings-mobile-tab" data-settings-link="profile">◇ Profile</a>
-		<a href="#visibility" class="settings-mobile-tab" data-settings-link="visibility">◎ Visibility</a>
-	</div>
-
 	<div class="settings-layout">
+		<!-- SIDEBAR NAV -->
 		<aside class="settings-sidebar">
 			<div class="settings-sidebar-title">// Sections</div>
 			<nav class="settings-nav">
 				<a href="#account" class="settings-nav-link active" data-settings-link="account">
-					<span class="settings-nav-icon">⚙</span>
+					<span class="settings-nav-icon" aria-hidden="true"><img src="/static/img/icons/icon-account.svg" alt="" width="16" height="16"></span>
 					<span>Account</span>
 				</a>
 				<a href="#profile" class="settings-nav-link" data-settings-link="profile">
-					<span class="settings-nav-icon">◇</span>
+					<span class="settings-nav-icon" aria-hidden="true"><img src="/static/img/icons/icon-profile-nav.svg" alt="" width="16" height="16"></span>
 					<span>Profile</span>
 				</a>
 				<a href="#visibility" class="settings-nav-link" data-settings-link="visibility">
-					<span class="settings-nav-icon">◎</span>
+					<span class="settings-nav-icon" aria-hidden="true"><img src="/static/img/icons/icon-account.svg" alt="" width="16" height="16"></span>
 					<span>Visibility</span>
 				</a>
 			</nav>
-
-			<div class="settings-sidebar-signout">
-				<form method="post" action="/logout" style="margin: 0;">
-					<button type="submit" class="settings-signout-btn">
-						<span class="settings-signout-icon">→</span>
-						<span>Sign out</span>
-					</button>
-				</form>
-			</div>
+			<form method="post" action="/logout" class="settings-sidebar-signout">
+				<button type="submit" class="settings-signout-btn">
+					<img src="/static/img/icons/icon-signout.svg" alt="" aria-hidden="true" width="16" height="16">
+					<span>Sign out</span>
+				</button>
+			</form>
 		</aside>
 
+		<!-- PANELS -->
 		<div class="settings-content">
 
 			<!-- ACCOUNT -->
@@ -96,11 +88,12 @@
 					</div>
 				</form>
 
+				<!-- Collapsible: Account actions -->
 				<div class="settings-divider"></div>
 
 				<details class="settings-collapse">
 					<summary class="settings-collapse-summary">
-						<span class="settings-collapse-icon">▸</span>
+						<span class="settings-collapse-icon" aria-hidden="true"><img src="/static/img/icons/icon-chevron-right.svg" alt="" width="12" height="12"></span>
 						<span class="settings-collapse-title">Account actions</span>
 						<span class="settings-collapse-hint">Delete account</span>
 					</summary>
@@ -125,6 +118,7 @@
 					<p>What other players see when they open your card.</p>
 				</header>
 
+				<!-- Avatar upload -->
 				<form class="settings-form settings-avatar-form" method="post" action="/api/profile/settings/avatar" enctype="multipart/form-data">
 					<div class="settings-avatar-row">
 						<div class="settings-avatar-preview">
@@ -135,7 +129,12 @@
 							<small class="settings-help">JPG, PNG or WebP. Max 5 MB.</small>
 							<div class="settings-avatar-buttons">
 								<label class="btn-primary settings-avatar-btn">
-									<input type="file" id="set-avatar-file" name="avatar" accept="image/jpeg,image/png,image/webp" hidden onchange="validateProfilePictureUpload(this)">
+									<input 	type="file" 
+											id="set-avatar-file" 
+											name="avatar" 
+											accept="image/jpeg,image/png,image/webp" 
+											hidden 
+											onchange="validateProfilePictureUpload(this)">
 									<span>Choose image</span>
 								</label>
 							</div>
@@ -162,6 +161,7 @@
 							<div class="select-wrap">
 								<select id="set-region" name="region">
 									<option value="">Choose region…</option>
+
 									{% for region in regions %}
 									<option value="{{ region }}" {% if current.region == region %}selected{% endif %}>{{ region }}</option>
 									{% endfor %}
@@ -175,7 +175,7 @@
 									<div class="multi-select-tags" data-tags>
 										<span class="multi-select-placeholder">Select…</span>
 									</div>
-									<span class="multi-select-arrow" aria-hidden="true">▾</span>
+									<span class="multi-select-arrow" aria-hidden="true"><img src="/static/img/icons/icon-chevron-down.svg" alt="" width="12" height="12"></span>
 								</button>
 								<div class="multi-select-dropdown" hidden>
 									<input type="search" class="multi-select-search" placeholder="Search…" autocomplete="off">
@@ -287,134 +287,5 @@
 	</div>
 </main>
 
-<!-- Footer -->
-<footer class="settings-footer">
-	<div class="settings-footer-inner">
-		<span class="settings-footer-logo">GameCrew</span>
-		<span class="settings-footer-sep">·</span>
-		<span class="settings-footer-text">© 2026 GameCrew. All rights reserved.</span>
-		<span class="settings-footer-sep">·</span>
-		<a href="/" class="settings-footer-link">Home</a>
-	</div>
-</footer>
-
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-	(function () {
-		'use strict';
-
-		const links = document.querySelectorAll('[data-settings-link]');
-		const panels = document.querySelectorAll('[data-settings-panel]');
-
-		function showPanel(name) {
-			panels.forEach(function (panel) {
-				panel.hidden = panel.dataset.settingsPanel !== name;
-			});
-			links.forEach(function (link) {
-				link.classList.toggle('active', link.dataset.settingsLink === name);
-			});
-		}
-
-		links.forEach(function (link) {
-			link.addEventListener('click', function (event) {
-				event.preventDefault();
-				const name = link.dataset.settingsLink;
-				showPanel(name);
-				history.replaceState(null, '', '#' + name);
-			});
-		});
-
-		const initial = window.location.hash.replace('#', '');
-		if (initial && document.querySelector('[data-settings-panel="' + initial + '"]')) {
-			showPanel(initial);
-		}
-
-		document.querySelectorAll('[data-multi-select]').forEach(setupMultiSelect);
-
-		function setupMultiSelect(root) {
-			const trigger = root.querySelector('.multi-select-trigger');
-			const dropdown = root.querySelector('.multi-select-dropdown');
-			const tagsEl = root.querySelector('[data-tags]');
-			const search = root.querySelector('.multi-select-search');
-			const options = Array.from(root.querySelectorAll('.multi-select-option'));
-			const empty = root.querySelector('.multi-select-empty');
-			const placeholder = '<span class="multi-select-placeholder">Select languages…</span>';
-
-			function escapeText(str) {
-				const div = document.createElement('div');
-				div.textContent = String(str);
-				return div.innerHTML;
-			}
-
-			function renderTags() {
-				const checked = options.filter(o => o.querySelector('input').checked);
-				if (!checked.length) { tagsEl.innerHTML = placeholder; return; }
-				tagsEl.innerHTML = '';
-				checked.forEach(opt => {
-					const value = opt.dataset.value;
-					const chip = document.createElement('span');
-					chip.className = 'multi-select-chip';
-					chip.innerHTML = '<span>' + escapeText(value) + '</span><button type="button" class="multi-select-chip-x" aria-label="Remove ' + escapeText(value) + '">×</button>';
-					chip.querySelector('button').addEventListener('click', e => {
-						e.stopPropagation();
-						opt.querySelector('input').checked = false;
-						renderTags();
-					});
-					tagsEl.appendChild(chip);
-				});
-			}
-
-			function openDropdown() {
-				dropdown.hidden = false;
-				trigger.setAttribute('aria-expanded', 'true');
-				root.classList.add('is-open');
-				if (search) { search.value = ''; filterOptions(''); setTimeout(() => search.focus(), 50); }
-			}
-
-			function closeDropdown() {
-				dropdown.hidden = true;
-				trigger.setAttribute('aria-expanded', 'false');
-				root.classList.remove('is-open');
-			}
-
-			function filterOptions(query) {
-				const q = (query || '').toLowerCase().trim();
-				let visibleCount = 0;
-				options.forEach(opt => {
-					const value = (opt.dataset.value || '').toLowerCase();
-					const match = !q || value.includes(q);
-					opt.style.display = match ? '' : 'none';
-					if (match) visibleCount++;
-				});
-				if (empty) empty.hidden = visibleCount > 0;
-			}
-
-			trigger.addEventListener('click', e => {
-				e.stopPropagation();
-				if (dropdown.hidden) openDropdown(); else closeDropdown();
-			});
-
-			options.forEach(opt => { opt.querySelector('input').addEventListener('change', renderTags); });
-
-			if (search) {
-				search.addEventListener('input', () => filterOptions(search.value));
-				search.addEventListener('click', e => e.stopPropagation());
-				search.addEventListener('keydown', e => { if (e.key === 'Escape') closeDropdown(); });
-			}
-
-			document.addEventListener('click', e => { if (!root.contains(e.target)) closeDropdown(); });
-			renderTags();
-		}
-	})();
-
-	function confirmDeleteAccount() {
-		const confirmation = prompt('This will permanently delete your account.\nType DELETE to confirm:');
-		if (confirmation === 'DELETE') {
-			alert('Account deletion not implemented yet');
-		}
-	}
-</script>
 {% endblock %}
 ```
