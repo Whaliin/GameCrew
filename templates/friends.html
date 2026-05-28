@@ -7,7 +7,7 @@
 
 <main class="friends-wrapper">
 	<div class="friends-header">
-		<button type="button" class="back-btn" onclick="history.back()">← Back</button>
+<button type="button" class="back-btn" onclick="history.back()"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
 		<h1 class="friends-title">Network</h1>
 	</div>
 
@@ -41,11 +41,11 @@
 						<div class="p-name">{{ friend.username }}</div>
 						<div class="friend-card-line">
 							{% if friend.status == 'online' %}
-								<span class="friend-status-text online">● Online</span>
+								<span class="friend-status-text online">Online</span>
 							{% elif friend.status == 'away' %}
-								<span class="friend-status-text away">● Away</span>
+								<span class="friend-status-text away">Away</span>
 							{% else %}
-								<span class="friend-status-text offline">● Offline</span>
+								<span class="friend-status-text offline">Offline</span>
 							{% endif %}
 							{% if friend.rank %}
 								<span class="friend-card-divider">·</span>
@@ -64,7 +64,7 @@
 		</div>
 		{% else %}
 		<div class="friends-empty">
-			<div class="friends-empty-icon">∅</div>
+			<div class="friends-empty-icon"><img src="/static/img/icons/icon-friends-empty.svg" alt="" aria-hidden="true" width="56" height="56"></div>
 			<h3>No friends yet</h3>
 			<p>Search for players in your favorite games and add them as friends to build your crew.</p>
 			<a href="/" class="btn-secondary" style="text-decoration: none;">Browse games</a>
@@ -113,22 +113,12 @@
 		</div>
 		{% else %}
 		<div class="friends-empty">
-			<div class="friends-empty-icon">✓</div>
+			<div class="friends-empty-icon"><img src="/static/img/icons/icon-friends-check.svg" alt="" aria-hidden="true" width="48" height="48"></div>
 			<h3>No pending requests</h3>
 			<p>You're all caught up. New friend requests will appear here.</p>
 		</div>
 		{% endif %}
 	</div>
 </main>
-
-<footer class="settings-footer">
-	<div class="settings-footer-inner">
-		<span class="settings-footer-logo">GameCrew</span>
-		<span class="settings-footer-sep">·</span>
-		<span class="settings-footer-text">© 2026 GameCrew. All rights reserved.</span>
-		<span class="settings-footer-sep">·</span>
-		<a href="/" class="settings-footer-link">Home</a>
-	</div>
-</footer>
-
 {% include "partials/profile-modal.html" %}
+{% endblock %}

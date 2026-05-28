@@ -8,7 +8,7 @@
 <main id="page-spel" class="wrapper" data-game-slug="{{ game.slug }}"
 	  {% if rank_options_json is defined %}data-rank-options='{{ rank_options_json | safe }}' data-rank-display-field='{{ rank_display_field_json | safe if rank_display_field_json is defined else "null" }}' data-user-rank='{{ user_rank_json | safe if user_rank_json is defined else "null" }}'{% endif %}>
 
-	<button class="back-btn" onclick="goHome()">← Back</button>
+<button class="back-btn" onclick="goHome()"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
 
 	<div class="spel-layout">
 
@@ -59,7 +59,7 @@
 				<span class="fh-label">Filters</span>
 			</button>
 
-			<!-- FILTER PANEL — inline här, CSS placerar den till höger på desktop -->
+			<!-- FILTER PANEL -->
 			<aside class="filter-panel" id="filter-panel-aside" aria-label="Player filters">
 				<header class="filter-header">
 					<div class="filter-header-title">Filters</div>
@@ -196,7 +196,11 @@
 							<div class="p-stats">
 								{% if player.rank %}<span class="p-rank">{{ player.rank }}</span>{% endif %}
 								{% if player.rank and player.age %}<span class="p-stat-divider">·</span>{% endif %}
-								{% if player.age %}<span class="p-age">{{ player.age }} yrs</span>{% endif %}
+								{% if player.age %}
+									{% set a = player.age | int %}
+									{% set lo = ((a - 18) // 5) * 5 + 18 %}
+									<span class="p-age">{{ lo }}&ndash;{{ lo + 4 }}</span>
+								{% endif %}
 							</div>
 						</div>
 					</div>
