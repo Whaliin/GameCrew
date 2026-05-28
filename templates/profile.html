@@ -9,7 +9,6 @@
 {% set has_languages = viewing.languages is iterable and viewing.languages is not string and viewing.languages|length > 0 %}
 {% set has_platforms = viewing.platforms is iterable and viewing.platforms is not string and viewing.platforms|length > 0 %}
 
-
 <main class="profile-page">
 	<div class="back-row">
 		<button type="button" class="back-btn" onclick="history.back()"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
@@ -211,4 +210,4 @@
 	</section>
 </main>
 {% include "partials/profile-modal.html" %}
-{% endblock %}	
+{% endblock %}
