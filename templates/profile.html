@@ -9,9 +9,10 @@
 {% set has_languages = viewing.languages is iterable and viewing.languages is not string and viewing.languages|length > 0 %}
 {% set has_platforms = viewing.platforms is iterable and viewing.platforms is not string and viewing.platforms|length > 0 %}
 
+
 <main class="profile-page">
 	<div class="back-row">
-		<button type="button" class="back-btn" onclick="history.back()">← Back</button>
+		<button type="button" class="back-btn" onclick="history.back()"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
 	</div>
 
 	<!-- HERO -->
@@ -33,11 +34,15 @@
 					<span class="profile-hero-stat region">{{ viewing.region|replace('-', ' ')|upper }}</span>
 					{% endif %}
 					{% if viewing.age %}
-					<span class="profile-hero-divider">·</span>
-					<span class="profile-hero-stat age">{{ viewing.age }} yrs</span>
+						{% set a = viewing.age | int %}
+						{% set lo = ((a - 18) // 5) * 5 + 18 %}
+						<span class="profile-hero-divider">·</span>
+						<span class="profile-hero-stat age">{{ lo }}&ndash;{{ lo + 4 }}</span>
 					{% elif viewing.birth_year %}
-					<span class="profile-hero-divider">·</span>
-					<span class="profile-hero-stat age">{{ 2026 - viewing.birth_year }} yrs</span>
+						{% set a = 2026 - viewing.birth_year %}
+						{% set lo = ((a - 18) // 5) * 5 + 18 %}
+						<span class="profile-hero-divider">·</span>
+						<span class="profile-hero-stat age">{{ lo }}&ndash;{{ lo + 4 }}</span>
 					{% endif %}
 				</div>
 			</div>
@@ -46,7 +51,7 @@
 				{% if is_self %}
 				<a href="/settings#profile" class="profile-edit-link">Edit profile</a>
 				{% elif viewing.is_friend %}
-				<p style="font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--green);">✓ Friends</p>
+				<p>You are friends with {{ viewing.username }}</p>
 				{% else %}
 				<button type="button" class="p-action-btn p-action-btn-friend"
 						data-username="{{ viewing.username }}"
@@ -57,24 +62,18 @@
 				</button>
 				{% endif %}
 
-				{% if not is_self %}
-				{% if viewing.steam %}
-				<button type="button" class="profile-contact-btn profile-contact-btn-steam"
-					data-steam="{{ viewing.steam }}"
-					data-username="{{ viewing.username }}"
-					onclick="showSteam(event, this)">Steam</button>
-				{% endif %}
+				{% if not viewing.is_self %}
 				{% if viewing.discord %}
-				<button type="button" class="profile-contact-btn profile-contact-btn-discord"
+				<button type="button" class="btn-secondary"
 					data-discord="{{ viewing.discord }}"
 					data-username="{{ viewing.username }}"
 					onclick="showDiscord(event, this)">Discord</button>
 				{% endif %}
-				{% if viewing.riot %}
-				<button type="button" class="profile-contact-btn profile-contact-btn-riot"
-					data-riot="{{ viewing.riot }}"
+				{% if viewing.platform %}
+				<button type="button" class="btn-secondary"
+					data-platform="{{ viewing.platform }}"
 					data-username="{{ viewing.username }}"
-					onclick="showRiot(event, this)">Riot ID</button>
+					onclick="showPlatform(event, this)">Platform</button>
 				{% endif %}
 				{% endif %}
 			</div>
@@ -104,10 +103,16 @@
 				</div>
 
 				<div class="profile-info-item">
-					<div class="profile-info-label">Age</div>
+					<div class="profile-info-label">Age range</div>
 					<div class="profile-info-value">
-						{% if viewing.age %}{{ viewing.age }}
-						{% elif viewing.birth_year %}{{ 2026 - viewing.birth_year }} years
+						{% if viewing.age %}
+							{% set a = viewing.age | int %}
+							{% set lo = ((a - 18) // 5) * 5 + 18 %}
+							{{ lo }}&ndash;{{ lo + 4 }}
+						{% elif viewing.birth_year %}
+							{% set a = 2026 - viewing.birth_year %}
+							{% set lo = ((a - 18) // 5) * 5 + 18 %}
+							{{ lo }}&ndash;{{ lo + 4 }}
 						{% else %}<span class="profile-info-empty">Not set</span>{% endif %}
 					</div>
 				</div>
@@ -125,13 +130,6 @@
 					</div>
 				</div>
 
-				{% if viewing.steam %}
-				<div class="profile-info-item">
-					<div class="profile-info-label">Steam</div>
-					<div class="profile-info-value">{{ viewing.steam }}</div>
-				</div>
-				{% endif %}
-
 				{% if viewing.discord %}
 				<div class="profile-info-item">
 					<div class="profile-info-label">Discord</div>
@@ -139,10 +137,10 @@
 				</div>
 				{% endif %}
 
-				{% if viewing.riot %}
+				{% if viewing.steam %}
 				<div class="profile-info-item">
-					<div class="profile-info-label">Riot ID</div>
-					<div class="profile-info-value">{{ viewing.riot }}</div>
+					<div class="profile-info-label">Steam</div>
+					<div class="profile-info-value">{{ viewing.steam }}</div>
 				</div>
 				{% endif %}
 			</div>
@@ -212,17 +210,5 @@
 		{% endif %}
 	</section>
 </main>
-
-<!-- Footer -->
-<footer class="settings-footer">
-	<div class="settings-footer-inner">
-		<span class="settings-footer-logo">GameCrew</span>
-		<span class="settings-footer-sep">·</span>
-		<span class="settings-footer-text">© 2026 GameCrew. All rights reserved.</span>
-		<span class="settings-footer-sep">·</span>
-		<a href="/" class="settings-footer-link">Home</a>
-	</div>
-</footer>
-
 {% include "partials/profile-modal.html" %}
-{% endblock %}
+{% endblock %}	
