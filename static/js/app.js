@@ -1497,3 +1497,149 @@ function validateProfilePictureUpload(input) {
 setupGameTagSearch();
 setupFriendsPage();
 setupSettingsPage();
+
+/* --- THEME --- */
+function toggleTheme() {
+    var html = document.documentElement;
+    var current = html.getAttribute('data-theme');
+    var next = current === 'light' ? 'dark' : 'light';
+    if (next === 'dark') {
+        html.removeAttribute('data-theme');
+    } else {
+        html.setAttribute('data-theme', 'light');
+    }
+    fetch('/api/profile/settings/theme', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ theme: next })
+    });
+}
+
+
+/* --- FILTER PANEL (game page) --- */
+function toggleFilterPanel() {
+	var panel = document.getElementById('filter-panel-aside');
+	var btn   = document.getElementById('filter-hamburger');
+	var open  = panel.classList.toggle('filter-panel--open');
+	btn.setAttribute('aria-expanded', String(open));
+}
+
+
+/* --- INDEX PAGE: game rows & hero search --- */
+document.addEventListener('DOMContentLoaded', function () {
+	var LIMIT = 8;
+	var allExpanded = false;
+	var searching   = false;
+
+	function getCards(rowId) {
+		var row = document.getElementById(rowId);
+		return row ? Array.prototype.slice.call(row.children) : [];
+	}
+
+	function applyLimit(rowId) {
+		getCards(rowId).forEach(function (card, i) {
+			card.style.display = i < LIMIT ? '' : 'none';
+		});
+	}
+
+	function showAll(rowId) {
+		getCards(rowId).forEach(function (card) { card.style.display = ''; });
+	}
+
+	if (document.getElementById('row-age')) {
+		applyLimit('row-age');
+		applyLimit('row-trending');
+		applyLimit('row-all');
+	}
+
+	window.showAllGames = function () {
+		allExpanded = true;
+		showAll('row-all');
+		var footer = document.getElementById('footer-all');
+		if (footer) footer.style.display = 'none';
+	};
+
+	var input = document.getElementById('hero-search');
+	if (!input) return;
+
+	input.addEventListener('input', function () {
+		var q = this.value.toLowerCase().trim();
+
+		if (!q) {
+			searching = false;
+			showAll('row-age');
+			showAll('row-trending');
+			showAll('row-all');
+			applyLimit('row-age');
+			applyLimit('row-trending');
+			if (!allExpanded) {
+				applyLimit('row-all');
+				var footer = document.getElementById('footer-all');
+				if (footer) footer.style.display = '';
+			}
+			return;
+		}
+
+		if (!searching) {
+			searching = true;
+			showAll('row-age');
+			showAll('row-trending');
+			showAll('row-all');
+			var footer = document.getElementById('footer-all');
+			if (footer) footer.style.display = 'none';
+		}
+
+		document.querySelectorAll('.game-card').forEach(function (card) {
+			var name = card.getAttribute('data-name') || '';
+			card.style.display = name.indexOf(q) !== -1 ? '' : 'none';
+		});
+	});
+});
+
+
+/* --- BACK BUTTONS (data-action="back") --- */
+document.addEventListener('DOMContentLoaded', function () {
+	document.querySelectorAll('[data-action="back"]').forEach(function (btn) {
+		btn.addEventListener('click', function () { history.back(); });
+	});
+});
+
+
+/* --- EVENT DELEGATION: data-action wiring --- */
+document.addEventListener('click', function (e) {
+	var el = e.target.closest('[data-action]');
+	if (!el) return;
+
+	var action = el.dataset.action;
+
+	switch (action) {
+		case 'back':               history.back(); break;
+		case 'go-home':            goHome(); break;
+		case 'go-login':           goLogin(); break;
+		case 'go-game':            goGame(el.dataset.slug); break;
+		case 'go-profile':         goProfile(el.dataset.username); break;
+		case 'open-profile':       openProfile(el.dataset.username); break;
+		case 'close-profile':      closeProfile(); break;
+		case 'toggle-theme':       toggleTheme(); break;
+		case 'scroll-nav-left':    scrollNavGames(-1.1); break;
+		case 'scroll-nav-right':   scrollNavGames(1.1); break;
+		case 'toggle-filter-panel': toggleFilterPanel(); break;
+		case 'open-game-profile-popup':  openGameProfilePopup(); break;
+		case 'close-game-profile-popup': closeGameProfilePopup(); break;
+		case 'show-all-games':     showAllGames(); break;
+		case 'confirm-delete-account': confirmDeleteAccount(); break;
+		case 'add-friend':         handleAddFriendClick(el.dataset.username, el); break;
+		case 'remove-friend':      handleRemoveFriend(el); break;
+		case 'accept-request':     handleAcceptRequest(el); break;
+		case 'ignore-request':     handleIgnoreRequest(el); break;
+		case 'show-discord':       showDiscord(e, el); break;
+		case 'show-platform':      showPlatform(e, el); break;
+	}
+});
+
+/* Stop propagation for p-actions wrapper */
+document.addEventListener('click', function (e) {
+	if (e.target.closest('[data-stop-propagation]')) {
+		e.stopPropagation();
+	}
+}, true);

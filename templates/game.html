@@ -8,7 +8,7 @@
 <main id="page-spel" class="wrapper" data-game-slug="{{ game.slug }}"
 	  {% if rank_options_json is defined %}data-rank-options='{{ rank_options_json | safe }}' data-rank-display-field='{{ rank_display_field_json | safe if rank_display_field_json is defined else "null" }}' data-user-rank='{{ user_rank_json | safe if user_rank_json is defined else "null" }}'{% endif %}>
 
-<button class="back-btn" onclick="goHome()"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
+<button class="back-btn" data-action="go-home"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
 
 	<div class="spel-layout">
 
@@ -40,12 +40,12 @@
 					<span class="rank-display-cooldown">{{ user_rank_remaining_hours }}h</span>
 				</div>
 				{% elif user_rank %}
-				<button class="rank-btn rank-btn-update" type="button" onclick="openGameProfilePopup()">
+				<button class="rank-btn rank-btn-update" type="button" data-action="open-game-profile-popup">
 					<span class="rank-btn-label">Edit profile</span>
 					<span class="rank-btn-current">{{ user_rank }}</span>
 				</button>
 				{% else %}
-				<button class="rank-btn rank-btn-set" type="button" onclick="openGameProfilePopup()">
+				<button class="rank-btn rank-btn-set" type="button" data-action="open-game-profile-popup">
 					<span class="rank-icon" aria-hidden="true"></span>
 					<span>Edit profile</span>
 				</button>
@@ -55,7 +55,7 @@
 
 			<!-- HAMBURGER (mobil only) -->
 			<button class="filter-hamburger" id="filter-hamburger" type="button"
-					onclick="toggleFilterPanel()" aria-expanded="false" aria-controls="filter-panel-aside">
+					data-action="toggle-filter-panel" aria-expanded="false" aria-controls="filter-panel-aside">
 				<span class="fh-label">Filters</span>
 			</button>
 
@@ -184,7 +184,7 @@
 			<div class="players-grid">
 				{% for player in found_players %}
 				<div class="player-card" tabindex="0" role="button"
-					 onclick="openProfile('{{ player.username }}')"
+					 data-action="open-profile" data-username="{{ player.username }}"
 					 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProfile('{{ player.username }}')}">
 					<div class="p-top">
 						<div class="p-avatar-wrap">
@@ -204,17 +204,17 @@
 							</div>
 						</div>
 					</div>
-					<div class="p-actions" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">
-						<button type="button" class="p-action-btn p-action-btn-friend"
+					<div class="p-actions" data-stop-propagation="true" >
+						<button type="button" class="action-btn p-action-btn-friend"
 								data-username="{{ player.username }}"
-								onclick="handleAddFriendClick(this.dataset.username, this)"
+								data-action="add-friend"
 								aria-label="Add {{ player.username }} as friend">
 							<span class="p-action-icon" aria-hidden="true"></span>
 							<span class="p-action-label">Add friend</span>
 						</button>
 						<button type="button" class="p-action-btn p-action-btn-profile"
 								data-username="{{ player.username }}"
-								onclick="goProfile('{{ player.username }}')"
+								data-action="go-profile" data-username="{{ player.username }}"
 								aria-label="Show full profile for {{ player.username }}">
 							<span class="p-action-icon" aria-hidden="true"></span>
 							<span class="p-action-label">Show profile</span>
@@ -234,7 +234,7 @@
 
 <div id="profile-schema-modal" class="info-popup-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
 	<div class="info-popup info-popup-rank">
-		<button type="button" class="info-popup-close" onclick="closeGameProfilePopup()" aria-label="Close"></button>
+		<button type="button" class="info-popup-close" data-action="close-game-profile-popup" aria-label="Close"></button>
 		<div class="info-popup-title">
 			{% if game_form_schema %}{{ game_form_schema.game_name }} — Profile{% else %}Set game profile{% endif %}
 		</div>
@@ -274,14 +274,5 @@
 		{% endif %}
 	</div>
 </div>
-
-<script>
-function toggleFilterPanel() {
-	var panel = document.getElementById('filter-panel-aside');
-	var btn   = document.getElementById('filter-hamburger');
-	var open  = panel.classList.toggle('filter-panel--open');
-	btn.setAttribute('aria-expanded', String(open));
-}
-</script>
 
 {% endblock %}

@@ -278,3 +278,16 @@ async def delete_player_account(request: Request, db: Session = Depends(get_db))
 		delete_session(session_id)
 
 	return Response(status_code=204)
+
+@router.post("/settings/theme")
+async def update_theme(request: Request, db: Session = Depends(get_db)):
+    user = get_user(request, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    body = await request.json()
+    theme = body.get("theme")
+    if theme not in ["dark", "light"]:
+        raise HTTPException(status_code=400, detail="Invalid theme")
+    user.profile.theme = theme
+    db.commit()
+    return {"theme": theme}

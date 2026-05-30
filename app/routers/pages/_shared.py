@@ -110,6 +110,7 @@ def create_profile_context(db: Session, request: Request, user_session: Player |
 		"playtimes": [pt.name for pt in user_session.playtimes] if user_session.playtimes else [],
 		"languages": [lang.name for lang in user_session.languages] if user_session.languages else [],
 		"region": user_session.profile.region.name if user_session.profile.region else None,
+        "theme": user_session.profile.theme if user_session.profile else "dark",
 	}
 
 	return profile_context

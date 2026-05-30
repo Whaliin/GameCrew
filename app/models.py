@@ -165,6 +165,7 @@ class PlayerProfile(Base):
 
 	player: Mapped["Player"] = relationship("Player", back_populates="profile")
 	region: Mapped["Region"] = relationship("Region")
+	theme: Mapped[str] = mapped_column(String(10), nullable=False, default="dark")
 
 # Player game profile data (e.g rank, playtime, etc)
 class PlayerGameProfile(Base):

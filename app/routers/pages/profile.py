@@ -98,6 +98,7 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 		})
 	
 	context["profile"] = create_profile_context(db, request, current_user)
+	context["theme"] = context["profile"]["theme"] if context["profile"] else "dark"
 	context["viewing"] = profile
 	context["is_own_profile"] = is_own_profile
 	context["current_user"] = current_user

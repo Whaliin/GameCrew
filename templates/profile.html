@@ -11,7 +11,7 @@
 
 <main class="profile-page">
 	<div class="back-row">
-		<button type="button" class="back-btn" onclick="history.back()"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
+		<button type="button" class="back-btn" data-action="back"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
 	</div>
 
 	<!-- HERO -->
@@ -54,7 +54,7 @@
 				{% else %}
 				<button type="button" class="p-action-btn p-action-btn-friend"
 						data-username="{{ viewing.username }}"
-						onclick="handleAddFriendClick(this.dataset.username, this)"
+						data-action="add-friend"
 						aria-label="Add {{ viewing.username }} as friend">
 					<span class="p-action-icon" aria-hidden="true"></span>
 					<span class="p-action-label">Add friend</span>
@@ -66,13 +66,13 @@
 				<button type="button" class="btn-secondary"
 					data-discord="{{ viewing.discord }}"
 					data-username="{{ viewing.username }}"
-					onclick="showDiscord(event, this)">Discord</button>
+					data-action="show-discord">Discord</button>
 				{% endif %}
 				{% if viewing.platform %}
 				<button type="button" class="btn-secondary"
 					data-platform="{{ viewing.platform }}"
 					data-username="{{ viewing.username }}"
-					onclick="showPlatform(event, this)">Platform</button>
+					data-action="show-platform">Platform</button>
 				{% endif %}
 				{% endif %}
 			</div>

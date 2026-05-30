@@ -97,5 +97,6 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 	context["user_rank_json"] = json.dumps(user_rank) if user_rank is not None else json.dumps(None)
 
 	context["profile"] = create_profile_context(db, request)
+	context["theme"] = context["profile"]["theme"] if context["profile"] else "dark"
 
 	return templates.TemplateResponse(request=request, name="game.html", context=context)
