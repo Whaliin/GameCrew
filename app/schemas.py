@@ -168,7 +168,7 @@ class ValorantSpec(GameProfileSpec):
 	DISPLAY_FIELD = "rank"
 
 	rank: Literal["Iron", "Bronze", "Silver", "Gold", "Platinum", "Diamond", "Immortal", "Radiant"] | None = None
-	main_agent: Annotated[str, Field(max_length=50)] | None = None
+#	main_agent: Annotated[str, Field(max_length=50)] | None = None
 
 class ApexLegendsSpec(GameProfileSpec):
 	game_name = "Apex Legends"
@@ -176,7 +176,7 @@ class ApexLegendsSpec(GameProfileSpec):
 	DISPLAY_FIELD = "rank"
 
 	rank: Literal["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master", "Apex Predator"] | None = None
-	main_legend: Annotated[str, Field(max_length=50)] | None = None
+#	main_legend: Annotated[str, Field(max_length=50)] | None = None
 
 class ArcRaidersSpec(GameProfileSpec):
 	game_name = "Arc Raiders"
@@ -184,7 +184,7 @@ class ArcRaidersSpec(GameProfileSpec):
 	DISPLAY_FIELD = "rank"
 
 	rank: Literal["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master", "Grandmaster"] | None = None
-	main_hero: Annotated[str, Field(max_length=50)] | None = None
+#	main_hero: Annotated[str, Field(max_length=50)] | None = None
 
 class MobileLegendsSpec(GameProfileSpec):
 	game_name = "Mobile Legends"
@@ -192,7 +192,7 @@ class MobileLegendsSpec(GameProfileSpec):
 	DISPLAY_FIELD = "rank"
 
 	rank: Literal["Warrior", "Elite", "Master", "Grandmaster", "Epic", "Legend", "Mythic", "Mythical Immortal"] | None = None
-	main_hero: Annotated[str, Field(max_length=50)] | None = None
+#	main_hero: Annotated[str, Field(max_length=50)] | None = None
 
 class MinecraftSpec(GameProfileSpec):
 	game_name = "Minecraft"
@@ -200,7 +200,7 @@ class MinecraftSpec(GameProfileSpec):
 	DISPLAY_FIELD = "preferred_mode"
 
 	preferred_mode: Literal["Survival", "Creative", "Adventure", "Spectator"] | None = None
-	favorite_mod: Annotated[str, Field(max_length=100)] | None = None
+#	favorite_mod: Annotated[str, Field(max_length=100)] | None = None
 
 class PUBGSpec(GameProfileSpec):
 	game_name = "PUBG: Battlegrounds"
@@ -208,14 +208,14 @@ class PUBGSpec(GameProfileSpec):
 	DISPLAY_FIELD = "rank"
 
 	rank: Literal["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master", "Grandmaster"] | None = None
-	main_weapon: Annotated[str, Field(max_length=50)] | None = None
+#	main_weapon: Annotated[str, Field(max_length=50)] | None = None
 
 class CallOfDutySpec(GameProfileSpec):
 	game_name = "Call of Duty: Warzone"
 	game_slug = "call-of-duty-warzone"
 	DISPLAY_FIELD = "preferred_mode"
 
-	main_weapon: Annotated[str, Field(max_length=50)] | None = None
+#	main_weapon: Annotated[str, Field(max_length=50)] | None = None
 	preferred_mode: Literal["Battle Royale", "Plunder", "Resurgence"] | None = None
 
 class RustSpec(GameProfileSpec):
@@ -224,7 +224,7 @@ class RustSpec(GameProfileSpec):
 	DISPLAY_FIELD = "playstyle"
 
 	playstyle: Literal["Solo", "Duo", "Squad"] | None = None
-	main_weapon: Annotated[str, Field(max_length=50)] | None = None
+#	main_weapon: Annotated[str, Field(max_length=50)] | None = None
 
 class EscapeFromTarkovSpec(GameProfileSpec):
 	game_name = "Escape From Tarkov"
@@ -232,7 +232,7 @@ class EscapeFromTarkovSpec(GameProfileSpec):
 	DISPLAY_FIELD = "playstyle"
 
 	faction: Literal["USEC", "BEAR", "Scav"] | None = None
-	main_weapon: Annotated[str, Field(max_length=50)] | None = None
+#	main_weapon: Annotated[str, Field(max_length=50)] | None = None
 	playstyle: Literal["Aggressive", "Stealthy", "Balanced"] | None = None
 
 class Dota2Spec(GameProfileSpec):
@@ -248,14 +248,14 @@ class GTAVSpec(GameProfileSpec):
 	DISPLAY_FIELD = "preferred_mode"
 
 	preferred_mode: Literal["Story Mode", "Online Freemode", "Online Heists", "Online Races", "Online Other"] | None = None
-	main_activity: Annotated[str, Field(max_length=100)] | None = None
+#	main_activity: Annotated[str, Field(max_length=100)] | None = None
 
 class RobloxSpec(GameProfileSpec):
 	game_name = "Roblox"
 	game_slug = "roblox"
 	DISPLAY_FIELD = "preferred_genre"
 
-	favorite_game: Annotated[str, Field(max_length=100)] | None = None
+#	favorite_game: Annotated[str, Field(max_length=100)] | None = None
 	preferred_genre: Literal["Adventure", "Roleplay", "Simulator", "Obby", "Tycoon", "FPS", "Horror", "Other"] | None = None
 
 class OverwatchSpec(GameProfileSpec):
@@ -264,7 +264,7 @@ class OverwatchSpec(GameProfileSpec):
 	DISPLAY_FIELD = "rank"
 
 	rank: Literal["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master", "Grandmaster", "Top 500"] | None = None
-	main_hero: Annotated[str, Field(max_length=50)] | None = None
+#	main_hero: Annotated[str, Field(max_length=50)] | None = None
 
 class WorldOfWarcraftSpec(GameProfileSpec):
 	game_name = "World of Warcraft"
@@ -302,7 +302,7 @@ class GenshinImpactSpec(GameProfileSpec):
 	game_slug = "genshin-impact"
 	DISPLAY_FIELD = "preferred_role"
 
-	main_character: Annotated[str, Field(max_length=50)] | None = None
+#	main_character: Annotated[str, Field(max_length=50)] | None = None
 	preferred_role: Literal["DPS", "Support", "Healer", "Sub-DPS"] | None = None
 
 class FortniteSpec(GameProfileSpec):
@@ -311,4 +311,4 @@ class FortniteSpec(GameProfileSpec):
 	DISPLAY_FIELD = "preferred_mode"
 
 	preferred_mode: Literal["Solo", "Duo", "Squad"] | None = None
-	main_weapon: Annotated[str, Field(max_length=50)] | None = None
+#	main_weapon: Annotated[str, Field(max_length=50)] | None = None
