@@ -33,12 +33,13 @@ async function fetchProfile(username) {
 
 async function friendAction(username, action) {
     // map "action" to HTTP method and needed query params
-    const actionMap = {
-        "add":    { method: "POST" },
-        "remove": { method: "DELETE" },
-        "accept": { method: "PATCH", accept: true },
-        "ignore": { method: "PATCH", accept: false }
-    };
+	const actionMap = {
+		"add":    { method: "POST" },
+		"remove": { method: "DELETE" },
+		"cancel": { method: "DELETE", cancel: true },
+		"accept": { method: "PATCH", accept: true },
+		"ignore": { method: "PATCH", accept: false }
+	};
 
     const config = actionMap[action];
     if (!config) return;
@@ -46,10 +47,11 @@ async function friendAction(username, action) {
     // define the base URL for all friend actions
     let url = `/api/players/${encodeURIComponent(username)}/friend`;
 
-    // append the query param for PATCH requests (accept/ignore)
-    if (config.method === "PATCH") {
-        url += `?accept=${config.accept}`;
-    }
+	if (config.cancel) {
+		url = `/api/players/${encodeURIComponent(username)}/friend/cancel`;
+	} else if (config.method === "PATCH") {
+		url += `?accept=${config.accept}`;
+	}
 
     try {
         const response = await fetch(url, { method: config.method });
@@ -78,12 +80,23 @@ async function setAddFriendButtonState(button, state) {
 	possible states: friend, sent, received or None (else)
 	*/
 	if (!button) return;
-	const label = button.querySelector('.p-action-label');
+	const label = button.querySelector('.p-action-label');  // ← THIS WAS MISSING
+
 	if (state === 'sent') {
 		button.dataset.sent = '1';
 		if (label) label.textContent = 'Sent!';
 		button.classList.add('p-action-btn-active');
-		button.disabled = true;
+		button.disabled = false;
+
+		// Clean up old listeners first to avoid duplicates
+		if (button._mouseenter) button.removeEventListener('mouseenter', button._mouseenter);
+		if (button._mouseleave) button.removeEventListener('mouseleave', button._mouseleave);
+
+		// Hover: show "Cancel?" on hover
+		button._mouseenter = () => { if (label) label.textContent = 'Cancel?'; };
+		button._mouseleave = () => { if (label) label.textContent = 'Sent!'; };
+		button.addEventListener('mouseenter', button._mouseenter);
+		button.addEventListener('mouseleave', button._mouseleave);
 	}
 	else if (state === 'friend') {
 		if (label) label.textContent = 'Friends';
@@ -93,56 +106,90 @@ async function setAddFriendButtonState(button, state) {
 	else if (state === 'received') {
 		if (label) label.textContent = 'Accept request';
 		button.classList.add('p-action-btn-active');
-		button.disabled = true;
+		button.disabled = false;
+		button.dataset.friendState = 'received';
 	}
-	else
-	{
-		if (label) label.textContent = 'Add friend'
+	else {
+		if (label) label.textContent = 'Add friend';
 		if (button.dataset.sent) delete button.dataset.sent;
-		// remove the class (does nothing if it doesnt exist)		
 		if (button.classList) button.classList.remove('p-action-btn-active');
 		button.disabled = false;
+
+		// Clean up hover listeners if they exist
+		if (button._mouseenter) {
+			button.removeEventListener('mouseenter', button._mouseenter);
+			delete button._mouseenter;
+		}
+		if (button._mouseleave) {
+			button.removeEventListener('mouseleave', button._mouseleave);
+			delete button._mouseleave;
+		}
 	}
 }
 
 async function handleAddFriendClick(username, button) {
-	if (!button) return;
-	if (button.dataset.sent) 
-	{
-		alert('Friend request already sent. Please wait for a response.');
-		return
-	};
+    if (!button) return;
 
-	// Update button state immediately for UX
-	await setAddFriendButtonState(button, 'sent');
+    // If already sent — cancel the request instead
+    if (button.dataset.sent) {
+        await setAddFriendButtonState(button, null);
+        try {
+            const success = await friendAction(username, 'cancel');
+            if (!success) {
+                await setAddFriendButtonState(button, 'sent');
+            }
+        } catch (err) {
+            await setAddFriendButtonState(button, 'sent');
+        }
+        return;
+    }
 
-	try {
-		const success = await friendAction(username, 'add');
-		if (!success) {
-			await setAddFriendButtonState(button, null);
-		}
-	} catch (err) {
-		await setAddFriendButtonState(button, null);
-	}
+    // Normal add flow
+    await setAddFriendButtonState(button, 'sent');
+
+    try {
+        const success = await friendAction(username, 'add');
+        if (success) {
+            document.querySelectorAll('[data-username="' + username + '"]').forEach(function(btn) {
+                if (btn !== button && !btn.dataset.sent) {
+                    var label = btn.querySelector('.p-action-label');
+                    if (label && label.textContent.trim() === 'Add friend') {
+                        setAddFriendButtonState(btn, 'sent');
+                    }
+                }
+            });
+        } else {
+            await setAddFriendButtonState(button, null);
+        }
+    } catch (err) {
+        await setAddFriendButtonState(button, null);
+    }
 }
 
 async function handleAcceptRequest(button) {
-	const username = button.dataset.username;
-	const card = button.closest('.friend-card');
-	if (!card) return;
-	try {
-		const success = await friendAction(username, 'accept');
-		if (success) {
-			card.classList.add('is-accepted');
-			const actions = card.querySelector('.friend-card-actions');
-			if (actions) {
-				actions.innerHTML = '<div class="friend-action-result accepted">✓ Friend added</div>';
-			}
-			decrementPendingBadge();
-		}
-	} catch (err) {
-		console.error('Error accepting request:', err);
-	}
+    const username = button.dataset.username;
+    const card = button.closest('.friend-card, .player-card');
+    try {
+        const success = await friendAction(username, 'accept');
+        if (success) {
+            decrementPendingBadge();
+            if (card && card.classList.contains('friend-card')) {
+                card.classList.add('is-accepted');
+                const actions = card.querySelector('.friend-card-actions');
+                if (actions) {
+                    actions.innerHTML = '<div class="friend-action-result accepted">✓ Friend added</div>';
+                }
+            } else if (card && card.classList.contains('player-card')) {
+                const label = button.querySelector('.p-action-label');
+                if (label) label.textContent = 'Friends';
+                button.classList.add('p-action-btn-active');
+                button.removeAttribute('data-action');
+                button.disabled = true;
+            }
+        }
+    } catch (err) {
+        console.error('Error accepting request:', err);
+    }
 }
 
 async function handleIgnoreRequest(button) {
@@ -166,15 +213,20 @@ async function handleIgnoreRequest(button) {
 async function handleRemoveFriend(button) {
 	const username = button.dataset.username;
 	if (!confirm('Remove ' + username + ' from your friends?')) return;
-	const card = button.closest('.friend-card');
-	if (!card) return;
 	try {
 		const success = await friendAction(username, 'remove');
 		if (success) {
-			card.style.transition = 'opacity .3s ease, transform .3s ease';
-			card.style.opacity = '0';
-			card.style.transform = 'scale(.95)';
-			setTimeout(() => card.remove(), 300);
+			const card = button.closest('.friend-card');
+			if (card) {
+				card.style.transition = 'opacity .3s ease, transform .3s ease';
+				card.style.opacity = '0';
+				card.style.transform = 'scale(.95)';
+				setTimeout(() => card.remove(), 300);
+			} else {
+				button.className = 'p-action-btn p-action-btn-friend';
+				button.dataset.action = 'add-friend';
+				button.innerHTML = '<span class="p-action-icon" aria-hidden="true"></span><span class="p-action-label">Add friend</span>';
+			}
 		}
 	} catch (err) {
 		console.error('Error removing friend:', err);
@@ -644,8 +696,12 @@ function createPlayerCard(player) {
 	friendBtn.onclick = null;
 	friendBtn.addEventListener('click', async e => {
 		e.stopPropagation();
-		await handleAddFriendClick(friendBtn.dataset.username, friendBtn);
-	});
+		if (friendBtn.dataset.friendState === 'received') {
+			await handleAcceptRequest(friendBtn);
+		} else {
+			await handleAddFriendClick(friendBtn.dataset.username, friendBtn);
+		}
+});
 
 	const profileBtn = document.createElement('button');
 	profileBtn.type = 'button';
@@ -1422,7 +1478,17 @@ function setupMultiSelect(root) {
 	});
 
 	options.forEach(option => {
-		option.querySelector('input').addEventListener('change', renderTags);
+		option.querySelector('input').addEventListener('change', function() {
+			const max = parseInt(root.dataset.max);
+			if (max) {
+				const checked = root.querySelectorAll('.multi-select-option input:checked');
+				if (checked.length > max) {
+					this.checked = false;
+					return;
+				}
+			}
+			renderTags();
+		});
 	});
 
 	if (search) {
@@ -1596,6 +1662,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 });
 
+function initProfileFriendButton() {
+    var btn = document.querySelector('.p-action-btn-friend[data-sent="1"]');
+    if (btn) setAddFriendButtonState(btn, 'sent');
+}
 
 /* --- BACK BUTTONS (data-action="back") --- */
 document.addEventListener('DOMContentLoaded', function () {
@@ -1639,7 +1709,7 @@ document.addEventListener('click', function (e) {
 
 /* Stop propagation for p-actions wrapper */
 document.addEventListener('click', function (e) {
-	if (e.target.closest('[data-stop-propagation]')) {
+	if (e.target.closest('[data-stop-propagation]') && !e.target.closest('[data-action]')) {
 		e.stopPropagation();
 	}
 }, true);
