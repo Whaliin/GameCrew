@@ -3972,3 +3972,32 @@ section { margin-bottom: 48px; }
     border-color: #e05555;
     color: #e05555;
 }
+
+.error-page {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: calc(100vh - 80px);
+	padding: 40px 20px;
+	text-align: center;
+}
+
+.error-code {
+	font-family: 'Orbitron', sans-serif;
+	font-size: clamp(80px, 15vw, 140px);
+	font-weight: 900;
+	color: transparent;
+	-webkit-text-stroke: 2px var(--cyan);
+	opacity: 0.5;
+}
+
+.error-actions {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	margin-top: 36px;
+}
+.back-btn{
+	margin-top: 0;
+}
