@@ -47,7 +47,7 @@ def create_profile_object(db: Session, username: str) -> dict | None:
 # 					Player Profiles
 # ===============================================
 @router.get("/{username}")
-def get_player_profile(username: str, db: Session = Depends(get_db)):
+def get_player_profile(request: Request, username: str, db: Session = Depends(get_db)):
 	"""
 	Get a player's profile by username, including their game profiles.
 
@@ -70,7 +70,6 @@ def get_player_profile(username: str, db: Session = Depends(get_db)):
 
 	profile["games"] = []
 	for pgp in player_game_profiles:
-		# For each game profile, get the game info and include any relevant profile data.
 		game = db.query(Game).filter(Game.id == pgp.game_id).first()
 		if game:
 			game_schema = GameProfileSpec.get_schema(game.schema_spec) if game.schema_spec else None
@@ -80,7 +79,6 @@ def get_player_profile(username: str, db: Session = Depends(get_db)):
 				"image_url": get_game_image_url(game.slug),
 				"name": game.name,
 			}
-			# Add game-specific profile data if it exists
 			if pgp.data:
 				try:
 					profile_data = json.loads(pgp.data)
@@ -93,6 +91,22 @@ def get_player_profile(username: str, db: Session = Depends(get_db)):
 			if display_value is not None:
 				game_data["display_value"] = display_value
 			profile["games"].append(game_data)
+
+	current_user = get_user(request, db)
+	friend_state = None
+	if current_user and current_user.id != player.id:
+		existing = db.query(Friendship).filter(
+			((Friendship.sender_id == current_user.id) & (Friendship.receiver_id == player.id)) |
+			((Friendship.sender_id == player.id) & (Friendship.receiver_id == current_user.id))
+		).first()
+		if existing:
+			if existing.accepted:
+				friend_state = 'friend'
+			elif existing.sender_id == current_user.id:
+				friend_state = 'sent'
+			else:
+				friend_state = 'received'
+	profile["friend_state"] = friend_state
 
 	return profile
 
@@ -176,6 +190,33 @@ def remove_friend(request: Request, username: str, db: Session = Depends(get_db)
 	db.commit()
 
 	return Response(status_code=204)
+
+@router.delete("/{username}/friend/cancel")
+def cancel_friend_request(request: Request, username: str, db: Session = Depends(get_db)):
+    """
+    Cancel a pending outgoing friend request.
+    """
+    sender = get_user(request, db)
+    if not sender:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user = db.query(Player).filter(Player.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    pending = db.query(Friendship).filter(
+        Friendship.sender_id == sender.id,
+        Friendship.receiver_id == user.id,
+        Friendship.accepted == False
+    ).first()
+
+    if not pending:
+        raise HTTPException(status_code=404, detail="No pending request found")
+
+    db.delete(pending)
+    db.commit()
+
+    return Response(status_code=204)
 
 @router.patch("/{username}/friend")
 def handle_friend_request(request: Request, username: str, accept: bool, db: Session = Depends(get_db)):

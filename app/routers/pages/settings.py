@@ -34,6 +34,7 @@ def settings(request: Request, db: Session = Depends(get_db)):
 		"bio": current_user.profile.bio,
 		"steam": current_user.profile.steam_url,
 		"discord": current_user.profile.discord,
+		"riot": current_user.profile.riot_id,
 		"platforms": [pf.name for pf in current_user.platforms] if current_user.platforms else [],
 		"playtime": [pt.name for pt in current_user.playtimes] if current_user.playtimes else [],
 		"languages": [lang.name for lang in current_user.languages] if current_user.languages else [],
