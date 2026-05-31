@@ -52,11 +52,12 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 	).first() if current_user else None
 
 	# Build profile context
+	# age_range is a human-readable string (e.g. "18-24") derived from birth_year
 	profile = {
 		"username": player.username,
 		"avatar_url": get_avatar_url(player.id),
 		"region": player.profile.region.name if player.profile.region else None,
-		"birth_year": player.profile.birth_year,
+		"age_range": map_age_range(player.profile.birth_year),
 		"bio": player.profile.bio or "",
 		"playtime": " / ".join([pt.name for pt in player.playtimes]) if player.playtimes else None,
 		"platforms": [pf.name for pf in player.platforms] if player.platforms else [],
@@ -111,7 +112,6 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 		})
 	
 	context["profile"] = create_profile_context(db, request, current_user)
-	context["theme"] = context["profile"]["theme"] if context["profile"] else "dark"
 	context["viewing"] = profile
 	context["is_own_profile"] = is_own_profile
 	context["current_user"] = current_user

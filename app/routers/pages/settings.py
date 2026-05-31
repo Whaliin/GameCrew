@@ -26,7 +26,6 @@ def settings(request: Request, db: Session = Depends(get_db)):
 		return RedirectResponse(url="/login", status_code=302)
 	
 	context["profile"] 		= create_profile_context(db, request, current_user)
-	context["theme"] = context["profile"]["theme"] if context["profile"] else "dark"
 
 	# attach existing profile information to the context to pre-fill the form fields
 	context["current"] = {

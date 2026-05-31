@@ -47,6 +47,7 @@ async function friendAction(username, action) {
     // define the base URL for all friend actions
     let url = `/api/players/${encodeURIComponent(username)}/friend`;
 
+	// cancel uses a dedicated endpoint; accept/ignore append a query param
 	if (config.cancel) {
 		url = `/api/players/${encodeURIComponent(username)}/friend/cancel`;
 	} else if (config.method === "PATCH") {
@@ -1569,11 +1570,7 @@ function toggleTheme() {
     var html = document.documentElement;
     var current = html.getAttribute('data-theme');
     var next = current === 'light' ? 'dark' : 'light';
-    if (next === 'dark') {
-        html.removeAttribute('data-theme');
-    } else {
-        html.setAttribute('data-theme', 'light');
-    }
+    html.setAttribute('data-theme', next);
     fetch('/api/profile/settings/theme', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1666,14 +1663,6 @@ function initProfileFriendButton() {
     var btn = document.querySelector('.p-action-btn-friend[data-sent="1"]');
     if (btn) setAddFriendButtonState(btn, 'sent');
 }
-
-/* --- BACK BUTTONS (data-action="back") --- */
-document.addEventListener('DOMContentLoaded', function () {
-	document.querySelectorAll('[data-action="back"]').forEach(function (btn) {
-		btn.addEventListener('click', function () { history.back(); });
-	});
-});
-
 
 /* --- EVENT DELEGATION: data-action wiring --- */
 document.addEventListener('click', function (e) {

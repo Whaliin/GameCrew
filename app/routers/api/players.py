@@ -28,6 +28,7 @@ def create_profile_object(db: Session, username: str) -> dict | None:
 		return None
 	
 	# build the profile object
+	# age_range is a human-readable string (e.g. "18-24") derived from birth_year
 	profile = {
 		"username": player.username,
 		"avatar_url": get_avatar_url(player.id),

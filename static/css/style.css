@@ -1996,12 +1996,6 @@ section { margin-bottom: 48px; }
 	border: 1px solid rgba(0, 255, 136, .35);
 }
 
-.settings-banner.error {
-	color: var(--pink);
-	background: rgba(255, 0, 144, .08);
-	border: 1px solid rgba(255, 0, 144, .35);
-}
-
 .settings-layout {
 	display: grid;
 	grid-template-columns: 240px 1fr;
@@ -3992,31 +3986,13 @@ section { margin-bottom: 48px; }
     color: #e05555;
 }
 
-.error-page {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: calc(100vh - 80px);
-	padding: 40px 20px;
-	text-align: center;
-}
-
-.error-code {
-	font-family: 'Orbitron', sans-serif;
-	font-size: clamp(80px, 15vw, 140px);
-	font-weight: 900;
-	color: transparent;
-	-webkit-text-stroke: 2px var(--cyan);
-	opacity: 0.5;
-}
-
-.error-actions {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 14px;
-	margin-top: 36px;
-}
-.back-btn{
-	margin-top: 0;
+.error-card {
+	display: grid;
+	
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	overflow: hidden;
+	background: var(--card);
+	margin-top: 10px;
+	position: relative;
 }

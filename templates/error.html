@@ -5,29 +5,34 @@
 {% block content %}
 {% include "partials/navbar.html" %}
 
-<main class="error-page">
-	<div class="error-inner">
-		<div class="error-code">{{ status_code }}</div>
-		<div class="error-eyebrow">// System message</div>
-		<h1 class="error-title">
-			{% if status_code == 404 %}Page not found
-			{% elif status_code == 403 %}Access denied
-			{% elif status_code == 500 %}Server error
-			{% else %}Something went wrong
-			{% endif %}
-		</h1>
-		<p class="error-message">
-			{% if status_code == 404 %}The page you were looking for could not be found.
-			{% elif status_code == 500 %}The server hit an unexpected problem. Please try again in a moment.
-			{% else %}{{ message }}
-			{% endif %}
-		</p>
-		<div class="error-actions">
-			<button class="back-btn" type="button" onclick="history.back()">
-				<img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back
-			</button>
-			<button class="btn-secondary" type="button" onclick="window.location.href='/'">Return to homepage</button>
+<main class="wrapper">
+	<section>
+		<div class="hud-header">
+			<h2>{{ status_code }} Error</h2>
+			<div class="hud-line"></div>
 		</div>
-	</div>
+		<button class="back-btn" type="button" data-action="back">
+			<img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back
+		</button>
+		<div class="error-card">
+			<div class="profile-panel">
+				<div class="info-box">
+					<div class="info-box-title">What happened</div>
+					<div class="bio-text">
+						<p>{{ message }}</p>
+						{% if status_code == 404 %}
+						<p>The page you were looking for could not be found.</p>
+						{% elif status_code == 500 %}
+						<p>The server hit an unexpected problem. Please try again in a moment.</p>
+						{% endif %}
+					</div>
+				</div>
+
+				<div class="profile-buttons">
+					<button class="btn-secondary" type="button" onclick="window.location.href='/'">Return to homepage</button>
+				</div>
+			</div>
+		</div>
+	</section>
 </main>
 {% endblock %}
