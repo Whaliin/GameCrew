@@ -120,7 +120,6 @@ def update_player_profile(
 			user.profile.bio = bio
 
 		if birth_date is not None:
-			print("Updating birth date to:", birth_date)
 			birth_date_error = validate_birth_year(birth_date)
 			if birth_date_error:
 				raise HTTPException(status_code=400, detail=birth_date_error)
