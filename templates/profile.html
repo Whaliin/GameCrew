@@ -169,17 +169,10 @@
 				{% endif %}
 
 				{% if viewing.steam %}
-				<button type="button" class="btn-secondary"
-					data-platform="{{ viewing.steam }}"
-					data-username="{{ viewing.username }}"
-					data-action="show-platform">Steam</button>
-				{% endif %}
-				{% if viewing.riot %}
-				<button type="button" class="btn-secondary"
-					data-platform="{{ viewing.riot }}"
-					data-username="{{ viewing.username }}"
-					data-action="show-platform">Riot</button>
-				{% endif %}
+				<div class="profile-info-item">
+					<div class="profile-info-label">Steam</div>
+					<div class="profile-info-value">{{ viewing.steam }}</div>
+				</div>
 				{% endif %}
 				{% if viewing.riot %}
 				<div class="profile-info-item">
