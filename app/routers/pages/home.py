@@ -55,6 +55,7 @@ def home(request: Request, db: Session = Depends(get_db)):
 	# favorite_games = db.query(Game).join(PlayerGameProfile, PlayerGameProfile.player_id == current_user.id).all()
 
 	context["profile"] = create_profile_context(db, request, current_user)
+	context["theme"] = context["profile"]["theme"] if context["profile"] else "dark"
 
 	context["favorite_games"] = context["profile"]["favorite_games"] if context["profile"] else []
 

@@ -33,12 +33,13 @@ async function fetchProfile(username) {
 
 async function friendAction(username, action) {
     // map "action" to HTTP method and needed query params
-    const actionMap = {
-        "add":    { method: "POST" },
-        "remove": { method: "DELETE" },
-        "accept": { method: "PATCH", accept: true },
-        "ignore": { method: "PATCH", accept: false }
-    };
+	const actionMap = {
+		"add":    { method: "POST" },
+		"remove": { method: "DELETE" },
+		"cancel": { method: "DELETE", cancel: true },
+		"accept": { method: "PATCH", accept: true },
+		"ignore": { method: "PATCH", accept: false }
+	};
 
     const config = actionMap[action];
     if (!config) return;
@@ -46,10 +47,11 @@ async function friendAction(username, action) {
     // define the base URL for all friend actions
     let url = `/api/players/${encodeURIComponent(username)}/friend`;
 
-    // append the query param for PATCH requests (accept/ignore)
-    if (config.method === "PATCH") {
-        url += `?accept=${config.accept}`;
-    }
+	if (config.cancel) {
+		url = `/api/players/${encodeURIComponent(username)}/friend/cancel`;
+	} else if (config.method === "PATCH") {
+		url += `?accept=${config.accept}`;
+	}
 
     try {
         const response = await fetch(url, { method: config.method });
@@ -78,12 +80,23 @@ async function setAddFriendButtonState(button, state) {
 	possible states: friend, sent, received or None (else)
 	*/
 	if (!button) return;
-	const label = button.querySelector('.p-action-label');
+	const label = button.querySelector('.p-action-label');  // ← THIS WAS MISSING
+
 	if (state === 'sent') {
 		button.dataset.sent = '1';
 		if (label) label.textContent = 'Sent!';
 		button.classList.add('p-action-btn-active');
-		button.disabled = true;
+		button.disabled = false;
+
+		// Clean up old listeners first to avoid duplicates
+		if (button._mouseenter) button.removeEventListener('mouseenter', button._mouseenter);
+		if (button._mouseleave) button.removeEventListener('mouseleave', button._mouseleave);
+
+		// Hover: show "Cancel?" on hover
+		button._mouseenter = () => { if (label) label.textContent = 'Cancel?'; };
+		button._mouseleave = () => { if (label) label.textContent = 'Sent!'; };
+		button.addEventListener('mouseenter', button._mouseenter);
+		button.addEventListener('mouseleave', button._mouseleave);
 	}
 	else if (state === 'friend') {
 		if (label) label.textContent = 'Friends';
@@ -93,56 +106,90 @@ async function setAddFriendButtonState(button, state) {
 	else if (state === 'received') {
 		if (label) label.textContent = 'Accept request';
 		button.classList.add('p-action-btn-active');
-		button.disabled = true;
+		button.disabled = false;
+		button.dataset.friendState = 'received';
 	}
-	else
-	{
-		if (label) label.textContent = 'Add friend'
+	else {
+		if (label) label.textContent = 'Add friend';
 		if (button.dataset.sent) delete button.dataset.sent;
-		// remove the class (does nothing if it doesnt exist)		
 		if (button.classList) button.classList.remove('p-action-btn-active');
 		button.disabled = false;
+
+		// Clean up hover listeners if they exist
+		if (button._mouseenter) {
+			button.removeEventListener('mouseenter', button._mouseenter);
+			delete button._mouseenter;
+		}
+		if (button._mouseleave) {
+			button.removeEventListener('mouseleave', button._mouseleave);
+			delete button._mouseleave;
+		}
 	}
 }
 
 async function handleAddFriendClick(username, button) {
-	if (!button) return;
-	if (button.dataset.sent) 
-	{
-		alert('Friend request already sent. Please wait for a response.');
-		return
-	};
+    if (!button) return;
 
-	// Update button state immediately for UX
-	await setAddFriendButtonState(button, 'sent');
+    // If already sent — cancel the request instead
+    if (button.dataset.sent) {
+        await setAddFriendButtonState(button, null);
+        try {
+            const success = await friendAction(username, 'cancel');
+            if (!success) {
+                await setAddFriendButtonState(button, 'sent');
+            }
+        } catch (err) {
+            await setAddFriendButtonState(button, 'sent');
+        }
+        return;
+    }
 
-	try {
-		const success = await friendAction(username, 'add');
-		if (!success) {
-			await setAddFriendButtonState(button, null);
-		}
-	} catch (err) {
-		await setAddFriendButtonState(button, null);
-	}
+    // Normal add flow
+    await setAddFriendButtonState(button, 'sent');
+
+    try {
+        const success = await friendAction(username, 'add');
+        if (success) {
+            document.querySelectorAll('[data-username="' + username + '"]').forEach(function(btn) {
+                if (btn !== button && !btn.dataset.sent) {
+                    var label = btn.querySelector('.p-action-label');
+                    if (label && label.textContent.trim() === 'Add friend') {
+                        setAddFriendButtonState(btn, 'sent');
+                    }
+                }
+            });
+        } else {
+            await setAddFriendButtonState(button, null);
+        }
+    } catch (err) {
+        await setAddFriendButtonState(button, null);
+    }
 }
 
 async function handleAcceptRequest(button) {
-	const username = button.dataset.username;
-	const card = button.closest('.friend-card');
-	if (!card) return;
-	try {
-		const success = await friendAction(username, 'accept');
-		if (success) {
-			card.classList.add('is-accepted');
-			const actions = card.querySelector('.friend-card-actions');
-			if (actions) {
-				actions.innerHTML = '<div class="friend-action-result accepted">✓ Friend added</div>';
-			}
-			decrementPendingBadge();
-		}
-	} catch (err) {
-		console.error('Error accepting request:', err);
-	}
+    const username = button.dataset.username;
+    const card = button.closest('.friend-card, .player-card');
+    try {
+        const success = await friendAction(username, 'accept');
+        if (success) {
+            decrementPendingBadge();
+            if (card && card.classList.contains('friend-card')) {
+                card.classList.add('is-accepted');
+                const actions = card.querySelector('.friend-card-actions');
+                if (actions) {
+                    actions.innerHTML = '<div class="friend-action-result accepted">✓ Friend added</div>';
+                }
+            } else if (card && card.classList.contains('player-card')) {
+                const label = button.querySelector('.p-action-label');
+                if (label) label.textContent = 'Friends';
+                button.classList.add('p-action-btn-active');
+                button.removeAttribute('data-action');
+                button.disabled = true;
+            }
+        }
+    } catch (err) {
+        console.error('Error accepting request:', err);
+    }
 }
 
 async function handleIgnoreRequest(button) {
@@ -166,15 +213,20 @@ async function handleIgnoreRequest(button) {
 async function handleRemoveFriend(button) {
 	const username = button.dataset.username;
 	if (!confirm('Remove ' + username + ' from your friends?')) return;
-	const card = button.closest('.friend-card');
-	if (!card) return;
 	try {
 		const success = await friendAction(username, 'remove');
 		if (success) {
-			card.style.transition = 'opacity .3s ease, transform .3s ease';
-			card.style.opacity = '0';
-			card.style.transform = 'scale(.95)';
-			setTimeout(() => card.remove(), 300);
+			const card = button.closest('.friend-card');
+			if (card) {
+				card.style.transition = 'opacity .3s ease, transform .3s ease';
+				card.style.opacity = '0';
+				card.style.transform = 'scale(.95)';
+				setTimeout(() => card.remove(), 300);
+			} else {
+				button.className = 'p-action-btn p-action-btn-friend';
+				button.dataset.action = 'add-friend';
+				button.innerHTML = '<span class="p-action-icon" aria-hidden="true"></span><span class="p-action-label">Add friend</span>';
+			}
 		}
 	} catch (err) {
 		console.error('Error removing friend:', err);
@@ -644,8 +696,12 @@ function createPlayerCard(player) {
 	friendBtn.onclick = null;
 	friendBtn.addEventListener('click', async e => {
 		e.stopPropagation();
-		await handleAddFriendClick(friendBtn.dataset.username, friendBtn);
-	});
+		if (friendBtn.dataset.friendState === 'received') {
+			await handleAcceptRequest(friendBtn);
+		} else {
+			await handleAddFriendClick(friendBtn.dataset.username, friendBtn);
+		}
+});
 
 	const profileBtn = document.createElement('button');
 	profileBtn.type = 'button';
@@ -1422,7 +1478,17 @@ function setupMultiSelect(root) {
 	});
 
 	options.forEach(option => {
-		option.querySelector('input').addEventListener('change', renderTags);
+		option.querySelector('input').addEventListener('change', function() {
+			const max = parseInt(root.dataset.max);
+			if (max) {
+				const checked = root.querySelectorAll('.multi-select-option input:checked');
+				if (checked.length > max) {
+					this.checked = false;
+					return;
+				}
+			}
+			renderTags();
+		});
 	});
 
 	if (search) {
@@ -1497,3 +1563,153 @@ function validateProfilePictureUpload(input) {
 setupGameTagSearch();
 setupFriendsPage();
 setupSettingsPage();
+
+/* --- THEME --- */
+function toggleTheme() {
+    var html = document.documentElement;
+    var current = html.getAttribute('data-theme');
+    var next = current === 'light' ? 'dark' : 'light';
+    if (next === 'dark') {
+        html.removeAttribute('data-theme');
+    } else {
+        html.setAttribute('data-theme', 'light');
+    }
+    fetch('/api/profile/settings/theme', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ theme: next })
+    });
+}
+
+
+/* --- FILTER PANEL (game page) --- */
+function toggleFilterPanel() {
+	var panel = document.getElementById('filter-panel-aside');
+	var btn   = document.getElementById('filter-hamburger');
+	var open  = panel.classList.toggle('filter-panel--open');
+	btn.setAttribute('aria-expanded', String(open));
+}
+
+
+/* --- INDEX PAGE: game rows & hero search --- */
+document.addEventListener('DOMContentLoaded', function () {
+	var LIMIT = 8;
+	var allExpanded = false;
+	var searching   = false;
+
+	function getCards(rowId) {
+		var row = document.getElementById(rowId);
+		return row ? Array.prototype.slice.call(row.children) : [];
+	}
+
+	function applyLimit(rowId) {
+		getCards(rowId).forEach(function (card, i) {
+			card.style.display = i < LIMIT ? '' : 'none';
+		});
+	}
+
+	function showAll(rowId) {
+		getCards(rowId).forEach(function (card) { card.style.display = ''; });
+	}
+
+	if (document.getElementById('row-age')) {
+		applyLimit('row-age');
+		applyLimit('row-trending');
+		applyLimit('row-all');
+	}
+
+	window.showAllGames = function () {
+		allExpanded = true;
+		showAll('row-all');
+		var footer = document.getElementById('footer-all');
+		if (footer) footer.style.display = 'none';
+	};
+
+	var input = document.getElementById('hero-search');
+	if (!input) return;
+
+	input.addEventListener('input', function () {
+		var q = this.value.toLowerCase().trim();
+
+		if (!q) {
+			searching = false;
+			showAll('row-age');
+			showAll('row-trending');
+			showAll('row-all');
+			applyLimit('row-age');
+			applyLimit('row-trending');
+			if (!allExpanded) {
+				applyLimit('row-all');
+				var footer = document.getElementById('footer-all');
+				if (footer) footer.style.display = '';
+			}
+			return;
+		}
+
+		if (!searching) {
+			searching = true;
+			showAll('row-age');
+			showAll('row-trending');
+			showAll('row-all');
+			var footer = document.getElementById('footer-all');
+			if (footer) footer.style.display = 'none';
+		}
+
+		document.querySelectorAll('.game-card').forEach(function (card) {
+			var name = card.getAttribute('data-name') || '';
+			card.style.display = name.indexOf(q) !== -1 ? '' : 'none';
+		});
+	});
+});
+
+function initProfileFriendButton() {
+    var btn = document.querySelector('.p-action-btn-friend[data-sent="1"]');
+    if (btn) setAddFriendButtonState(btn, 'sent');
+}
+
+/* --- BACK BUTTONS (data-action="back") --- */
+document.addEventListener('DOMContentLoaded', function () {
+	document.querySelectorAll('[data-action="back"]').forEach(function (btn) {
+		btn.addEventListener('click', function () { history.back(); });
+	});
+});
+
+
+/* --- EVENT DELEGATION: data-action wiring --- */
+document.addEventListener('click', function (e) {
+	var el = e.target.closest('[data-action]');
+	if (!el) return;
+
+	var action = el.dataset.action;
+
+	switch (action) {
+		case 'back':               history.back(); break;
+		case 'go-home':            goHome(); break;
+		case 'go-login':           goLogin(); break;
+		case 'go-game':            goGame(el.dataset.slug); break;
+		case 'go-profile':         goProfile(el.dataset.username); break;
+		case 'open-profile':       openProfile(el.dataset.username); break;
+		case 'close-profile':      closeProfile(); break;
+		case 'toggle-theme':       toggleTheme(); break;
+		case 'scroll-nav-left':    scrollNavGames(-1.1); break;
+		case 'scroll-nav-right':   scrollNavGames(1.1); break;
+		case 'toggle-filter-panel': toggleFilterPanel(); break;
+		case 'open-game-profile-popup':  openGameProfilePopup(); break;
+		case 'close-game-profile-popup': closeGameProfilePopup(); break;
+		case 'show-all-games':     showAllGames(); break;
+		case 'confirm-delete-account': confirmDeleteAccount(); break;
+		case 'add-friend':         handleAddFriendClick(el.dataset.username, el); break;
+		case 'remove-friend':      handleRemoveFriend(el); break;
+		case 'accept-request':     handleAcceptRequest(el); break;
+		case 'ignore-request':     handleIgnoreRequest(el); break;
+		case 'show-discord':       showDiscord(e, el); break;
+		case 'show-platform':      showPlatform(e, el); break;
+	}
+});
+
+/* Stop propagation for p-actions wrapper */
+document.addEventListener('click', function (e) {
+	if (e.target.closest('[data-stop-propagation]') && !e.target.closest('[data-action]')) {
+		e.stopPropagation();
+	}
+}, true);

@@ -7,7 +7,7 @@
 
 <main class="friends-wrapper">
 	<div class="friends-header">
-<button type="button" class="back-btn" onclick="history.back()"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
+<button type="button" class="back-btn" data-action="back"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
 		<h1 class="friends-title">Network</h1>
 	</div>
 
@@ -56,8 +56,8 @@
 				</div>
 
 				<div class="friend-card-actions">
-					<button type="button" class="friend-action-btn primary" onclick="openProfile('{{ friend.username }}')">View profile</button>
-				<button type="button" class="friend-action-btn danger" data-username="{{ friend.username }}" onclick="handleRemoveFriend(this)" aria-label="Remove {{ friend.username }} from friends">Remove</button>
+					<button type="button" class="friend-action-btn primary" data-action="open-profile" data-username="{{ friend.username }}">View profile</button>
+				<button type="button" class="friend-action-btn danger" data-username="{{ friend.username }}" data-action="remove-friend" aria-label="Remove {{ friend.username }} from friends">Remove</button>
 				</div>
 			</div>
 			{% endfor %}
@@ -101,10 +101,10 @@
 				</div>
 
 				<div class="friend-card-actions">
-					<button type="button" class="friend-action-btn accept" data-username="{{ req.username }}" onclick="handleAcceptRequest(this)">
+					<button type="button" class="friend-action-btn accept" data-username="{{ req.username }}" data-action="accept-request">
 						<span>Accept</span>
 					</button>
-					<button type="button" class="friend-action-btn ignore" data-username="{{ req.username }}" onclick="handleIgnoreRequest(this)">
+					<button type="button" class="friend-action-btn ignore" data-username="{{ req.username }}" data-action="ignore-request">
 						<span>Ignore</span>
 					</button>
 				</div>

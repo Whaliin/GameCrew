@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.sessions import get_user
 from app.database import get_db
-from app.models import Player, PlayerGameProfile, Game
+from app.models import Player, PlayerGameProfile, Game, Friendship
 from app.schemas import GameProfileSpec
 from app.utils.assets import get_avatar_url, get_game_image_url
 from app.utils.formatters import map_age_range
@@ -39,21 +39,33 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 	# Check if viewing own profile
 	is_own_profile = current_user and current_user.id == player.id
 	my_friend = is_friend(db, current_user, player) if current_user else False
-	
+	pending = db.query(Friendship).filter(
+		Friendship.sender_id == current_user.id,
+		Friendship.receiver_id == player.id,
+		Friendship.accepted == False
+	).first() if current_user else None
+
+	incoming = db.query(Friendship).filter(
+		Friendship.sender_id == player.id,
+		Friendship.receiver_id == current_user.id,
+		Friendship.accepted == False
+	).first() if current_user else None
+
 	# Build profile context
 	profile = {
 		"username": player.username,
 		"avatar_url": get_avatar_url(player.id),
 		"region": player.profile.region.name if player.profile.region else None,
-		"age": map_age_range(player.profile.birth_year) if player.profile.birth_year else None,
-		# "birth_year": player.profile.birth_year,
+		"birth_year": player.profile.birth_year,
 		"bio": player.profile.bio or "",
 		"playtime": " / ".join([pt.name for pt in player.playtimes]) if player.playtimes else None,
 		"platforms": [pf.name for pf in player.platforms] if player.platforms else [],
 		"languages": [lang.name for lang in player.languages] if player.languages else [],
 		"discord": player.profile.discord,
 		"steam": player.profile.steam_url,
+  		"riot": player.profile.riot_id,
 		"is_friend": my_friend,
+		"friend_state": "friend" if my_friend else ("sent" if pending else ("received" if incoming else None)),
 	}
 
 	# add privacy settings:
@@ -62,6 +74,7 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 	if player.profile.private == True and not is_own_profile and not my_friend:
 		profile["discord"] = "Private"
 		profile["steam"] = "Private"
+		profile["riot"] = "Private" 
 		# profile["bio"] = "This profile is private. Send a friend request to view more information about this player."
 		# profile["playtime"] = None
 		# profile["platforms"] = []
@@ -98,6 +111,7 @@ def profile_page(request: Request, username: str, db: Session = Depends(get_db))
 		})
 	
 	context["profile"] = create_profile_context(db, request, current_user)
+	context["theme"] = context["profile"]["theme"] if context["profile"] else "dark"
 	context["viewing"] = profile
 	context["is_own_profile"] = is_own_profile
 	context["current_user"] = current_user

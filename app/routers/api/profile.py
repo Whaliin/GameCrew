@@ -91,6 +91,7 @@ def update_player_profile(
     # Text Fields
     steam: str = Form(None),
     discord: str = Form(None),
+    riot: str = Form(None),
     bio: str = Form(None) # Added this as it's usually in the profile section
 ):
 	"""
@@ -104,6 +105,7 @@ def update_player_profile(
 	:param playtime: A list of playtime preferences (e.g. "weekdays", "weekends", "evenings"). Optional.
 	:param steam: The player's Steam profile URL. Optional.
 	:param discord: The player's Discord handle. Optional.
+	:param riot: The player's riot profile ID. Optional.
 	:param bio: A short biography or description about the player. Optional.
 	:raises HTTPException: 401 if not authenticated, 400 if the input data is invalid (e.g. birth year out of range).
 	:return: A redirect response to the profile settings page on success.
@@ -155,13 +157,38 @@ def update_player_profile(
 
 		if discord is not None:
 			user.profile.discord = discord
-		
+		if riot is not None:
+			user.profile.riot_id = riot
+				
 		db.commit()
 	except Exception as e:
 		db.rollback()
 		raise e
 
 	return RedirectResponse(url="/settings#profile", status_code=303)
+
+@router.delete("/cancel/{username}")
+def cancel_friend_request(username: str, request: Request, db: Session = Depends(get_db)):
+    current_user = get_user(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401)
+    
+    player = db.query(Player).filter(Player.username == username).first()
+    if not player:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    pending = db.query(Friendship).filter(
+        Friendship.sender_id == current_user.id,
+        Friendship.receiver_id == player.id,
+        Friendship.accepted == False
+    ).first()
+    
+    if not pending:
+        raise HTTPException(status_code=404, detail="No pending request found")
+    
+    db.delete(pending)
+    db.commit()
+    return {"status": "cancelled"}
 
 @router.post("/settings/visibility")
 def update_player_privacy(
@@ -278,3 +305,16 @@ async def delete_player_account(request: Request, db: Session = Depends(get_db))
 		delete_session(session_id)
 
 	return Response(status_code=204)
+
+@router.post("/settings/theme")
+async def update_theme(request: Request, db: Session = Depends(get_db)):
+    user = get_user(request, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    body = await request.json()
+    theme = body.get("theme")
+    if theme not in ["dark", "light"]:
+        raise HTTPException(status_code=400, detail="Invalid theme")
+    user.profile.theme = theme
+    db.commit()
+    return {"theme": theme}

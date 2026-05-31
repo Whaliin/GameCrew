@@ -11,7 +11,7 @@
 
 <main class="profile-page">
 	<div class="back-row">
-		<button type="button" class="back-btn" onclick="history.back()"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
+		<button type="button" class="back-btn" data-action="back"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
 	</div>
 
 	<!-- HERO -->
@@ -34,45 +34,67 @@
 					{% endif %}
 					{% if viewing.age %}
 						{% set a = viewing.age | int %}
-						{% set lo = ((a - 18) // 5) * 5 + 18 %}
-						<span class="profile-hero-divider">·</span>
-						<span class="profile-hero-stat age">{{ lo }}&ndash;{{ lo + 4 }}</span>
+						{% if a >= 18 %}
+							{% set lo = ((a - 18) // 5) * 5 + 18 %}
+							<span class="profile-hero-divider">·</span>
+							<span class="profile-hero-stat age">{{ lo }}&ndash;{{ lo + 4 }}</span>
+						{% endif %}
 					{% elif viewing.birth_year %}
 						{% set a = 2026 - viewing.birth_year %}
-						{% set lo = ((a - 18) // 5) * 5 + 18 %}
-						<span class="profile-hero-divider">·</span>
-						<span class="profile-hero-stat age">{{ lo }}&ndash;{{ lo + 4 }}</span>
+						{% if a >= 18 %}
+							{% set lo = ((a - 18) // 5) * 5 + 18 %}
+							<span class="profile-hero-stat age">{{ lo }}&ndash;{{ lo + 4 }}</span>
+						{% endif %}
 					{% endif %}
 				</div>
 			</div>
 
 			<div class="profile-hero-actions">
 				{% if is_self %}
-				<a href="/settings#profile" class="profile-edit-link">Edit profile</a>
-				{% elif viewing.is_friend %}
-				<p>You are friends with {{ viewing.username }}</p>
-				{% else %}
-				<button type="button" class="p-action-btn p-action-btn-friend"
+					<a href="/settings#profile" class="profile-edit-link">Edit profile</a>
+				{% elif viewing.friend_state == 'friend' or viewing.is_friend %}
+				<button type="button" class="p-action-btn p-action-btn-friend p-action-btn-active"
 						data-username="{{ viewing.username }}"
-						onclick="handleAddFriendClick(this.dataset.username, this)"
-						aria-label="Add {{ viewing.username }} as friend">
+						data-action="remove-friend">
 					<span class="p-action-icon" aria-hidden="true"></span>
-					<span class="p-action-label">Add friend</span>
+					<span class="p-action-label">Friends</span>
 				</button>
+				{% elif viewing.friend_state == 'received' %}
+				<button type="button" class="p-action-btn p-action-btn-friend p-action-btn-active"
+						data-username="{{ viewing.username }}"
+						data-action="accept-request">
+					<span class="p-action-icon" aria-hidden="true"></span>
+					<span class="p-action-label">Accept request</span>
+				</button>
+				{% else %}
+					<button type="button" class="p-action-btn p-action-btn-friend{% if viewing.friend_state == 'sent' %} p-action-btn-active{% endif %}"
+							data-username="{{ viewing.username }}"
+							{% if viewing.friend_state == 'sent' %}data-sent="1"{% endif %}
+							onclick="handleAddFriendClick(this.dataset.username, this)"
+							aria-label="Add {{ viewing.username }} as friend">
+						<span class="p-action-icon" aria-hidden="true"></span>
+						<span class="p-action-label">{% if viewing.friend_state == 'sent' %}Sent!{% else %}Add friend{% endif %}</span>
+					</button>
 				{% endif %}
 
-				{% if not viewing.is_self %}
+				{% if not is_self %}
 				{% if viewing.discord %}
 				<button type="button" class="btn-secondary"
 					data-discord="{{ viewing.discord }}"
 					data-username="{{ viewing.username }}"
-					onclick="showDiscord(event, this)">Discord</button>
+					data-action="show-discord">Discord</button>
 				{% endif %}
-				{% if viewing.platform %}
+				{% if viewing.steam %}
 				<button type="button" class="btn-secondary"
-					data-platform="{{ viewing.platform }}"
+					data-platform="{{ viewing.steam }}"
 					data-username="{{ viewing.username }}"
-					onclick="showPlatform(event, this)">Platform</button>
+					data-action="show-platform">Steam</button>
+				{% endif %}
+				{% if viewing.riot %}
+				<button type="button" class="btn-secondary"
+					data-platform="{{ viewing.riot }}"
+					data-username="{{ viewing.username }}"
+					data-action="show-platform">Riot</button>
 				{% endif %}
 				{% endif %}
 			</div>
@@ -104,15 +126,25 @@
 				<div class="profile-info-item">
 					<div class="profile-info-label">Age range</div>
 					<div class="profile-info-value">
-						{% if viewing.age %}
-							{% set a = viewing.age | int %}
-							{% set lo = ((a - 18) // 5) * 5 + 18 %}
-							{{ lo }}&ndash;{{ lo + 4 }}
-						{% elif viewing.birth_year %}
+						{% if viewing.birth_year %}
 							{% set a = 2026 - viewing.birth_year %}
-							{% set lo = ((a - 18) // 5) * 5 + 18 %}
-							{{ lo }}&ndash;{{ lo + 4 }}
-						{% else %}<span class="profile-info-empty">Not set</span>{% endif %}
+							{% if a >= 18 %}
+								{% set lo = ((a - 18) // 5) * 5 + 18 %}
+								{{ lo }}&ndash;{{ lo + 4 }}
+							{% else %}
+								<span class="profile-info-empty">Not set</span>
+							{% endif %}
+						{% elif viewing.age %}
+							{% set a = viewing.age | int %}
+							{% if a >= 18 %}
+								{% set lo = ((a - 18) // 5) * 5 + 18 %}
+								{{ lo }}&ndash;{{ lo + 4 }}
+							{% else %}
+								<span class="profile-info-empty">Not set</span>
+							{% endif %}
+						{% else %}
+							<span class="profile-info-empty">Not set</span>
+						{% endif %}
 					</div>
 				</div>
 
@@ -140,6 +172,12 @@
 				<div class="profile-info-item">
 					<div class="profile-info-label">Steam</div>
 					<div class="profile-info-value">{{ viewing.steam }}</div>
+				</div>
+				{% endif %}
+				{% if viewing.riot %}
+				<div class="profile-info-item">
+					<div class="profile-info-label">Riot</div>
+					<div class="profile-info-value">{{ viewing.riot }}</div>
 				</div>
 				{% endif %}
 			</div>
@@ -210,4 +248,14 @@
 	</section>
 </main>
 {% include "partials/profile-modal.html" %}
+
+{% if viewing.friend_state == 'sent' %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const friendBtn = document.querySelector('.p-action-btn-friend');
+        if (friendBtn) setAddFriendButtonState(friendBtn, 'sent');
+    });
+</script>
+{% endif %}
+
 {% endblock %}

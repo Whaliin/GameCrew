@@ -1,4 +1,3 @@
-```html
 {% extends "base.html" %}
 
 {% block title %}GameCrew | Settings{% endblock %}
@@ -8,7 +7,7 @@
 
 <main class="settings-wrapper">
 	<div class="settings-header-row">
-<button type="button" class="back-btn" onclick="history.back()"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
+<button type="button" class="back-btn" data-action="back"><img class="back-btn-icon" src="/static/img/icons/back-arrow.svg" alt="" aria-hidden="true" width="16" height="16"> Back</button>
 		<h1 class="settings-title">Settings</h1>
 	</div>
 
@@ -36,13 +35,13 @@
 					<span class="settings-nav-icon" aria-hidden="true"><img src="/static/img/icons/icon-account.svg" alt="" width="16" height="16"></span>
 					<span>Visibility</span>
 				</a>
-			</nav>
-			<form method="post" action="/logout" class="settings-sidebar-signout">
+			<form method="post" action="/logout" class="settings-nav-link">
 				<button type="submit" class="settings-signout-btn">
 					<img src="/static/img/icons/icon-signout.svg" alt="" aria-hidden="true" width="16" height="16">
 					<span>Sign out</span>
 				</button>
 			</form>
+			</nav>
 		</aside>
 
 		<!-- PANELS -->
@@ -104,7 +103,7 @@
 								<div class="settings-action-title danger-text">Delete account</div>
 								<div class="settings-action-sub">Permanently remove your account, profile, and all data. This cannot be undone.</div>
 							</div>
-							<button type="button" class="btn-danger" onclick="confirmDeleteAccount()">Delete account</button>
+							<button type="button" class="btn-danger" data-action="confirm-delete-account">Delete account</button>
 						</div>
 					</div>
 				</details>
@@ -165,17 +164,18 @@
 									{% for region in regions %}
 									<option value="{{ region }}" {% if current.region == region %}selected{% endif %}>{{ region }}</option>
 									{% endfor %}
+
 								</select>
+								
 							</div>
 						</div>
 						<div class="settings-field">
 							<label>Languages</label>
-							<div class="multi-select" data-multi-select>
+							<div class="multi-select" data-multi-select data-max="3">
 								<button type="button" class="multi-select-trigger" aria-haspopup="listbox" aria-expanded="false">
 									<div class="multi-select-tags" data-tags>
 										<span class="multi-select-placeholder">Select…</span>
 									</div>
-									<span class="multi-select-arrow" aria-hidden="true"><img src="/static/img/icons/icon-chevron-down.svg" alt="" width="12" height="12"></span>
 								</button>
 								<div class="multi-select-dropdown" hidden>
 									<input type="search" class="multi-select-search" placeholder="Search…" autocomplete="off">

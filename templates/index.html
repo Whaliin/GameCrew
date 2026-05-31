@@ -38,7 +38,7 @@
 				<span class="game-btn-wrap">
 					<span class="corner-tr"></span>
 					<span class="corner-bl"></span>
-					<button class="game-btn" onclick="goGame('{{ game.slug }}')" aria-label="Open {{ game.name }}">
+					<button class="game-btn" data-action="go-game" data-slug="{{ game.slug }}" aria-label="Open {{ game.name }}">
 						<img src="{{ game.image_url }}" alt="{{ game.name }}">
 					</button>
 				</span>
@@ -64,7 +64,7 @@
 				<span class="game-btn-wrap">
 					<span class="corner-tr"></span>
 					<span class="corner-bl"></span>
-					<button class="game-btn" onclick="goGame('{{ game.slug }}')" aria-label="Open {{ game.name }}">
+					<button class="game-btn" data-action="go-game" data-slug="{{ game.slug }}" aria-label="Open {{ game.name }}">
 						<img src="{{ game.image_url }}" alt="{{ game.name }}">
 					</button>
 				</span>
@@ -90,7 +90,7 @@
 				<span class="game-btn-wrap">
 					<span class="corner-tr"></span>
 					<span class="corner-bl"></span>
-					<button class="game-btn" onclick="goGame('{{ game.slug }}')" aria-label="Open {{ game.name }}">
+					<button class="game-btn" data-action="go-game" data-slug="{{ game.slug }}" aria-label="Open {{ game.name }}">
 						<img src="{{ game.image_url }}" alt="{{ game.name }}">
 					</button>
 				</span>
@@ -99,94 +99,11 @@
 			{% endfor %}
 		</div>
 		<div class="section-footer" id="footer-all">
-			<button class="see-all-btn" onclick="showAllGames()">
+			<button class="see-all-btn" data-action="show-all-games">
 				See all {{ all_games|length }} games
 			</button>
 		</div>
 	</section>
-	<footer class="lp-footer">
-		// GameCrew · Group 8 · 2026
-	</footer>
-
 </main>
-
-<script>
-(function () {
-	/* How many cards to show per row on initial load */
-	var LIMIT = 8;
-	var allExpanded = false;
-	var searching   = false;
-
-	function getCards(rowId) {
-		var row = document.getElementById(rowId);
-		return row ? Array.prototype.slice.call(row.children) : [];
-	}
-
-	/* Hide cards beyond LIMIT in a row */
-	function applyLimit(rowId) {
-		getCards(rowId).forEach(function (card, i) {
-			card.style.display = i < LIMIT ? '' : 'none';
-		});
-	}
-
-	/* Show every card in a row */
-	function showAll(rowId) {
-		getCards(rowId).forEach(function (card) { card.style.display = ''; });
-	}
-
-	/* On load: limit all three rows */
-	applyLimit('row-age');
-	applyLimit('row-trending');
-	applyLimit('row-all');
-
-	/* "See all N games" button */
-	window.showAllGames = function () {
-		allExpanded = true;
-		showAll('row-all');
-		var footer = document.getElementById('footer-all');
-		if (footer) footer.style.display = 'none';
-	};
-
-	/* Hero search */
-	var input = document.getElementById('hero-search');
-	if (!input) return;
-
-	input.addEventListener('input', function () {
-		var q = this.value.toLowerCase().trim();
-
-		if (!q) {
-			/* Clear search — restore limits */
-			searching = false;
-			showAll('row-age');
-			showAll('row-trending');
-			showAll('row-all');
-			applyLimit('row-age');
-			applyLimit('row-trending');
-			if (!allExpanded) {
-				applyLimit('row-all');
-				var footer = document.getElementById('footer-all');
-				if (footer) footer.style.display = '';
-			}
-			return;
-		}
-
-		/* First keystroke: expand all so every game is searchable */
-		if (!searching) {
-			searching = true;
-			showAll('row-age');
-			showAll('row-trending');
-			showAll('row-all');
-			var footer = document.getElementById('footer-all');
-			if (footer) footer.style.display = 'none';
-		}
-
-		/* Filter by name */
-		document.querySelectorAll('.game-card').forEach(function (card) {
-			var name = card.getAttribute('data-name') || '';
-			card.style.display = name.indexOf(q) !== -1 ? '' : 'none';
-		});
-	});
-}());
-</script>
 
 {% endblock %}

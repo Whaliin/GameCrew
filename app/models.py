@@ -162,9 +162,11 @@ class PlayerProfile(Base):
 	steam_url: Mapped[str] = mapped_column(String(255), nullable=True)
 	# TODO: is there a way we can validate discord usernames?
 	discord: Mapped[str] = mapped_column(String(255), nullable=True)
+	riot_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
 	player: Mapped["Player"] = relationship("Player", back_populates="profile")
 	region: Mapped["Region"] = relationship("Region")
+	theme: Mapped[str] = mapped_column(String(10), nullable=False, default="dark")
 
 # Player game profile data (e.g rank, playtime, etc)
 class PlayerGameProfile(Base):
