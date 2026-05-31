@@ -25,8 +25,17 @@
 			</div>
 
 			<div class="field">
-				<label for="birth_year">Birth year</label>
-				<input type="number" id="birth_year" name="birth_year" min="1900" max="{{ max_birth_year or 2099 }}" value="{{ form_data.birth_year or '' }}" required>
+				<label for="birth_date">Birth date</label>
+				<input
+					type="date"
+					id="birth_date"
+					name="birth_date"
+					min="1920-01-01"
+					max="{{ max_birth_date }}"
+					value="{{ form_data.birth_date or '' }}"
+					required
+				>
+				<small>You must be at least 18 years old to register. Only your birth year will be stored after validating your age.</small>
 			</div>
 
 			<div class="field">

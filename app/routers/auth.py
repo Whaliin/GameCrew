@@ -25,7 +25,7 @@ def register_context(db: Session, error: str | None = None, form_data: dict | No
 		# Get regions from the database to populate the region dropdown in the form.
 		# We order by name, but ideally we would want to group them by continent.
 		"regions": db.query(Region).order_by(Region.name).all(),
-		"max_birth_year": date.today().year - 18,
+		"max_birth_date": f"{(date.today().replace(year=date.today().year - 18)).isoformat()}",
 		"form_data": form_data or {},
 	}
 
@@ -49,17 +49,17 @@ def post_register(
 	request: Request,
 	username: str = Form(...),
 	password: str = Form(...),
-	birth_year: int = Form(...),
+	birth_date: date = Form(...),
 	region_id: int = Form(...),
 	db: Session = Depends(get_db),
 ):
 	"""Handle user registration form submission.
-	This route only accepts the birth year and region ID as these are considered basic/core profile information."""
+	This route only accepts the birth date and region ID as these are considered basic/core profile information."""
 	
 	# Create a form data dict to pre-fill the next form render with the user's previous input if validation fails.
 	form_data = {
 		"username": username,
-		"birth_year": birth_year,
+		"birth_date": birth_date,
 		"region_id": region_id,
 	}
 
@@ -81,8 +81,8 @@ def post_register(
 			context=register_context(db, password_error, form_data),
 		)
 
-	# Validate birth year
-	age_error = validate_birth_year(birth_year)
+	# Validate birth date
+	age_error = validate_birth_year(birth_date)
 	if age_error:
 		return templates.TemplateResponse(
 			request=request,
@@ -121,7 +121,7 @@ def post_register(
 		new_profile = PlayerProfile(
 			player_id=new_player.id, 
 			region_id=region_id, 
-			birth_year=birth_year
+			birth_year=birth_date.year
 		)
 		db.add(new_profile)
 		

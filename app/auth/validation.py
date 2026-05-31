@@ -39,12 +39,12 @@ def validate_password(password: str) -> str | None:
 	return None
 
 # Check the user's age via year of birth
-def validate_birth_year(birth_year: int) -> str | None:
+def validate_birth_year(birth_date: date) -> str | None:
 	"""Return an error string if user is under 18, or None if valid."""
 	current_year = date.today().year
-	if current_year - birth_year < 18:
+	if birth_date > date.today().replace(year=current_year - 18):
 		return "You must be at least 18 years old to register."
-	if birth_year < 1920 or birth_year > current_year:
+	if birth_date.year < 1920 or birth_date.year > current_year:
 		return "Please enter a valid birth year."
 	return None
 

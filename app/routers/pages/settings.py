@@ -2,6 +2,8 @@
 Page route for user settings page, where users can update their profile information
 """
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
@@ -44,5 +46,7 @@ def settings(request: Request, db: Session = Depends(get_db)):
 	context["platforms"] = [r[0] for r in db.query(Platform.name).distinct().all()]
 	context["playtimes"] = [r[0] for r in db.query(Playtime.name).distinct().all()]
 	context["languages"] = [r[0] for r in db.query(Language.name).distinct().all()]
+
+	context["max_birth_date"] = f"{(date.today().replace(year=date.today().year - 18)).isoformat()}"
 
 	return templates.TemplateResponse(request=request, name="settings.html", context=context)

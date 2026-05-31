@@ -93,6 +93,7 @@ def seed_player_profiles() -> None:
 				bio=f"This is the bio of player{i}. I am a gamer who loves playing games and making friends. Looking for people to play with!",
 				steam_url=choice([f"https://steamcommunity.com/id/player{i}", None]),
 				discord=choice([f"player{i}#1234", None]),
+				riot_id=choice([f"player{i}#NA1", None]),
 				last_update=_pick_random_time(60)
 			)
 			db.add(profile)

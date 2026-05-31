@@ -152,8 +152,14 @@
 
 					<div class="settings-field-row three-cols">
 						<div class="settings-field">
-							<label for="set-birth-year">Birth year</label>
-							<input type="number" id="set-birth-year" name="birth_year" min="1900" max="2026" value="{{ current.birth_year|default('') }}" placeholder="2000">
+							<label for="set-birth-year">Birth date</label>
+							<input
+								type="date"
+								id="set-birth-year"
+								name="birth_date"
+								min="1920-01-01"
+								max="{{ max_birth_date }}"
+							>
 						</div>
 						<div class="settings-field">
 							<label for="set-region">Matchmaking region</label>
