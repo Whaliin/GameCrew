@@ -169,29 +169,6 @@ def update_player_profile(
 
 	return RedirectResponse(url="/settings#profile", status_code=303)
 
-@router.delete("/cancel/{username}")
-def cancel_friend_request(username: str, request: Request, db: Session = Depends(get_db)):
-    current_user = get_user(request, db)
-    if not current_user:
-        raise HTTPException(status_code=401)
-    
-    player = db.query(Player).filter(Player.username == username).first()
-    if not player:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    pending = db.query(Friendship).filter(
-        Friendship.sender_id == current_user.id,
-        Friendship.receiver_id == player.id,
-        Friendship.accepted == False
-    ).first()
-    
-    if not pending:
-        raise HTTPException(status_code=404, detail="No pending request found")
-    
-    db.delete(pending)
-    db.commit()
-    return {"status": "cancelled"}
-
 @router.post("/settings/visibility")
 def update_player_privacy(
 	request: Request,
