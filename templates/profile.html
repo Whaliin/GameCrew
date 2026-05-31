@@ -98,4 +98,171 @@
 				{% endif %}
 				{% endif %}
 			</div>
-... (161 rader kvar)
+		</div>
+	</section>
+
+	<!-- ABOUT -->
+	<section class="profile-section">
+		<div class="hud-header">
+			<h2>About</h2>
+			<div class="hud-line"></div>
+		</div>
+
+		<div class="profile-about">
+			{% if viewing.bio %}
+			<p class="profile-bio">{{ viewing.bio }}</p>
+			{% else %}
+			<p class="profile-bio profile-bio-empty">{% if is_self %}You haven't added a bio yet — <a href="/settings#profile">add one</a>.{% else %}This player hasn't added a bio yet.{% endif %}</p>
+			{% endif %}
+
+			<div class="profile-info-grid">
+				<div class="profile-info-item">
+					<div class="profile-info-label">Region</div>
+					<div class="profile-info-value">
+						{% if viewing.region %}{{ viewing.region|replace('-', ' ')|title }}{% else %}<span class="profile-info-empty">Not set</span>{% endif %}
+					</div>
+				</div>
+
+				<div class="profile-info-item">
+					<div class="profile-info-label">Age range</div>
+					<div class="profile-info-value">
+						{% if viewing.birth_year %}
+							{% set a = 2026 - viewing.birth_year %}
+							{% if a >= 18 %}
+								{% set lo = ((a - 18) // 5) * 5 + 18 %}
+								{{ lo }}&ndash;{{ lo + 4 }}
+							{% else %}
+								<span class="profile-info-empty">Not set</span>
+							{% endif %}
+						{% elif viewing.age %}
+							{% set a = viewing.age | int %}
+							{% if a >= 18 %}
+								{% set lo = ((a - 18) // 5) * 5 + 18 %}
+								{{ lo }}&ndash;{{ lo + 4 }}
+							{% else %}
+								<span class="profile-info-empty">Not set</span>
+							{% endif %}
+						{% else %}
+							<span class="profile-info-empty">Not set</span>
+						{% endif %}
+					</div>
+				</div>
+
+				<div class="profile-info-item">
+					<div class="profile-info-label">Availability</div>
+					<div class="profile-info-value">
+						{% if viewing.playtime is iterable and viewing.playtime is not string and viewing.playtime|length > 0 %}
+							{{ viewing.playtime|join(', ') }}
+						{% elif viewing.playtime is string and viewing.playtime %}
+							{{ viewing.playtime }}
+						{% else %}
+							<span class="profile-info-empty">Not set</span>
+						{% endif %}
+					</div>
+				</div>
+
+				{% if viewing.discord %}
+				<div class="profile-info-item">
+					<div class="profile-info-label">Discord</div>
+					<div class="profile-info-value">{{ viewing.discord }}</div>
+				</div>
+				{% endif %}
+
+				{% if viewing.steam %}
+				<button type="button" class="btn-secondary"
+					data-platform="{{ viewing.steam }}"
+					data-username="{{ viewing.username }}"
+					data-action="show-platform">Steam</button>
+				{% endif %}
+				{% if viewing.riot %}
+				<button type="button" class="btn-secondary"
+					data-platform="{{ viewing.riot }}"
+					data-username="{{ viewing.username }}"
+					data-action="show-platform">Riot</button>
+				{% endif %}
+				{% endif %}
+				{% if viewing.riot %}
+				<div class="profile-info-item">
+					<div class="profile-info-label">Riot</div>
+					<div class="profile-info-value">{{ viewing.riot }}</div>
+				</div>
+				{% endif %}
+			</div>
+
+			<div class="profile-tags-row">
+				<span class="profile-tags-label">Languages</span>
+				<div class="profile-tags">
+					{% if has_languages %}
+						{% for lang in viewing.languages %}
+						<span class="profile-tag">{{ lang }}</span>
+						{% endfor %}
+					{% else %}
+						<span class="profile-info-empty">Not set</span>
+					{% endif %}
+				</div>
+			</div>
+
+			<div class="profile-tags-row">
+				<span class="profile-tags-label">Platforms</span>
+				<div class="profile-tags">
+					{% if has_platforms %}
+						{% for plat in viewing.platforms %}
+						<span class="profile-tag">{{ plat }}</span>
+						{% endfor %}
+					{% else %}
+						<span class="profile-info-empty">Not set</span>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- FAVORITE GAMES -->
+	<section class="profile-section">
+		<div class="hud-header">
+			<h2>Favorite games</h2>
+			<div class="hud-line"></div>
+			{% if viewing.favorite_games and viewing.favorite_games|length > 0 %}
+			<div class="hud-count">{{ viewing.favorite_games|length }} titles</div>
+			{% endif %}
+		</div>
+
+		{% if viewing.favorite_games and viewing.favorite_games|length > 0 %}
+		<div class="profile-fav-row">
+			{% for g in viewing.favorite_games %}
+			<a href="/game/{{ g.game_slug }}" class="profile-fav-tile" aria-label="{{ g.game_name }}">
+				<img class="profile-fav-tile-img" src="{{ g.image_url|default('/static/img/games/default.jpg') }}" alt="{{ g.game_name }}">
+				<div class="profile-fav-tile-body">
+					<div class="profile-fav-tile-name">{{ g.game_name }}</div>
+					{% if g.display_value %}
+					<div class="profile-fav-tile-rank">{{ g.display_value }}</div>
+					{% else %}
+					<div class="profile-fav-tile-rank unranked"></div>
+					{% endif %}
+				</div>
+			</a>
+			{% endfor %}
+		</div>
+		{% else %}
+		<div class="profile-empty">
+			{% if is_self %}
+			You haven't added any favorites yet. Browse a game and click the star to add it.
+			{% else %}
+			This player hasn't favorited any games yet.
+			{% endif %}
+		</div>
+		{% endif %}
+	</section>
+</main>
+{% include "partials/profile-modal.html" %}
+
+{% if viewing.friend_state == 'sent' %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const friendBtn = document.querySelector('.p-action-btn-friend');
+        if (friendBtn) setAddFriendButtonState(friendBtn, 'sent');
+    });
+</script>
+{% endif %}
+
+{% endblock %}

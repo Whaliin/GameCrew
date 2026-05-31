@@ -205,13 +205,37 @@
 						</div>
 					</div>
 					<div class="p-actions" data-stop-propagation="true" >
-						<button type="button" class="action-btn p-action-btn-friend"
+						{% if player.friend_state == 'friend' %}
+						<button type="button" class="p-action-btn p-action-btn-friend p-action-btn-active"
+								data-username="{{ player.username }}"
+								disabled>
+							<span class="p-action-icon" aria-hidden="true"></span>
+							<span class="p-action-label">Friends</span>
+						</button>
+						{% elif player.friend_state == 'sent' %}
+						<button type="button" class="p-action-btn p-action-btn-friend p-action-btn-active"
+								data-username="{{ player.username }}"
+								data-sent="1"
+								data-action="add-friend">
+							<span class="p-action-icon" aria-hidden="true"></span>
+							<span class="p-action-label">Sent!</span>
+						</button>
+						{% elif player.friend_state == 'received' %}
+						<button type="button" class="p-action-btn p-action-btn-friend p-action-btn-active"
+								data-username="{{ player.username }}"
+								data-action="accept-request">
+							<span class="p-action-icon" aria-hidden="true"></span>
+							<span class="p-action-label">Accept requ...</span>
+						</button>
+						{% else %}
+						<button type="button" class="p-action-btn p-action-btn-friend"
 								data-username="{{ player.username }}"
 								data-action="add-friend"
 								aria-label="Add {{ player.username }} as friend">
 							<span class="p-action-icon" aria-hidden="true"></span>
 							<span class="p-action-label">Add friend</span>
 						</button>
+						{% endif %}
 						<button type="button" class="p-action-btn p-action-btn-profile"
 								data-username="{{ player.username }}"
 								data-action="go-profile" data-username="{{ player.username }}"
