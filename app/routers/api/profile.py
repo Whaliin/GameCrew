@@ -2,6 +2,7 @@
 API endpoints related to a players profile (such as updating profile info)
 """
 
+from datetime import date
 from typing import List
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile
@@ -82,7 +83,7 @@ def update_player_profile(
     request: Request,
     db: Session = Depends(get_db),
     # Numeric/Single Selects
-    birth_year: int = Form(None),
+    birth_date: date = Form(None),
     region: str = Form(None),
     # Checkbox Groups
     languages: List[str] = Form([]),
@@ -98,7 +99,7 @@ def update_player_profile(
 	Update the current player's profile information.
 
 	:param request: The incoming request containing the updated profile data in JSON format.
-	:param birth_year: The player's birth year. Optional.
+	:param birth_date: The player's birth date. Optional.
 	:param region: The player's region. Optional.
 	:param languages: A list of languages the player speaks. Optional.
 	:param platforms: A list of gaming platforms the player uses. Optional.
@@ -107,7 +108,7 @@ def update_player_profile(
 	:param discord: The player's Discord handle. Optional.
 	:param riot: The player's riot profile ID. Optional.
 	:param bio: A short biography or description about the player. Optional.
-	:raises HTTPException: 401 if not authenticated, 400 if the input data is invalid (e.g. birth year out of range).
+	:raises HTTPException: 401 if not authenticated, 400 if the input data is invalid (e.g. birth date out of range).
 	:return: A redirect response to the profile settings page on success.
 	"""
 	user = get_user(request, db)
@@ -118,11 +119,12 @@ def update_player_profile(
 		if bio is not None:
 			user.profile.bio = bio
 
-		if birth_year is not None:
-			birth_year_error = validate_birth_year(birth_year)
-			if birth_year_error:
-				raise HTTPException(status_code=400, detail=birth_year_error)
-			user.profile.birth_year = birth_year
+		if birth_date is not None:
+			print("Updating birth date to:", birth_date)
+			birth_date_error = validate_birth_year(birth_date)
+			if birth_date_error:
+				raise HTTPException(status_code=400, detail=birth_date_error)
+			user.profile.birth_year = birth_date.year
 
 		if region is not None:
 			# find the region by name
