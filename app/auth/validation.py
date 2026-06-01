@@ -1,5 +1,6 @@
 import re
 from datetime import date
+from urllib.parse import urlparse
 
 from sqlalchemy.orm import Session
 
@@ -77,4 +78,85 @@ def validate_hardware(db: Session, hardware: str) -> str | None:
 	invalid = [h for h in hardware if h not in valid_platforms]
 	if invalid:
 		return f"Invalid platform(s): {', '.join(invalid)}"
+	return None
+
+_STEAM64_BASE = 76561197960265728
+
+def validate_steam64(value: str) -> bool:
+	value = value.strip()
+
+	if not re.fullmatch(r'\d{17}', value):
+		return False
+	
+	if int(value) < _STEAM64_BASE:
+		return False
+	
+	return True
+	
+def validate_steam(value: str) -> str | None:
+	value = value.strip()
+
+	if not value:
+		return None # Empty is allowed (for optional field)
+	
+	# Check if its a valid url
+	try:
+		url = urlparse(value)
+		if url.scheme not in ('http', 'https'):
+			return "Steam URL must start with http:// or https://"
+		
+		if 'steamcommunity.com' not in url.netloc:
+			return "Steam URL must be from steamcommunity.com"
+		
+		# Check if the path contains /id/ or /profiles/ followed by a valid identifier
+		path_parts = url.path.strip('/').split('/')
+		if len(path_parts) != 2 or path_parts[0] not in ('id', 'profiles'):
+			return "Steam URL must be in the format https://steamcommunity.com/id/yourname or https://steamcommunity.com/profiles/steamid"
+		
+		identifier = path_parts[1]
+		if path_parts[0] == 'id':
+			# Custom vanity URL, we can't validate the identifier format without calling the Steam API, so we'll just check it's non-empty and doesn't contain spaces
+			if not identifier or ' ' in identifier:
+				return "Invalid Steam vanity URL identifier."
+		else:
+			# SteamID64, validate it's a 17-digit number and above the minimum SteamID64 value
+			if not validate_steam64(identifier):
+				return "Invalid SteamID64 in URL."
+	except Exception as e:
+		return "Invalid Steam URL format."
+	
+	# All checks passed
+	return None
+
+def validate_riot(value: str) -> str | None:
+	# Riot ID should have a name and then a tag separated by #
+	value = value.strip()
+	if not value:
+		return None # Empty is allowed (for optional field)
+	
+	parts = value.split('#')
+	if len(parts) != 2:
+		return "Riot ID must be in the format Name#Tag"
+	
+	name, tag = parts
+	if not name or not tag:
+		return "Riot ID must have both a name and a tag."
+	
+	if len(tag) > 5:
+		return "Riot ID tag must be 5 characters or less."
+	
+	return None
+
+def validate_discord(value: str) -> str | None:
+	# Discord username should be max 32 characters and can contain letters, numbers, underscores and periods.
+	value = value.strip()
+	if not value:
+		return None # Empty is allowed (for optional field)
+	
+	if len(value) > 32:
+		return "Discord username must be 32 characters or less."
+	
+	if not re.fullmatch(r'[a-zA-Z0-9_.]+', value):
+		return "Discord username may only contain letters, numbers, underscores, or periods."
+
 	return None
