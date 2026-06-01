@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.hashing import hash_password, verify_password
 from app.auth.sessions import delete_session, get_session, get_session_id, get_user
-from app.auth.validation import validate_birth_year, validate_languages, validate_password, validate_username
+from app.auth.validation import validate_birth_year, validate_languages, validate_password, validate_username, validate_steam, validate_discord, validate_riot
 from app.database import get_db
 from app.models import Language, Platform, Player, Playtime, Region
 
@@ -152,14 +152,28 @@ def update_player_profile(
 			selected_playtimes = db.query(Playtime).filter(Playtime.name.in_(playtime)).all()
 			user.playtimes = selected_playtimes
 
-		if steam is not None:
-			# TODO: steam url validation
-			user.profile.steam_url = steam
+		if steam:
+			print(steam)
+			steam_error = validate_steam(steam)
+			if steam_error:
+				raise HTTPException(status_code=400, detail=steam_error)
+		
+		# allow users to clear their steam/discord/riot by submitting an empty string
+		user.profile.steam_url = steam
 
 		if discord is not None:
-			user.profile.discord = discord
+			discord_error = validate_discord(discord)
+			if discord_error:
+				raise HTTPException(status_code=400, detail=discord_error)
+		
+		user.profile.discord = discord
+
 		if riot is not None:
-			user.profile.riot_id = riot
+			riot_error = validate_riot(riot)
+			if riot_error:
+				raise HTTPException(status_code=400, detail=riot_error)
+		
+		user.profile.riot_id = riot
 				
 		db.commit()
 	except Exception as e:

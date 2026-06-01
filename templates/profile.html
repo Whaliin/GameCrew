@@ -29,22 +29,7 @@
 
 				<div class="profile-hero-stats">
 					{% if viewing.region %}
-					<span class="profile-hero-divider">·</span>
 					<span class="profile-hero-stat region">{{ viewing.region|replace('-', ' ')|upper }}</span>
-					{% endif %}
-					{% if viewing.age %}
-						{% set a = viewing.age | int %}
-						{% if a >= 18 %}
-							{% set lo = ((a - 18) // 5) * 5 + 18 %}
-							<span class="profile-hero-divider">·</span>
-							<span class="profile-hero-stat age">{{ lo }}&ndash;{{ lo + 4 }}</span>
-						{% endif %}
-					{% elif viewing.birth_year %}
-						{% set a = 2026 - viewing.birth_year %}
-						{% if a >= 18 %}
-							{% set lo = ((a - 18) // 5) * 5 + 18 %}
-							<span class="profile-hero-stat age">{{ lo }}&ndash;{{ lo + 4 }}</span>
-						{% endif %}
 					{% endif %}
 				</div>
 			</div>
@@ -126,25 +111,7 @@
 				<div class="profile-info-item">
 					<div class="profile-info-label">Age range</div>
 					<div class="profile-info-value">
-						{% if viewing.birth_year %}
-							{% set a = 2026 - viewing.birth_year %}
-							{% if a >= 18 %}
-								{% set lo = ((a - 18) // 5) * 5 + 18 %}
-								{{ lo }}&ndash;{{ lo + 4 }}
-							{% else %}
-								<span class="profile-info-empty">Not set</span>
-							{% endif %}
-						{% elif viewing.age %}
-							{% set a = viewing.age | int %}
-							{% if a >= 18 %}
-								{% set lo = ((a - 18) // 5) * 5 + 18 %}
-								{{ lo }}&ndash;{{ lo + 4 }}
-							{% else %}
-								<span class="profile-info-empty">Not set</span>
-							{% endif %}
-						{% else %}
-							<span class="profile-info-empty">Not set</span>
-						{% endif %}
+						{{ viewing.age_range}}
 					</div>
 				</div>
 
