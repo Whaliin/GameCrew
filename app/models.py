@@ -102,6 +102,7 @@ class Player(Base):
 	id: Mapped[int] = mapped_column(primary_key=True)
 	created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now())
 	username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+	last_username_change: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.min) # default to min so username can be changed once after registration
 	password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
 
 	profile: Mapped["PlayerProfile"] = relationship(

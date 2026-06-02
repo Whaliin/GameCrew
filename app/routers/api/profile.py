@@ -2,7 +2,7 @@
 API endpoints related to a players profile (such as updating profile info)
 """
 
-from datetime import date
+from datetime import date, datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile
@@ -16,6 +16,8 @@ from app.database import get_db
 from app.models import Language, Platform, Player, Playtime, Region
 
 router = APIRouter(prefix="/profile", tags=["profile"])
+
+USERNAME_CHANGE_COOLDOWN_DAYS = 7
 
 @router.post("/settings/account")
 def update_player_account(
@@ -49,7 +51,12 @@ def update_player_account(
 		existing_user = db.query(Player).filter(Player.username == username).first()
 		if existing_user:
 			raise HTTPException(status_code=400, detail="Username already taken")
+		
+		if user.last_username_change and (date.today() - user.last_username_change.date()).days < USERNAME_CHANGE_COOLDOWN_DAYS:
+			raise HTTPException(status_code=400, detail=f"Username can only be changed once every {USERNAME_CHANGE_COOLDOWN_DAYS} days")
+
 		user.username = username
+		user.last_username_change = datetime.now()
 
 	# Handle Password Change
 	if new_password:

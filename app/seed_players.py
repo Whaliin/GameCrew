@@ -73,7 +73,11 @@ def seed_player_profiles() -> None:
 		existing_dummy_players = db.query(Player).filter(Player.username.like("player%")).all()
 		existing_dummy_indices = [int(player.username[6:]) for player in existing_dummy_players if player.username[6:].isdigit()]
 
+		print("Seeding player profiles...")
 		for i in range(1000):
+			if i % 100 == 0:
+				print(f"Seeding player profile {i+1}/1000...")
+
 			# skip creating a profile if it would conflict with an existing player
 			if i in existing_dummy_indices:
 				continue 
@@ -152,7 +156,10 @@ def seed_player_profiles() -> None:
 		# add some random friendships between players.
 		player_ids = [player.id for player in db.query(Player).all()]
 		seen_friendships = set()  # To track existing friendships and prevent duplicates
+		print("Seeding friendships between players...")
 		for i in range(2000):  # Add 2000 random friendships
+			if i % 200 == 0:
+				print(f"Seeding friendship {i+1}/2000...")
 			sender_id, receiver_id = choice(player_ids), choice(player_ids)
 
 			if sender_id == receiver_id:  
