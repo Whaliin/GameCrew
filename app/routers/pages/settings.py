@@ -24,8 +24,9 @@ def settings(request: Request, db: Session = Depends(get_db)):
 	if not current_user:
 		# If somehow we got here without a user, redirect to login.
 		return RedirectResponse(url="/login", status_code=302)
-	
+
 	context["profile"] 		= create_profile_context(db, request, current_user)
+	context["theme"] = context["profile"]["theme"] if context["profile"] else "dark"
 
 	# attach existing profile information to the context to pre-fill the form fields
 	context["current"] = {
@@ -40,7 +41,7 @@ def settings(request: Request, db: Session = Depends(get_db)):
 		"playtime": [pt.name for pt in current_user.playtimes] if current_user.playtimes else [],
 		"languages": [lang.name for lang in current_user.languages] if current_user.languages else [],
 	}
-
+	
 	context["regions"]   = [r[0] for r in db.query(Region.name).distinct().all()]
 	context["platforms"] = [r[0] for r in db.query(Platform.name).distinct().all()]
 	context["playtimes"] = [r[0] for r in db.query(Playtime.name).distinct().all()]

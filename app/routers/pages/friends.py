@@ -26,6 +26,7 @@ def friends_page(request: Request, db: Session = Depends(get_db)):
 		return RedirectResponse(url="/login", status_code=302)
 
 	context["profile"] = create_profile_context(db, request, current_user)
+	context["theme"] = context["profile"]["theme"] if context["profile"] else "dark"
 
 	# Get the users friends and pending friend requests
 	friends = get_friends(db, current_user)
