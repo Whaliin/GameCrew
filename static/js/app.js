@@ -1571,16 +1571,33 @@ setupFriendsPage();
 setupSettingsPage();
 
 /* --- THEME --- */
+
+// Apply saved localStorage theme on page load (for landing/login/register)
+(function () {
+    var html = document.documentElement;
+    var serverTheme = html.getAttribute('data-theme');
+    // Only use localStorage if the server didn't set a theme (user not logged in)
+    if (!serverTheme) {
+        var saved = localStorage.getItem('theme');
+        if (saved) html.setAttribute('data-theme', saved);
+    }
+})();
+
 function toggleTheme() {
     var html = document.documentElement;
     var current = html.getAttribute('data-theme');
     var next = current === 'light' ? 'dark' : 'light';
     html.setAttribute('data-theme', next);
+
+    // Save to localStorage so unauthenticated pages remember the choice
+    localStorage.setItem('theme', next);
+
+    // Persist to account if logged in (fire-and-forget)
     fetch('/api/profile/settings/theme', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ theme: next })
-    });
+    }).catch(function () {});
 }
 
 
