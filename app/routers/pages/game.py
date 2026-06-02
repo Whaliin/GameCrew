@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.auth.sessions import get_user
-from app.models import Game, PlayerGameProfile, Playtime, Platform, Language
+from app.models import Game, PlayerGameProfile, Playtime, Platform, Language, Region
 from app.routers.pages._shared import templates, create_profile_context
 from app.schemas import GameProfileSpec
 from app.utils.assets import get_game_image_url
@@ -48,6 +48,7 @@ def game_page(request: Request, game_slug: str, db: Session = Depends(get_db)):
 		"playtimes": [pt.name for pt in db.query(Playtime).distinct()],
 		"platforms": [pf.name for pf in db.query(Platform).distinct()],
 		"languages": [lang.name for lang in db.query(Language).distinct()],
+		"regions":   [r.name for r in db.query(Region).distinct()], 
 		"filter_specs": {
 			field_name: field_spec["validation"]
 			for field_name, field_spec in game_schema.to_form_schema()["fields"].items()

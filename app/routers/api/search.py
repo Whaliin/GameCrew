@@ -29,6 +29,7 @@ class PlayerSearchRequest(BaseModel):
 	playtime: list[str] = Field(default_factory=list)
 	platform: list[str] = Field(default_factory=list)
 	language: list[str] = Field(default_factory=list)
+	region: list[str] = Field(default_factory=list)
 	schema_filters: dict[str, Any] = Field(default_factory=dict)
 
 def _normalize_values(value: Any) -> list[str]:
@@ -214,6 +215,10 @@ def search_players_for_game(
 
 		# Filter by language
 		if search_request.language and not _matches_rule_value([item.name for item in player.languages], search_request.language, {}):
+			continue
+
+		# Filter by region
+		if search_request.region and not _matches_rule_value(profile.region.name if profile.region else None, search_request.region, {}):
 			continue
 
 		# Filter by schema fields
