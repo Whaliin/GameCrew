@@ -95,7 +95,18 @@
 							{% for mark in age_marks %}<span>{{ mark }}</span>{% endfor %}
 						</div>
 					</div>
-
+					
+					<div class="filter-group">
+						<div class="filter-group-label">Region</div>
+							<div class="select-wrap">
+								<select id="filter-region" data-filter-group="region" aria-label="Filter by region">
+									<option value="">Any region</option>
+									{% for option in filter_options.regions %}
+									<option value="{{ option }}">{{ option }}</option>
+									{% endfor %}
+								</select>
+							</div>
+						</div>
 					<div class="filter-group">
 						<div class="filter-group-label">Language</div>
 						<div class="select-wrap">
