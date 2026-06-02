@@ -3074,7 +3074,7 @@ section { margin-bottom: 48px; }
 
 .profile-info-label {
 	font-family: 'Orbitron', sans-serif;
-	font-size: 10px;
+	font-size: 12px;
 	font-weight: 600;
 	letter-spacing: .18em;
 	text-transform: uppercase;
@@ -3083,7 +3083,7 @@ section { margin-bottom: 48px; }
 
 .profile-info-value {
 	font-family: 'Share Tech Mono', monospace;
-	font-size: 13px;
+	font-size: 15px;
 	color: var(--cyan);
 	letter-spacing: .04em;
 	word-break: break-word;
@@ -3097,7 +3097,7 @@ section { margin-bottom: 48px; }
 
 .profile-bio {
 	font-family: 'Share Tech Mono', monospace;
-	font-size: 14px;
+	font-size: 16px;
 	color: var(--text-primary);
 	line-height: 1.7;
 	letter-spacing: .02em;
@@ -3460,6 +3460,7 @@ section { margin-bottom: 48px; }
 	gap: 14px;
 	position: relative;
 	overflow: hidden;
+	cursor: pointer;
 }
 
 .friend-card.pending {
@@ -4009,6 +4010,10 @@ section { margin-bottom: 48px; }
  
 [data-theme="light"] .lp-game-online {
 	background: rgba(255, 255, 255, .85);
+}
+
+[data-theme="light"] .lp-link-btn-primary {
+	color: #fff; 
 }
 
 .p-action-btn-friend[data-sent="1"]:hover {

@@ -17,7 +17,7 @@
 			<span class="friends-tab-count">{{ friends|length|default(0) }}</span>
 		</button>
 		<button type="button" class="friends-tab" data-tab="pending">
-			<span class="friends-tab-label">Pending Requests</span>
+			<span class="friends-tab-label">Incoming Requests</span>
 			<span class="friends-tab-count {% if pending_requests and pending_requests|length > 0 %}has-pending{% endif %}">{{ pending_requests|length|default(0) }}</span>
 		</button>
 	</div>
@@ -56,7 +56,7 @@
 				</div>
 
 				<div class="friend-card-actions">
-					<button type="button" class="friend-action-btn primary" data-action="open-profile" data-username="{{ friend.username }}">View profile</button>
+					<button type="button" class="friend-action-btn primary" data-action="go-profile" data-username="{{ friend.username }}">View profile</button>
 				<button type="button" class="friend-action-btn danger" data-username="{{ friend.username }}" data-action="remove-friend" aria-label="Remove {{ friend.username }} from friends">Remove</button>
 				</div>
 			</div>

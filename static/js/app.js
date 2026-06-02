@@ -1688,6 +1688,12 @@ function initProfileFriendButton() {
 
 /* --- EVENT DELEGATION: data-action wiring --- */
 document.addEventListener('click', function (e) {
+	var friendCard = e.target.closest('.friend-card');
+	if (friendCard && !e.target.closest('[data-action]')) {
+		var username = friendCard.querySelector('[data-username]');
+		if (username) openProfile(username.dataset.username);
+	}
+
 	var el = e.target.closest('[data-action]');
 	if (!el) return;
 
